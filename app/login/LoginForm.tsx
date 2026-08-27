@@ -1,29 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { Field, Toast } from "@/components/ui";
 
 export default function LoginForm() {
   const t = STR.he;
-  const router = useRouter();
   const params = useSearchParams();
   const [mode, setMode] = useState<"in" | "up">(params.get("mode") === "signup" ? "up" : "in");
 
-  const [f, setF] = useState({ email: "", password: "", name: "", phone: "", slug: "" });
+  const [f, setF] = useState({ email: "", name: "", phone: "", slug: "" });
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
-  const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 4000); };
+  const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 5000); };
 
-  async function submit() {
+  // the callback route sends failures back here rather than to a dead end
+  useEffect(() => {
+    const e = params.get("err");
+    if (e === "expired") say(t.linkExpired);
+    if (e === "profile") say(t.profileFailed);
+  }, [params, t.linkExpired, t.profileFailed]);
+
+  async function sendLink() {
     const e: Record<string, string> = {};
     if (!/^\S+@\S+\.\S+$/.test(f.email.trim())) e.email = t.errEmail;
-    if (f.password.length < 6) e.password = t.errPw;
     if (mode === "up") {
       if (!f.name.trim()) e.name = t.errTitle;
       if (!/^[\d\s+-]{7,}$/.test(f.phone.trim())) e.phone = t.errPhone;
@@ -32,40 +38,62 @@ export default function LoginForm() {
     if (Object.keys(e).length) { setErr(e); return; }
     setErr({});
     setBusy(true);
+
     const supabase = supabaseBrowser();
+    const email = f.email.trim();
+    const emailRedirectTo = `${window.location.origin}/auth/confirm`;
 
     if (mode === "in") {
-      const { error } = await supabase.auth.signInWithPassword({
-        email: f.email.trim(), password: f.password,
+      // shouldCreateUser stays off, so a typo'd address says "no such sale"
+      // instead of quietly opening an empty account under the wrong email
+      const { error } = await supabase.auth.signInWithOtp({
+        email, options: { shouldCreateUser: false, emailRedirectTo },
       });
       setBusy(false);
-      if (error) return say(error.message);
-      router.push("/dashboard");
+      if (error) return say(/not found|signups not allowed|invalid/i.test(error.message)
+        ? t.noSuchAccount : error.message);
+      setSentTo(email);
       return;
     }
 
-    // the slug is checked before creating the account, so a taken address
-    // doesn't leave a half-made user behind
+    // checked before the mail goes out, so a taken address is caught while
+    // she can still change it rather than after she clicks the link
     const { data: taken } = await supabase
       .from("public_sales").select("slug").eq("slug", f.slug.trim()).maybeSingle();
     if (taken) { setBusy(false); setErr({ slug: t.slugTaken }); return; }
 
-    const { data, error } = await supabase.auth.signUp({
-      email: f.email.trim(), password: f.password,
-    });
-    if (error || !data.user) { setBusy(false); return say(error?.message ?? "signup failed"); }
-
-    const { error: pErr } = await supabase.from("profiles").insert({
-      id: data.user.id,
-      display_name: f.name.trim(),
-      phone: f.phone.replace(/\D/g, ""),
-      slug: f.slug.trim(),
+    // these ride along on the auth user, and become the profile row in
+    // app/auth/confirm once she clicks through
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo,
+        data: {
+          display_name: f.name.trim(),
+          phone: f.phone.replace(/\D/g, ""),
+          slug: f.slug.trim(),
+        },
+      },
     });
     setBusy(false);
+    if (error) return say(error.message);
+    setSentTo(email);
+  }
 
-    if (pErr) return say(pErr.message);
-    if (!data.session) return say(t.checkEmail);   // email confirmation is on
-    router.push("/dashboard");
+  if (sentTo) {
+    return (
+      <main className="gs-auth">
+        <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
+        <h1 className="gs-sheet-title">{t.linkSentTitle}</h1>
+        <p className="gs-lead">{t.linkSentBody(sentTo)}</p>
+        <p className="gs-fine">{t.linkSentFine}</p>
+        <button className="gs-btn gs-btn-wide" onClick={sendLink} disabled={busy}>
+          {busy ? t.loading : t.resend}
+        </button>
+        <button className="gs-btn-ghost" onClick={() => setSentTo(null)}>{t.useAnotherMail}</button>
+        {toast && <Toast text={toast} />}
+      </main>
+    );
   }
 
   return (
@@ -82,7 +110,6 @@ export default function LoginForm() {
       </div>
 
       <Field label={t.email} value={f.email} onChange={(v) => set("email", v)} err={err.email} ltr type="email" />
-      <Field label={t.password} value={f.password} onChange={(v) => set("password", v)} err={err.password} ltr type="password" />
 
       {mode === "up" && (
         <>
@@ -96,8 +123,8 @@ export default function LoginForm() {
         </>
       )}
 
-      <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={submit} disabled={busy}>
-        {busy ? t.loading : mode === "in" ? t.signIn : t.signUp}
+      <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={sendLink} disabled={busy}>
+        {busy ? t.loading : t.sendLink}
       </button>
 
       {toast && <Toast text={toast} />}
