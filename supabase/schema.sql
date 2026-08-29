@@ -136,7 +136,7 @@ create or replace function reserve_units(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp   -- pg_temp is searched first unless named
 as $$
 declare
   v_seller  uuid;
@@ -185,7 +185,11 @@ begin
     'reserved', to_jsonb(v_ok),
     'unavailable', to_jsonb(array(select unnest(p_unit_ids) except select unnest(v_ok))),
     'seller_name', v_name,
-    'seller_phone', v_phone
+    -- the phone is the payoff for actually claiming something. returning it on
+    -- every ok:true let anyone with the (public) slug harvest it by calling with
+    -- one made-up uuid, reserving nothing and leaving no request row behind.
+    'seller_phone', case when coalesce(array_length(v_ok, 1), 0) > 0
+                         then v_phone else null end
   );
 end $$;
 
