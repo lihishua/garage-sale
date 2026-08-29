@@ -4,36 +4,55 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, money } from "@/lib/i18n";
-import type { Item, ItemStatus, RequestRow } from "@/lib/types";
+import type { Item, ItemStatus, RequestRow, StagedPhoto, Unit } from "@/lib/types";
 import { StatChip, Toast } from "@/components/ui";
-import AddItem from "./AddItem";
+import UploadPhotos from "./UploadPhotos";
 
 type Profile = { display_name: string; phone: string; slug: string };
 
-export default function BoardClient({ profile, items: initial, requests }:
-  { profile: Profile; items: Item[]; requests: RequestRow[] }) {
+// who holds a reserved unit is derived from `requests`, not stored on the unit
+// — Task 6 wires holdersByUnit in. Until then the request list below is where
+// the seller reads a buyer's name and number.
+const unitState = (s: ItemStatus) =>
+  s === "sold" ? STR.he.statSold : s === "reserved" ? STR.he.statHeld : STR.he.waiting;
+
+export default function BoardClient({ profile, items: initial, requests, staged }:
+  { profile: Profile; items: Item[]; requests: RequestRow[]; staged: StagedPhoto[] }) {
   const t = STR.he;
   const router = useRouter();
   const supabase = supabaseBrowser();
 
   const [items, setItems] = useState(initial);
+  const [pool, setPool] = useState(staged);
   const [f, setF] = useState<"all" | ItemStatus>("all");
-  const [adding, setAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
 
-  const free = items.filter((i) => i.status === "available");
-  const held = items.filter((i) => i.status === "reserved");
-  const sold = items.filter((i) => i.status === "sold");
-  const earned = sold.reduce((s, i) => s + i.price, 0);
+  // a card has no status of its own any more: every count is over its units,
+  // and `price` is per unit, so earnings sum one photo at a time
+  const units = useMemo(
+    () => items.flatMap((i) => i.units.map((u) => ({ u, i }))),
+    [items]
+  );
+  const free = units.filter(({ u }) => u.status === "available");
+  const held = units.filter(({ u }) => u.status === "reserved");
+  const sold = units.filter(({ u }) => u.status === "sold");
+  const earned = sold.reduce((s, { i }) => s + i.price, 0);
 
   const list = useMemo(() => {
-    if (f === "available") return free;
-    if (f === "reserved") return held;
-    if (f === "sold") return sold;
-    return items.filter((i) => i.status !== "sold");
-  }, [f, items, free, held, sold]);
+    // a unit-less card would otherwise be unreachable, including to delete
+    if (f === "all") return items.filter((i) => !i.units.length || i.units.some((u) => u.status !== "sold"));
+    return items.filter((i) => i.units.some((u) => u.status === f));
+  }, [f, items]);
+
+  // which card a reserved unit belongs to, for the request lists below
+  const unitIndex = useMemo(() => {
+    const m = new Map<string, { unit: Unit; item: Item }>();
+    items.forEach((item) => item.units.forEach((unit) => m.set(unit.id, { unit, item })));
+    return m;
+  }, [items]);
 
   // read after mount: the origin is unknown on the server, and rendering a
   // different string there than in the browser is a hydration mismatch
@@ -42,12 +61,13 @@ export default function BoardClient({ profile, items: initial, requests }:
     setSaleUrl(`${window.location.origin}/${profile.slug}`);
   }, [profile.slug]);
 
-  async function setStatus(id: string, status: ItemStatus) {
-    const patch: Partial<Item> = { status };
-    if (status === "available") { patch.reserved_by_name = null; patch.reserved_by_phone = null; }
-    const { error } = await supabase.from("items").update(patch).eq("id", id);
+  async function setUnitStatus(unitId: string, status: ItemStatus) {
+    const { error } = await supabase.from("item_units").update({ status }).eq("id", unitId);
     if (error) return say(error.message);
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } as Item : i)));
+    setItems((prev) => prev.map((i) => ({
+      ...i,
+      units: i.units.map((u) => (u.id === unitId ? { ...u, status } : u)),
+    })));
     say(status === "sold" ? t.statSold : t.backToStock);
   }
 
@@ -55,7 +75,9 @@ export default function BoardClient({ profile, items: initial, requests }:
     if (!confirm(t.confirmDelete)) return;
     const { error } = await supabase.from("items").delete().eq("id", item.id);
     if (error) return say(error.message);
-    await supabase.storage.from("photos").remove([item.photo_path, item.thumb_path]);
+    // the units cascade with the row; their blobs do not
+    const paths = item.units.flatMap((u) => [u.photo_path, u.thumb_path]);
+    if (paths.length) await supabase.storage.from("photos").remove(paths);
     setItems((prev) => prev.filter((i) => i.id !== item.id));
   }
 
@@ -67,7 +89,7 @@ export default function BoardClient({ profile, items: initial, requests }:
       <div className="gs-board-head">
         <h1 className="gs-board-title">{t.boardTitle}</h1>
         <div style={{ display: "flex", gap: 8 }}>
-          <button className="gs-btn gs-btn-cream" onClick={() => setAdding(true)}>{t.addTitle}</button>
+          <button className="gs-btn gs-btn-cream" onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
           <button className="gs-btn-ghost" onClick={async () => {
             await supabase.auth.signOut(); router.push("/login");
           }}>{t.signOut}</button>
@@ -97,9 +119,9 @@ export default function BoardClient({ profile, items: initial, requests }:
         <div className="gs-reqs">
           {requests.map((r) => {
             const lines = r.request_items
-              .map((ri) => items.find((i) => i.id === ri.item_id))
-              .filter(Boolean) as Item[];
-            const total = lines.reduce((s, i) => s + i.price, 0);
+              .map((ri) => unitIndex.get(ri.unit_id))
+              .filter(Boolean) as { unit: Unit; item: Item }[];
+            const total = lines.reduce((s, l) => s + l.item.price, 0);
             return (
               <div key={r.id} className="gs-req">
                 <div className="gs-req-top">
@@ -110,11 +132,11 @@ export default function BoardClient({ profile, items: initial, requests }:
                   </span>
                 </div>
                 <ul className="gs-req-items">
-                  {lines.map((i) => (
-                    <li key={i.id}>
-                      {i.title} — {money(i.price)}
-                      {i.status === "sold" && <b> · {t.statSold}</b>}
-                      {i.status === "available" && <b> · {t.backToStock}</b>}
+                  {lines.map(({ unit, item }) => (
+                    <li key={unit.id}>
+                      {item.title} — {money(item.price)}
+                      {unit.status === "sold" && <b> · {t.statSold}</b>}
+                      {unit.status === "available" && <b> · {t.backToStock}</b>}
                     </li>
                   ))}
                 </ul>
@@ -131,50 +153,73 @@ export default function BoardClient({ profile, items: initial, requests }:
         </div>
       )}
 
+      <h2 className="gs-h2">{t.poolTitle}</h2>
+      {pool.length === 0 ? <p className="gs-empty">{t.poolEmpty}</p> : (
+        <>
+          <p className="gs-lead">{t.poolWaiting(pool.length)}</p>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {pool.map((p) => (
+              <img key={p.id} className="gs-mini" src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
+            ))}
+          </div>
+        </>
+      )}
+
       <h2 className="gs-h2">{f === "sold" ? t.statSold : t.stillHere}</h2>
       <div className="gs-grid">
-        {list.map((it) => (
-          <article key={it.id} className={"gs-card" + (it.status !== "available" ? " taken" : "")}>
-            <div className="gs-photo">
-              <img src={photoUrl(it.thumb_path)} alt={it.title} loading="lazy" />
-              {it.status === "reserved" && (
-                <span className="gs-band">{t.heldFor(it.reserved_by_name?.split(" ")[0] ?? "")}</span>
-              )}
-            </div>
-            <div className="gs-card-body">
-              <h3 className="gs-card-title">{it.title}</h3>
-              <div className="gs-card-row">
-                <span className="gs-price">{money(it.price)}</span>
-                {it.status === "reserved" && (
-                  <span className="gs-tags" dir="ltr">{it.reserved_by_phone}</span>
-                )}
+        {list.map((it) => {
+          const cover = it.units[0];
+          const gone = it.units.length > 0 && it.units.every((u) => u.status !== "available");
+          return (
+            <article key={it.id} className={"gs-card" + (gone ? " taken" : "")}>
+              <div className="gs-photo">
+                {cover && <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />}
               </div>
-              {it.status === "reserved" ? (
-                <div className="gs-actions">
-                  <button className="gs-btn gs-btn-green gs-btn-sm" onClick={() => setStatus(it.id, "sold")}>
-                    {t.markSold}
-                  </button>
-                  <button className="gs-btn gs-btn-cream gs-btn-sm" onClick={() => setStatus(it.id, "available")}>
-                    {t.backToStock}
-                  </button>
+              <div className="gs-card-body">
+                <h3 className="gs-card-title">{it.title}</h3>
+                <div className="gs-card-row">
+                  <span className="gs-price">{money(it.price)}</span>
+                  <span className="gs-tags">{t.photoCount(it.units.length)}</span>
                 </div>
-              ) : it.status === "sold" ? (
-                <p className="gs-waiting">{t.statSold}</p>
-              ) : (
-                <div className="gs-actions">
-                  <p className="gs-waiting">{t.waiting}</p>
-                  <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
-                </div>
-              )}
-            </div>
-          </article>
-        ))}
+
+                {/* one row per photo. a single-photo item is a batch of one, so
+                    there is no second code path for it. */}
+                <ul className="gs-list">
+                  {it.units.map((u) => (
+                    <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
+                      {it.units.length > 1 && (
+                        <img className="gs-mini" src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
+                      )}
+                      <span className="gs-list-name">{unitState(u.status)}</span>
+                      <div className="gs-actions" style={{ marginTop: 0 }}>
+                        {u.status !== "sold" && (
+                          <button className="gs-btn gs-btn-green gs-btn-sm"
+                            onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
+                        )}
+                        {u.status !== "available" && (
+                          <button className="gs-btn gs-btn-cream gs-btn-sm"
+                            onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
+                        )}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+
+                <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
+              </div>
+            </article>
+          );
+        })}
       </div>
 
-      {adding && (
-        <AddItem
-          onClose={() => setAdding(false)}
-          onAdded={(item) => { setItems((p) => [item, ...p]); setAdding(false); say(t.itemAdded); }}
+      {uploading && (
+        <UploadPhotos
+          onClose={() => setUploading(false)}
+          onUploaded={(photos) => {
+            // appended, matching the oldest-first order the board is fetched in
+            setPool((p) => [...p, ...photos]);
+            say(t.photosAdded(photos.length));
+          }}
         />
       )}
 

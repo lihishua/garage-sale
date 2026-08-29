@@ -101,6 +101,13 @@ export const STR = {
     poolWaiting: (n: number) => (n === 1 ? "תמונה אחת ממתינה" : `${n} תמונות ממתינות`),
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
+    uploadingN: (done: number, total: number) => `מעלה ${done} מתוך ${total}`,
+    photosAdded: (n: number) =>
+      n === 1 ? "תמונה אחת נוספה לתמונות שמחכות." : `${n} תמונות נוספו לתמונות שמחכות.`,
+    photosRejected: (n: number) =>
+      n === 1 ? "תמונה אחת נדחתה — קטנה מדי או לא נקראה." : `${n} תמונות נדחו — קטנות מדי או לא נקראו.`,
+    photosFailed: (n: number) =>
+      n === 1 ? "תמונה אחת לא עלתה. נסו שוב." : `${n} תמונות לא עלו. נסו שוב.`,
     createItem: "יצירת פריט",
     createItemFrom: (n: number) => (n === 1 ? "יצירת פריט מתמונה אחת" : `יצירת פריט מ־${n} תמונות`),
     bundlePrice: "מחיר ללוט",
@@ -226,6 +233,13 @@ export const STR = {
     poolWaiting: (n: number) => `${n} photo${n > 1 ? "s" : ""} waiting`,
     poolEmpty: "No photos waiting right now. Upload a few to get started.",
     selectPhotos: "Select photos",
+    uploadingN: (done: number, total: number) => `Uploading ${done} of ${total}`,
+    photosAdded: (n: number) =>
+      n === 1 ? "1 photo added to the waiting photos." : `${n} photos added to the waiting photos.`,
+    photosRejected: (n: number) =>
+      n === 1 ? "1 photo was rejected — too small or unreadable." : `${n} photos were rejected — too small or unreadable.`,
+    photosFailed: (n: number) =>
+      n === 1 ? "1 photo didn't upload. Try again." : `${n} photos didn't upload. Try again.`,
     createItem: "Create item",
     createItemFrom: (n: number) => `Create an item from ${n} photo${n > 1 ? "s" : ""}`,
     bundlePrice: "Bundle price",
