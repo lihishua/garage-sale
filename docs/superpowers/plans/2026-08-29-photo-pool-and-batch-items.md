@@ -643,3 +643,49 @@ filter belong here, with the listings grid.
 two halves should be distinguishable at a glance on a phone, which is where she will use it.
 
 - [ ] **Step 5: Verify and commit.**
+
+---
+
+### Task 11: The item sheet, redesigned by the seller
+
+**Added after she used the buyer's page.** Hearts on every photo were the wrong instrument
+for a single thing shown from several angles — there is only one decision to make, so
+there should be one control to make it with.
+
+**Files:** `app/[slug]/SaleClient.tsx`, `app/globals.css`, `lib/i18n.ts`.
+
+- [ ] **Step 1: A single item or set — one decision, one button**
+
+One unit, however many photos. **No hearts on the photos at all.** The gallery is just
+pictures. At the bottom, one button — *"אני רוצה את זה"* — which adds the unit to the wish
+list **and closes the card**, because the decision is made and there is nothing else to do
+in there.
+
+An **×** in the top corner closes without deciding.
+
+- [ ] **Step 2: A מארז — two ways to want it**
+
+Hearts stay on each photo, because each is a separate thing. Two buttons at the bottom:
+
+- *"אני רוצה הכל"* — every available unit
+- *"אני רוצה רק את מה שסימנתי"* — the hearted ones, disabled while none are marked
+
+Both close the card, as in Step 1.
+
+- [ ] **Step 3: A מארז's grid thumbnail is a collage**
+
+Not one photo standing in for many — that was actively misleading, since the cover could be
+a claimed unit while the heart claimed a different one. A collage says "several things"
+before a buyer reads a word.
+
+Up to **4** photos in a 2×2 for a small מארז, up to **9** in a 3×3 for a larger one; not
+every photo need appear. Pure CSS grid over the existing thumbnails — no image generation,
+no canvas, no new dependency.
+
+A single item or set keeps its one cover photo.
+
+Availability is carried by the count and the greying, not by which photos the collage
+happens to show.
+
+- [ ] **Step 4: Verify and commit.** The wish list, the send path and `reserve_units` are
+unchanged — this task changes only how a buyer says what she wants, not what happens next.
