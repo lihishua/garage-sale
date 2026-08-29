@@ -230,9 +230,11 @@ export default function CreateItem({ photos, onClose, onCreated }: {
         </>
       )}
 
+      {/* the example, and the price label, follow the choice made above */}
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
-        err={err.title} placeholder={t.whatPh} />
-      <Field label={t.price} value={f.price} onChange={(v) => set("price", v.replace(/\D/g, ""))}
+        err={err.title} placeholder={many ? t.whatPhMany : t.whatPhOne} />
+      <Field label={many ? t.pricePerUnit : t.price} value={f.price}
+        onChange={(v) => set("price", v.replace(/\D/g, ""))}
         err={err.price} hint={many ? t.pricePerUnitHint : undefined} ltr />
 
       {/* only a lot can be sold all at once. For one crib, `price` is the price. */}

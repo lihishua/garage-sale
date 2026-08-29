@@ -92,9 +92,11 @@ export default function EditItem({ item, onClose, onSaved }: {
 
   return (
     <Sheet title={t.editItem} onClose={onClose} busy={busy}>
+      {/* a listing with several units prices per item; a single one just has a price */}
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
-        err={err.title} placeholder={t.whatPh} />
-      <Field label={t.price} value={f.price} onChange={(v) => set("price", v.replace(/\D/g, ""))}
+        err={err.title} placeholder={multi ? t.whatPhMany : t.whatPhOne} />
+      <Field label={multi ? t.pricePerUnit : t.price} value={f.price}
+        onChange={(v) => set("price", v.replace(/\D/g, ""))}
         err={err.price} hint={multi ? t.pricePerUnitHint : undefined} ltr />
 
       {/* only a lot can be sold all at once — for one crib, `price` is the price */}
