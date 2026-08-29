@@ -191,7 +191,7 @@ create or replace function reserve_units(
 ) returns jsonb
 language plpgsql
 security definer
-set search_path = public
+set search_path = public, pg_temp   -- pg_temp is searched first unless named
 as $$
 declare
   v_seller  uuid;
@@ -240,7 +240,11 @@ begin
     'reserved', to_jsonb(v_ok),
     'unavailable', to_jsonb(array(select unnest(p_unit_ids) except select unnest(v_ok))),
     'seller_name', v_name,
-    'seller_phone', v_phone
+    -- the phone is the payoff for actually claiming something. returning it on
+    -- every ok:true let anyone with the (public) slug harvest it by calling with
+    -- one made-up uuid, reserving nothing and leaving no request row behind.
+    'seller_phone', case when coalesce(array_length(v_ok, 1), 0) > 0
+                         then v_phone else null end
   );
 end $$;
 
@@ -264,9 +268,20 @@ curl -s -X POST "$RPC" "${H[@]}" \
 # expect {"ok": false, "error": "no_such_sale"}
 ```
 
-- [ ] **Step 3: The race test — the one that actually matters**
+- [ ] **Step 3: The guard test**
 
-Run in the SQL Editor. It creates a lot of 3, fires two competing claims for the *same* unit, and asserts exactly one wins.
+Run in the SQL Editor. **Name it honestly: this is not a concurrency test.** Two
+sequential calls in one session cannot interleave, so it can never fail on a genuine
+race. What it does prove is that the `where status = 'available'` qual rejects a second
+claim on an already-taken unit, that the loser is told, and that no orphan request row
+is written for them. That is worth having; it is just not the thing its name implied.
+
+**Real concurrency is verified separately** by the controller, firing two simultaneous
+`curl` calls at the RPC over two connections against real seeded units (Step 3b).
+
+Every assertion must be scoped to rows this test created. An unscoped
+`delete from requests where seller_id = ...` would destroy the seller's real requests,
+and an unscoped `count(*)` would fail spuriously once real data exists.
 
 ```sql
 do $$
