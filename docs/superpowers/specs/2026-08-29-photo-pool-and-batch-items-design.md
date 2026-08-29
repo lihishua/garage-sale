@@ -26,9 +26,15 @@ So the model becomes two levels:
 | **unit** | one photo | its own status, its own reserved-by details |
 
 **A single item is a batch of one.** A sofa is a card with one unit; books are a card
-with twenty. There is no separate code path for "normal" and "batch" items — the grid,
-the wish list and the reservation function all work one way. This is the decision the
-whole design rests on.
+with twenty.
+
+**A photo and a claimable thing are not the same.** A crib shot from five angles is one
+unit with five photos. A table-and-four-chairs set is one unit, sold together. Twenty books
+are twenty units. So a unit owns its photos (`unit_photos`), and the create form asks which
+kind it is whenever more than one photo is selected — the app cannot infer it.
+
+There is no separate code path for "normal" and "batch" items. The grid, the wish list and
+the reservation function all work one way. This is the decision the whole design rests on.
 
 ---
 
@@ -117,10 +123,9 @@ An item card is greyed only when **every** unit is gone. A lot with 17 of 20 sti
 available is a live card showing 17; the three sold ones appear greyed inside its
 carousel.
 
-**What is still never sent:** `reserved_by_name` and `reserved_by_phone`. Those are a
-buyer's personal details and stay off the public page exactly as now — the public query
-names its columns explicitly and omits them. Making sold units visible must not become a
-route to who bought what.
+**Making sold units visible must not become a route to who bought what.** It cannot:
+there are no buyer-detail columns on `item_units` to expose. That is enforced by the
+schema rather than by query discipline — see the data model below.
 
 ### The bundle price
 
@@ -136,8 +141,10 @@ wondering where her price went.
 ## Data model
 
 ```
-profiles ──< items ──< item_units >── request_items >── requests
-                          ▲
+profiles ──< items ──< item_units ──< unit_photos
+                          │
+                          └──< request_items >── requests
+
 profiles ──< staged_photos (the pool)
 ```
 
@@ -160,7 +167,10 @@ simply its price.
 | `photo_path`, `thumb_path` | as items had |
 | `position` | integer, 0 is the cover |
 | `status` | available / reserved / sold — the existing enum, unchanged |
-| `reserved_by_name`, `reserved_by_phone` | as items had |
+
+Deliberately **no** `reserved_by_*` columns. This table is world-readable, and row level
+security is row-level only, so any column on it is public whatever the app's own queries
+ask for. Who asked for what lives solely in `requests`.
 
 ### `staged_photos` — new
 
@@ -178,6 +188,8 @@ Unchanged in spirit, extended to the new tables:
 
 - `item_units` — anyone may read; only the owning seller may write (via the parent item's
   `seller_id`)
+- `unit_photos` — anyone may read (image paths only, no buyer details); only the owning
+  seller may write, reached through the unit's parent item
 - `staged_photos` — the owning seller only, for everything. Never public.
 - `items` — as today
 - Nobody may write `requests` directly; the function below stays the only route

@@ -427,9 +427,66 @@ Expected: `[]` from anon (RLS working), and 3 rows visible on the board while si
 
 Thumbnails with a tick overlay. Header shows `poolWaiting(n)`. Action button reads `createItemFrom(selectedCount)` and is disabled at zero.
 
+- [ ] **Step 1b: Extra views of one thing — schema**
+
+A photo and a thing-you-can-buy are not the same. A crib shot from five angles is **one**
+claimable thing with five pictures; a table-and-four-chairs set is likewise one, sold as a
+unit; twenty books are twenty. So a unit owns its photos.
+
+New migration `supabase/migrations/2026-08-29-unit-photos.sql`, folded into `schema.sql`:
+
+```sql
+create table unit_photos (
+  id         uuid primary key default gen_random_uuid(),
+  unit_id    uuid not null references item_units(id) on delete cascade,
+  photo_path text not null,
+  thumb_path text not null,
+  position   integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index unit_photos_unit_idx on unit_photos (unit_id, position);
+
+alter table unit_photos enable row level security;
+
+create policy "anyone can browse unit photos" on unit_photos
+  for select using (true);
+
+create policy "sellers manage their own unit photos" on unit_photos
+  for all using (exists (
+    select 1 from item_units u join items i on i.id = u.item_id
+     where u.id = unit_photos.unit_id and i.seller_id = auth.uid()))
+  with check (exists (
+    select 1 from item_units u join items i on i.id = u.item_id
+     where u.id = unit_photos.unit_id and i.seller_id = auth.uid()));
+```
+
+Safe to make world-readable: it holds only image paths, no buyer details. `item_units`
+keeps its own `photo_path` as the unit's first photo, so the common one-photo case adds no
+rows here at all.
+
 - [ ] **Step 2: The create form**
 
-Title, price (per unit), description, tags, measurements when furniture — same validation as the old `AddItem`. **The bundle-price field renders only when `photos.length > 1`**, labelled `bundlePrice` with hint `bundlePriceHint`.
+Title, price, description, tags, measurements when furniture — same validation as the old
+`AddItem`.
+
+**When more than one photo is selected, ask first — this is the whole point of the task.**
+The app cannot infer whether six photos are six things or six views of one. The seller's
+own wording, to be used verbatim:
+
+> בחרת 6 תמונות. הן מייצגות:
+> 1. פריט אחד/סט שנמכר כיחידה אחת.
+> 2. מארז תמונות של 6 פריטים.
+
+Option 1 default. The count interpolates in both the prompt and option 2.
+
+What each does on save:
+- **One thing / a set** → one `item_units` row using the first selected photo, and a
+  `unit_photos` row for each of the rest.
+- **Several things** → one `item_units` row per photo, no `unit_photos` rows.
+
+**The bundle-price field appears only for "several things".** "₪100 for all" is meaningless
+for a single crib, and showing it there is what made the old design confusing. For one
+thing, `price` is simply its price, and no per-unit label is shown.
 
 - [ ] **Step 3: Save**
 
@@ -504,9 +561,21 @@ details; the schema is. See Global Constraints.
 
 - [ ] **Step 3: Card heart = every available unit of that item.** Pressed state is "all available units are on the list". Toggling off removes all of them.
 
-- [ ] **Step 4: Item sheet carousel.** Previous/next through the units, each with its own heart. Reserved and sold units are shown but not hearteable.
+- [ ] **Step 4: Item sheet carousel.** The carousel walks **units**, and each unit shows its
+own photos — its `photo_path` followed by its `unit_photos` in `position` order. That one
+rule covers every case with no branching:
 
-- [ ] **Step 5: Prices.** Single unit → `₪10`. Multiple → `₪10 perUnit` plus `₪100 forAll` when `showBundlePrice(item)`.
+| listing | units | photos shown | hearts |
+|---|---|---|---|
+| Crib, 5 angles | 1 | 5 | 1, on the unit |
+| Table + 4 chairs | 1 | however many | 1, on the set |
+| 20 books | 20 | 1 each | 20, one per book |
+
+Reserved and sold units are shown but not hearteable.
+
+- [ ] **Step 5: Prices.** One unit → just `₪10`, no per-unit label and no bundle line —
+those mean nothing for a single crib. Several units → `₪10 perUnit`, plus `₪100 forAll`
+when `showBundlePrice(item)`.
 
 - [ ] **Step 6: Send calls `reserve_units`** with the selected unit ids. The WhatsApp message groups units by item — `ספרי בישול ×3 — ₪30`.
 
