@@ -172,8 +172,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           words. Tinted and bordered so it reads as one card even at a glance
           on a phone, distinct from the plain flow of section two below it. */}
       <section className="gs-section gs-section-add">
+        {/* no heading here: the tint and border already say this is one place,
+            and naming it added a label without adding meaning */}
         <div className="gs-board-head">
-          <h2 className="gs-section-h">{t.sectionAddH}</h2>
           <div style={{ display: "flex", gap: 8 }}>
             <button className="gs-btn gs-btn-cream" onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
             <button className="gs-btn-ghost" onClick={async () => {
