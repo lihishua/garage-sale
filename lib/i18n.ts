@@ -143,6 +143,9 @@ export const STR = {
     allSold: "הכל נמכר",
     editItem: "עריכת פריט",
     saveChanges: "שמירת שינויים",
+    saving: "שומר…",
+    itemUpdated: "השינויים נשמרו.",
+    errUpdate: "לא הצלחנו לשמור את השינויים. נסו שוב.",
     bundleNudge: (sold: number, total: number) =>
       sold === 1
         ? `נמכרה אחת מתוך ${total} בלוט הזה. אולי כדאי לעדכן את המחיר?`
@@ -300,6 +303,9 @@ export const STR = {
     allSold: "All sold",
     editItem: "Edit item",
     saveChanges: "Save changes",
+    saving: "Saving…",
+    itemUpdated: "Changes saved.",
+    errUpdate: "We couldn't save the changes. Try again.",
     bundleNudge: (sold: number, total: number) => `${sold} of ${total} sold from this lot. Maybe update the price?`,
     deletePhoto: "Delete photo",
     photoCount: (n: number) => `${n} photo${n > 1 ? "s" : ""}`,

@@ -12,6 +12,7 @@ import { StatChip, Toast } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
+import EditItem from "./EditItem";
 
 type Profile = { display_name: string; phone: string; slug: string };
 
@@ -34,6 +35,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const [uploading, setUploading] = useState(false);
   // the photos she picked in the pool, frozen for the duration of the form
   const [making, setMaking] = useState<StagedPhoto[] | null>(null);
+  // the item currently open in the edit sheet, frozen for the duration of the form
+  const [editing, setEditing] = useState<Item | null>(null);
   // Photos that are in a listing yet still in the pool, because the create
   // succeeded and clearing the pool afterwards did not. Session-only, and that
   // is honest: on a reload the rows really are still staged, so the pool
@@ -302,13 +305,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                   </>
                 )}
 
-                {/* informational only — points at editing, but the edit form
-                    is Task 7 and does not exist yet, so this stays text-only
-                    on purpose. This is the seam: Task 7 hangs a real link to
-                    the edit screen (t.editItem) off this note. */}
+                {/* the nudge itself stays text-only — its destination is the
+                    edit button just below, which opens the same form that
+                    fixes the price */}
                 {bundleBroken && <p className="gs-note">{t.bundleNudge(soldCount, it.units.length)}</p>}
 
-                <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
+                <div style={{ display: "flex", gap: 12 }}>
+                  <button className="gs-btn-ghost" onClick={() => setEditing(it)}>{t.editItem}</button>
+                  <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
+                </div>
               </div>
             </article>
           );
@@ -343,6 +348,17 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             setListed((prev) => [...prev, ...used]);
             if (cleared) setPool((p) => p.filter((x) => !used.includes(x.id)));
             say(t.itemAdded);
+          }}
+        />
+      )}
+
+      {editing && (
+        <EditItem
+          item={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(item) => {
+            setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));
+            say(t.itemUpdated);
           }}
         />
       )}
