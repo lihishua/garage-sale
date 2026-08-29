@@ -101,11 +101,26 @@ granularity.
 
 ### Sold and reserved units
 
-Sold units are never sent to the browser, so their photos vanish from the carousel and
-the count drops. This is the existing rule applied one level down.
+**This reverses current behaviour.** Today sold items are never sent to the browser at
+all. From now on they stay on the page, greyed out with a **נמכר** band, and a filter
+lets buyers hide them.
 
-Reserved units still appear, marked *"מישהו ביקש"*, and can't be hearted — as items are
-today.
+Keeping them visible shows neighbours the sale is active — an empty-looking page reads
+as "nothing here", a page of crossed-off things reads as "get in quickly".
+
+- **Sold units** — shown greyed with **נמכר**, not hearteable.
+- **Reserved units** — shown greyed with **מישהו ביקש**, not hearteable. Unchanged.
+- **A new filter chip**, *"רק מה שפנוי"*, sits with the existing tag chips and hides
+  everything already claimed. Off by default, so the full sale shows on arrival.
+
+An item card is greyed only when **every** unit is gone. A lot with 17 of 20 still
+available is a live card showing 17; the three sold ones appear greyed inside its
+carousel.
+
+**What is still never sent:** `reserved_by_name` and `reserved_by_phone`. Those are a
+buyer's personal details and stay off the public page exactly as now — the public query
+names its columns explicitly and omits them. Making sold units visible must not become a
+route to who bought what.
 
 ### The bundle price
 
@@ -213,8 +228,8 @@ in the link.
 
 ---
 
-## Open question
+## Decided during review
 
-When an item's units are all sold, the card disappears from the public page entirely —
-consistent with how sold items behave today. Worth confirming that is wanted, rather
-than the card remaining visible as "הכל נמכר".
+**Sold things stay visible.** Greyed, banded **נמכר**, with a *"רק מה שפנוי"* filter for
+buyers who only want what's still going. See *Sold and reserved units* above. This
+replaces the current rule that sold items never reach the browser.
