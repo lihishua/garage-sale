@@ -8,8 +8,11 @@
 --
 -- Safe to make world-readable: this table holds only image paths. No buyer
 -- details here, ever — they live solely in `requests`. See Global Constraints.
+--
+-- Written to be safe to run twice. It is pasted into the SQL editor by hand,
+-- and a second paste should be a no-op rather than a wall of red.
 
-create table unit_photos (
+create table if not exists unit_photos (
   id         uuid primary key default gen_random_uuid(),
   unit_id    uuid not null references item_units(id) on delete cascade,
   photo_path text not null,
@@ -17,13 +20,15 @@ create table unit_photos (
   position   integer not null default 0,
   created_at timestamptz not null default now()
 );
-create index unit_photos_unit_idx on unit_photos (unit_id, position);
+create index if not exists unit_photos_unit_idx on unit_photos (unit_id, position);
 
 alter table unit_photos enable row level security;
 
+drop policy if exists "anyone can browse unit photos" on unit_photos;
 create policy "anyone can browse unit photos" on unit_photos
   for select using (true);
 
+drop policy if exists "sellers manage their own unit photos" on unit_photos;
 create policy "sellers manage their own unit photos" on unit_photos
   for all using (exists (
     select 1 from item_units u join items i on i.id = u.item_id

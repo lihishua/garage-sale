@@ -28,7 +28,16 @@ import { Sheet, Field, Chip } from "@/components/ui";
 export default function CreateItem({ photos, onClose, onCreated }: {
   photos: StagedPhoto[];
   onClose: () => void;
-  onCreated: (item: Item, usedPhotoIds: string[]) => void;
+  /**
+   * @param item          the listing, with the units it actually got
+   * @param listedPhotoIds staged photos now genuinely part of a listing, and
+   *                       therefore never to be offered for picking again
+   * @param poolCleared    whether their `staged_photos` rows were really
+   *                       deleted. False means they are still in the pool: the
+   *                       board must keep showing them, because that is what
+   *                       the database holds, while refusing to re-list them.
+   */
+  onCreated: (item: Item, listedPhotoIds: string[], poolCleared: boolean) => void;
 }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
@@ -105,9 +114,17 @@ export default function CreateItem({ photos, onClose, onCreated }: {
       const { error: undoErr } = await supabase.from("items").delete().eq("id", item.id);
       setBusy(false);
       setSaid(unitErr?.message ?? "insert failed");
-      // if even the undo failed there is a hollow card on the board. The board
-      // deliberately keeps unit-less cards listed so she can delete it herself.
-      setErr({ title: undoErr ? t.itemLeftEmpty : t.errCreate });
+
+      if (!undoErr) { setErr({ title: t.errCreate }); return; }
+
+      // Even the undo failed, so a hollow card really is on the board and she
+      // is told to delete it. Hand it to the board so it is actually there to
+      // delete — telling her to remove something that only appears after a
+      // reload is an instruction she cannot follow. The board deliberately
+      // keeps unit-less cards listed for exactly this. No photo was consumed.
+      onCreated({ ...item, units: [] } as Item, [], false);
+      setErr({ title: t.itemLeftEmpty });
+      setDone(true);
       return;
     }
 
@@ -130,10 +147,15 @@ export default function CreateItem({ photos, onClose, onCreated }: {
         }))
       );
       if (photoErr) {
-        // Proceed, do not unwind. The listing is complete and sellable — it
-        // just shows one photo instead of five, which she can fix by editing
-        // or re-listing. Tearing down a good listing over a missing camera
-        // angle trades something recoverable for something that is not.
+        // Proceed, do not unwind. The listing is complete and sellable; it
+        // just shows one photo instead of five. Tearing down a good listing
+        // over a missing camera angle trades something recoverable for
+        // something that is not.
+        //
+        // "Recoverable" is doing honest work here: there is no edit form yet
+        // (Task 7), so today the repair is to delete the listing and build it
+        // again from the pool. That is why the unattached photos are left in
+        // the pool rather than consumed — they are the material for the retry.
         extrasOk = false;
         setSaid(photoErr.message);
         setNotes((n) => [...n, t.photosNotAttached(extras.length)]);
@@ -150,16 +172,19 @@ export default function CreateItem({ photos, onClose, onCreated }: {
     setBusy(false);
 
     if (poolErr) {
-      // the listing is right; the pool is stale. Say so, and tell the board
-      // nothing was consumed so what it shows matches what the database holds.
+      // The listing is right; the pool row deletion is what failed. Those
+      // photos really are still in `staged_photos`, so the board keeps showing
+      // them — but they are already in a listing, and picking them again would
+      // build a duplicate from photos that are already spoken for. Report them
+      // as listed with poolCleared false: shown, marked, and unpickable.
       setSaid(poolErr.message);
       setNotes((n) => [...n, t.poolNotCleared]);
-      onCreated({ ...item, units } as Item, []);
+      onCreated({ ...item, units } as Item, consumed, false);
       setDone(true);
       return;
     }
 
-    onCreated({ ...item, units } as Item, consumed);
+    onCreated({ ...item, units } as Item, consumed, true);
 
     // A clean run closes itself. Anything less stays open holding the note,
     // because a toast that fades is no place to learn a photo went missing.
@@ -168,9 +193,14 @@ export default function CreateItem({ photos, onClose, onCreated }: {
 
   return (
     <Sheet title={t.createItem} onClose={onClose} busy={busy}>
+      {/* which photo leads the listing is not guessable from a grid, and it is
+          the one thing about this strip she needs to know */}
       <div className="gs-pool gs-pool-sm">
-        {photos.map((p) => (
-          <img key={p.id} src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
+        {photos.map((p, i) => (
+          <div key={p.id} className="gs-pick">
+            <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
+            {i === 0 && <span className="gs-pick-tag">{t.cover}</span>}
+          </div>
         ))}
       </div>
 

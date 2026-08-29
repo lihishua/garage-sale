@@ -11,18 +11,33 @@ import type { StagedPhoto } from "@/lib/types";
  * order is load-bearing. The first photo picked becomes position 0, which is
  * the cover of the listing (or of its first unit).
  */
-export default function PhotoPool({ photos, onCreate }:
-  { photos: StagedPhoto[]; onCreate: (selected: StagedPhoto[]) => void }) {
+export default function PhotoPool({ photos, listed, onCreate }: {
+  photos: StagedPhoto[];
+  /**
+   * Photos that are already part of a listing but are still sitting in the
+   * pool — which happens only when the listing was created and clearing the
+   * pool afterwards failed. Nothing was lost, so they stay visible, but
+   * picking them again would build a second listing from photos that are
+   * already in one. They are shown struck out of the running instead.
+   */
+  listed: string[];
+  onCreate: (selected: StagedPhoto[]) => void;
+}) {
   const t = STR.he;
 
   // ids, in the order they were tapped
   const [picked, setPicked] = useState<string[]>([]);
 
-  const live = useMemo(() => new Map(photos.map((p) => [p.id, p])), [photos]);
+  // what may still be picked: in the pool, and not already in a listing
+  const live = useMemo(
+    () => new Map(photos.filter((p) => !listed.includes(p.id)).map((p) => [p.id, p])),
+    [photos, listed]
+  );
 
-  // Derived, never mirrored: once a photo leaves the pool (it became a
-  // listing) it drops out of the selection here on its own. That is why the
-  // selection needs no effect to reset it after a successful create.
+  // Derived, never mirrored: once a photo becomes part of a listing it drops
+  // out of the selection here on its own, whether it left the pool or merely
+  // failed to. That is why the selection needs no effect to reset it, and why
+  // the button cannot go on counting photos that are already spoken for.
   const selected = useMemo(
     () => picked.map((id) => live.get(id)).filter(Boolean) as StagedPhoto[],
     [picked, live]
@@ -30,8 +45,8 @@ export default function PhotoPool({ photos, onCreate }:
 
   const toggle = (id: string) =>
     setPicked((p) => {
-      // the same pass also sheds ids of photos that have since left the pool,
-      // so the array cannot grow stale entries over a long session
+      // the same pass also sheds ids that are no longer pickable, so the array
+      // cannot grow stale entries over a long session
       const kept = p.filter((x) => x !== id && live.has(x));
       return p.includes(id) ? kept : [...kept, id];
     });
@@ -44,12 +59,16 @@ export default function PhotoPool({ photos, onCreate }:
 
       <div className="gs-pool">
         {photos.map((p) => {
-          const at = picked.indexOf(p.id);
+          const used = listed.includes(p.id);
+          const at = used ? -1 : picked.indexOf(p.id);
           return (
-            <button key={p.id} type="button" aria-pressed={at >= 0}
-              className={"gs-pick" + (at >= 0 ? " on" : "")} onClick={() => toggle(p.id)}>
+            <button key={p.id} type="button" aria-pressed={at >= 0} disabled={used}
+              className={"gs-pick" + (at >= 0 ? " on" : "") + (used ? " used" : "")}
+              onClick={() => toggle(p.id)}>
               <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
               {at >= 0 && <span className="gs-pick-n">{at + 1}</span>}
+              {/* a durable mark, so she still knows after the message is gone */}
+              {used && <span className="gs-pick-tag">{t.alreadyListed}</span>}
             </button>
           );
         })}

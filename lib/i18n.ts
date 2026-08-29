@@ -102,6 +102,8 @@ export const STR = {
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
     coverHint: "התמונה הראשונה שתבחרו היא תמונת השער.",
+    cover: "שער",
+    alreadyListed: "כבר בפריט",
     uploadingN: (done: number, total: number) => `מעלה ${done} מתוך ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "תמונה אחת נוספה לתמונות שמחכות." : `${n} תמונות נוספו לתמונות שמחכות.`,
@@ -118,7 +120,8 @@ export const STR = {
       n === 1
         ? "תמונה אחת לא צורפה לפריט ונשארה בתמונות שמחכות."
         : `${n} תמונות לא צורפו לפריט ונשארו בתמונות שמחכות.`,
-    poolNotCleared: "הפריט עלה ללוח, אבל התמונות שלו עדיין מופיעות בתמונות שמחכות.",
+    poolNotCleared:
+      "הפריט עלה ללוח, אבל התמונות שלו עדיין מופיעות בתמונות שמחכות. הן כבר בפריט — אל תיצרו מהן פריט נוסף.",
     itemLeftEmpty: "הפריט נוצר בלי תמונות ולא הצלחנו למחוק אותו. מחקו אותו מהלוח.",
     errCreate: "לא הצלחנו ליצור את הפריט. נסו שוב.",
     serverSaid: "מה שהשרת החזיר:",
@@ -254,6 +257,8 @@ export const STR = {
     poolEmpty: "No photos waiting right now. Upload a few to get started.",
     selectPhotos: "Select photos",
     coverHint: "The first photo you pick is the cover.",
+    cover: "Cover",
+    alreadyListed: "already listed",
     uploadingN: (done: number, total: number) => `Uploading ${done} of ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "1 photo added to the waiting photos." : `${n} photos added to the waiting photos.`,
@@ -270,7 +275,8 @@ export const STR = {
       n === 1
         ? "1 photo wasn't attached to the item and is still in the waiting photos."
         : `${n} photos weren't attached to the item and are still in the waiting photos.`,
-    poolNotCleared: "The item is on the board, but its photos still show in the waiting photos.",
+    poolNotCleared:
+      "The item is on the board, but its photos still show in the waiting photos. They are already in it — don't make a second item from them.",
     itemLeftEmpty: "The item was created with no photos and we couldn't remove it. Delete it from the board.",
     errCreate: "We couldn't create the item. Try again.",
     serverSaid: "What the server said:",

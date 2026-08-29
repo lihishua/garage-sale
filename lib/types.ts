@@ -1,14 +1,5 @@
 export type ItemStatus = "available" | "reserved" | "sold";
 
-export type Unit = {
-  id: string;
-  item_id: string;
-  photo_path: string;
-  thumb_path: string;
-  position: number;
-  status: ItemStatus;
-};
-
 /**
  * Extra views of one unit. A crib shot from five angles is one claimable unit
  * with five pictures: `Unit.photo_path` is the first, these are the rest, in
@@ -22,6 +13,31 @@ export type UnitPhoto = {
   thumb_path: string;
   position: number;
 };
+
+export type Unit = {
+  id: string;
+  item_id: string;
+  photo_path: string;
+  thumb_path: string;
+  position: number;
+  status: ItemStatus;
+  /**
+   * Safe on a public page: `unit_photos` holds image paths and nothing else,
+   * exactly like `item_units` itself. No buyer details live here — they are
+   * only ever in `requests`. See Global Constraints.
+   *
+   * Optional because a query may not have asked for them; absent is not the
+   * same as "this unit has one photo". Anything that must account for every
+   * file — deleting a listing's blobs — has to fetch them.
+   */
+  photos?: UnitPhoto[];
+};
+
+/** every storage path a unit owns: its own photo, plus each extra view */
+export const unitPaths = (u: Unit): string[] => [
+  u.photo_path, u.thumb_path,
+  ...(u.photos ?? []).flatMap((p) => [p.photo_path, p.thumb_path]),
+];
 
 export type Item = {
   id: string;

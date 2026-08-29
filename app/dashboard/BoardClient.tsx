@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, money } from "@/lib/i18n";
-import type { Item, ItemStatus, RequestRow, StagedPhoto, Unit } from "@/lib/types";
+import { unitPaths, type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit } from "@/lib/types";
 import { StatChip, Toast } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
@@ -30,6 +30,11 @@ export default function BoardClient({ profile, items: initial, requests, staged 
   const [uploading, setUploading] = useState(false);
   // the photos she picked in the pool, frozen for the duration of the form
   const [making, setMaking] = useState<StagedPhoto[] | null>(null);
+  // Photos that are in a listing yet still in the pool, because the create
+  // succeeded and clearing the pool afterwards did not. Session-only, and that
+  // is honest: on a reload the rows really are still staged, so the pool
+  // legitimately shows them again as free.
+  const [listed, setListed] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
@@ -85,7 +90,11 @@ export default function BoardClient({ profile, items: initial, requests, staged 
     // exist nowhere else, so a failure here strands them for good — say so
     // instead of dropping it. They need the same reconciliation sweep the
     // upload orphans do (see SETUP.md).
-    const paths = item.units.flatMap((u) => [u.photo_path, u.thumb_path]);
+    //
+    // Every path the listing owns, not just the cover of each unit: the
+    // unit_photos rows cascade away with the item, but their blobs do not, so
+    // a crib with five angles would strand eight files without unitPaths.
+    const paths = item.units.flatMap(unitPaths);
     const gone = paths.length ? await supabase.storage.from("photos").remove(paths) : null;
     setItems((prev) => prev.filter((i) => i.id !== item.id));
     if (gone?.error) say(t.photosNotDeleted);
@@ -164,7 +173,7 @@ export default function BoardClient({ profile, items: initial, requests, staged 
       )}
 
       <h2 className="gs-h2">{t.poolTitle}</h2>
-      <PhotoPool photos={pool} onCreate={setMaking} />
+      <PhotoPool photos={pool} listed={listed} onCreate={setMaking} />
 
       <h2 className="gs-h2">{f === "sold" ? t.statSold : t.stillHere}</h2>
       <div className="gs-grid">
@@ -229,13 +238,17 @@ export default function BoardClient({ profile, items: initial, requests, staged 
           photos={making}
           onClose={() => setMaking(null)}
           // `used` is only the photos that genuinely landed in the listing, so
-          // anything the save could not attach or could not clear stays in the
-          // pool — which is both the retry path and an honest record. The form
-          // closes itself only after a clean run; it stays open otherwise to
-          // hold the explanation, which is why closing is not done here.
-          onCreated={(item, used) => {
+          // anything the save could not attach stays in the pool — both the
+          // retry path and an honest record. `cleared` splits the two ways a
+          // photo can be spoken for: gone from the pool, or still in it
+          // because the delete failed. Either way it must never be picked
+          // again, which is what `listed` carries to the pool. The form closes
+          // itself only after a clean run; it stays open otherwise to hold the
+          // explanation, which is why closing is not done here.
+          onCreated={(item, used, cleared) => {
             setItems((prev) => [item, ...prev]);
-            setPool((p) => p.filter((x) => !used.includes(x.id)));
+            setListed((prev) => [...prev, ...used]);
+            if (cleared) setPool((p) => p.filter((x) => !used.includes(x.id)));
             say(t.itemAdded);
           }}
         />

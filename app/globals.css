@@ -195,10 +195,17 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-pick{position:relative;display:block;padding:0;line-height:0;background:none;border:0;cursor:pointer}
 .gs-pick img{transition:opacity .12s}
 .gs-pick.on img{opacity:.55}
+/* already in a listing: still shown, because it is still in the pool, but out
+   of the running — picking it again would build the same listing twice */
+.gs-pick.used{cursor:not-allowed}
+.gs-pick.used img{opacity:.35}
 .gs-pick-n{position:absolute;inset-block-start:6px;inset-inline-start:6px;
   min-width:22px;height:22px;padding:0 5px;display:flex;align-items:center;justify-content:center;
   background:var(--lime);border:2px solid var(--ink);border-radius:11px;
   font-size:12px;font-weight:800;line-height:1}
+.gs-pick-tag{position:absolute;inset-block-end:6px;inset-inline-start:6px;inset-inline-end:6px;
+  padding:3px 5px;background:var(--ink);color:#fff;border-radius:5px;text-align:center;
+  font-size:10px;font-weight:800;line-height:1.2}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
   background:var(--ink);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;
