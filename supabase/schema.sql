@@ -70,7 +70,7 @@ create table if not exists request_items (
 
 -- ---------- what the public may see about a seller ----------
 -- the phone number is deliberately not in here. buyers only get it
--- back from reserve_items(), after they have actually asked for something.
+-- back from reserve_units(), after they have actually asked for something.
 
 drop view if exists public_sales;
 create view public_sales with (security_invoker = off) as
@@ -125,10 +125,71 @@ create policy "sellers read their own request lines" on request_items
     select 1 from requests r where r.id = request_id and r.seller_id = auth.uid()
   ));
 
--- note: nobody has insert rights on requests. buyers go through a
+-- note: nobody has insert rights on requests. buyers go through this
 -- security-definer function, which is the only way a reservation can be
--- created. reserve_items() was dropped along with the old items shape;
--- Task 2 adds its replacement, reserve_units(), here.
+-- created.
+create or replace function reserve_units(
+  p_slug     text,
+  p_unit_ids uuid[],
+  p_name     text,
+  p_phone    text
+) returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_seller  uuid;
+  v_phone   text;
+  v_name    text;
+  v_ok      uuid[];
+  v_request uuid;
+begin
+  if btrim(coalesce(p_name, '')) = '' or btrim(coalesce(p_phone, '')) = '' then
+    return jsonb_build_object('ok', false, 'error', 'missing_details');
+  end if;
+  if coalesce(array_length(p_unit_ids, 1), 0) = 0 then
+    return jsonb_build_object('ok', false, 'error', 'empty_list');
+  end if;
+
+  select id, phone, display_name into v_seller, v_phone, v_name
+    from profiles where slug = p_slug;
+  if v_seller is null then
+    return jsonb_build_object('ok', false, 'error', 'no_such_sale');
+  end if;
+
+  -- one statement, conditional on status: two buyers, one winner
+  -- who asked is recorded in `requests` below, never on the unit itself
+  with locked as (
+    update item_units u
+       set status = 'reserved'
+      from items i
+     where u.item_id = i.id
+       and u.id = any(p_unit_ids)
+       and i.seller_id = v_seller
+       and u.status = 'available'
+    returning u.id
+  )
+  select coalesce(array_agg(id), '{}') into v_ok from locked;
+
+  if array_length(v_ok, 1) > 0 then
+    insert into requests (seller_id, buyer_name, buyer_phone)
+      values (v_seller, btrim(p_name), btrim(p_phone))
+      returning id into v_request;
+    insert into request_items (request_id, unit_id)
+      select v_request, unnest(v_ok);
+  end if;
+
+  return jsonb_build_object(
+    'ok', true,
+    'reserved', to_jsonb(v_ok),
+    'unavailable', to_jsonb(array(select unnest(p_unit_ids) except select unnest(v_ok))),
+    'seller_name', v_name,
+    'seller_phone', v_phone
+  );
+end $$;
+
+grant execute on function reserve_units(text, uuid[], text, text) to anon, authenticated;
 
 -- ---------- photo storage ----------
 
