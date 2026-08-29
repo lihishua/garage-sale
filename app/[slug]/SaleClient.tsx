@@ -52,6 +52,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const [showTop, setShowTop] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [sent, setSent] = useState<{ msg: string; phone: string | null; dropped: number } | null>(null);
+  // units a reserve_units reply took back from this buyer without saying why —
+  // see `standing` below
+  const [claimed, setClaimed] = useState<Set<string>>(new Set());
 
   /* the wish list lives in the browser — no account needed to keep one */
   useEffect(() => {
@@ -75,35 +78,60 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
   const wishSet = useMemo(() => new Set(wish), [wish]);
 
-  // Every count is over *available units* — the things still there to claim.
+  /**
+   * What this page can honestly say about one unit right now.
+   *
+   * `sold` and `held` are the server's own words. `gone` is not: it is a unit
+   * `reserve_units` handed back as unavailable, which says it is no longer
+   * claimable and deliberately does not say whether it was sold or held. The
+   * page repeats exactly that much — greyed, not hearteable, worded so it
+   * asserts neither — rather than inventing a status nobody reported. The next
+   * load carries the real one.
+   */
+  const standing = (u: Unit) =>
+    u.status === "sold" ? "sold" as const
+      : u.status === "reserved" ? "held" as const
+        : claimed.has(u.id) ? "gone" as const : "free" as const;
+
+  /** what is still there to claim: available per the server, and not taken since */
+  const freeUnits = (i: Item) => availableUnits(i).filter((u) => !claimed.has(u.id));
+
+  // Every count is over *free units* — the things still there to claim.
   // A category whose units have all gone loses its chip rather than offering a
   // number that leads to nothing claimable; its cards are still in "הכל".
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: 0 };
     items.forEach((i) => {
-      const free = availableUnits(i).length;
+      const free = availableUnits(i).filter((u) => !claimed.has(u.id)).length;
       c.all += free;
       i.tags.forEach((tag) => { c[tag] = (c[tag] ?? 0) + free; });
     });
     return c;
-  }, [items]);
+  }, [items, claimed]);
+
+  // A send can empty the category the buyer is standing in. Its chip goes with
+  // it, and a filter whose chip is gone leaves the grid narrowed with nothing
+  // pressed and no way back — so step out of it.
+  useEffect(() => {
+    if (filter !== "all" && !(counts[filter] > 0)) setFilter("all");
+  }, [counts, filter]);
 
   const shown = useMemo(() => {
     const list = items.filter((i) =>
       (filter === "all" || i.tags.includes(filter)) &&
-      (!onlyFree || availableUnits(i).length > 0));
+      (!onlyFree || availableUnits(i).some((u) => !claimed.has(u.id))));
     if (sort === "low") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") return [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [items, filter, onlyFree, sort]);
+  }, [items, filter, onlyFree, sort, claimed]);
 
   // The list, resolved against what is still claimable: stale ids from an old
   // visit and units someone else took both drop out on their own.
   const wishUnits = useMemo(
     () => items.flatMap((i) => i.units
-      .filter((u) => wishSet.has(u.id) && u.status === "available")
+      .filter((u) => wishSet.has(u.id) && u.status === "available" && !claimed.has(u.id))
       .map((u) => ({ unit: u, item: i }))),
-    [items, wishSet]
+    [items, wishSet, claimed]
   );
 
   // grouped by card, because that is how both the list panel and the seller's
@@ -129,27 +157,41 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const at = Math.min(slide, Math.max(slides.length - 1, 0));
   const cur = slides[at] ?? null;
 
-  const openCard = (i: Item) => { setOpenId(i.id); setSlide(0); };
+  /**
+   * The photo the grid shows for a card: the first one still up for grabs.
+   * Falling back to `units[0]` only once nothing is free, where the card is
+   * greyed and banded and so reads honestly anyway. Showing a claimed photo on
+   * a live card would offer a buyer one book and hand them another.
+   */
+  const coverOf = (i: Item) => freeUnits(i)[0] ?? i.units[0];
+
+  // opens on the photo the card was showing, not blindly on the first slide,
+  // for the same reason
+  const openCard = (i: Item) => {
+    const cover = coverOf(i);
+    setOpenId(i.id);
+    setSlide(Math.max(slidesOf(i).findIndex((s) => s.unit.id === cover.id), 0));
+  };
 
   /* ---- the two levels of hearting, both writing the same list ---- */
 
   // inside the sheet: this photo's unit alone
   const toggleUnit = (u: Unit) => {
-    if (u.status !== "available") return;
+    if (standing(u) !== "free") return;
     setWish((w) => (w.includes(u.id) ? w.filter((x) => x !== u.id) : [...w, u.id]));
   };
 
-  // on the card: pressed means every available unit of it is already on the
-  // list — which is exactly what the gesture from outside means, "I want the
-  // whole מארז". Un-hearting one photo inside then leaves the card unpressed
-  // with the rest still on the list, and that is honest.
+  // on the card: pressed means every free unit of it is already on the list —
+  // which is exactly what the gesture from outside means, "I want the whole
+  // מארז". Un-hearting one photo inside then leaves the card unpressed with
+  // the rest still on the list, and that is honest.
   const cardOn = (i: Item) => {
-    const free = availableUnits(i);
+    const free = freeUnits(i);
     return free.length > 0 && free.every((u) => wishSet.has(u.id));
   };
 
   const toggleCard = (i: Item) => {
-    const free = availableUnits(i).map((u) => u.id);
+    const free = freeUnits(i).map((u) => u.id);
     if (!free.length) return;
     const on = cardOn(i);
     setWish((w) => (on
@@ -182,16 +224,19 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
     const reserved: string[] = data.reserved ?? [];
     const unavailable: string[] = data.unavailable ?? [];
-    const claimed = new Set([...reserved, ...unavailable]);
 
-    // Everything the call touched is off the board for this buyer. `reserved`
-    // is genuinely held for them; `unavailable` went to someone else, and the
-    // reply does not say whether that was a hold or a sale — either way it is
-    // no longer claimable, and the next load has the exact answer.
+    // Two different things, kept apart. A `reserved` unit is now genuinely held
+    // for this buyer, and the server said so — that is a status, so it goes on
+    // the unit. An `unavailable` one went to someone else and the reply does
+    // not say whether it was held or sold, so it goes into `claimed` instead
+    // and the page says only what it knows: no longer yours. Writing
+    // "reserved" onto it would have put "מישהו ביקש" under a photo that was
+    // actually sold.
     setItems((prev) => prev.map((i) => ({
       ...i,
-      units: i.units.map((u) => (claimed.has(u.id) ? { ...u, status: "reserved" as const } : u)),
+      units: i.units.map((u) => (reserved.includes(u.id) ? { ...u, status: "reserved" as const } : u)),
     })));
+    setClaimed((prev) => new Set([...prev, ...unavailable]));
     setWish([]);
 
     // Nothing held means nothing to send, and no number to send it to:
@@ -220,11 +265,30 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
 
-  /** נמכר once every unit is sold, מישהו ביקש while a hold is what's holding it */
-  const bandFor = (i: Item) =>
-    i.units.every((u) => u.status === "sold")
-      ? (i.units.length > 1 ? t.allSold : t.soldBand)
-      : t.taken;
+  /**
+   * "all of it for ₪100" stops being true the moment one unit goes, which
+   * `showBundlePrice` already handles for sold and held ones — this closes it
+   * for a unit taken out from under the buyer mid-visit, whose status here is
+   * still the stale "available".
+   */
+  const bundleOn = (i: Item) => showBundlePrice(i) && freeUnits(i).length === i.units.length;
+
+  /** what a claimed unit says on its band — the server's word where there is one */
+  const unitBand = (u: Unit) =>
+    standing(u) === "sold" ? t.soldBand : standing(u) === "held" ? t.taken : t.claimedBand;
+
+  /**
+   * The band on a card with nothing left. נמכר only when every unit really
+   * sold, מישהו ביקש only when every one is held; a card that mixes the two —
+   * or holds a unit we only know is gone — gets נתפס, which is true of all of
+   * them and claims none.
+   */
+  const bandFor = (i: Item) => {
+    const how = i.units.map(standing);
+    if (how.every((s) => s === "sold")) return i.units.length > 1 ? t.allSold : t.soldBand;
+    if (how.every((s) => s === "held")) return t.taken;
+    return i.units.length > 1 ? t.allGone : t.claimedBand;
+  };
 
   return (
     <>
@@ -275,8 +339,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             ) : (
               <div className="gs-grid">
                 {shown.map((it) => {
-                  const cover = it.units[0];
-                  const free = availableUnits(it).length;
+                  const cover = coverOf(it);
+                  const free = freeUnits(it).length;
                   const many = it.units.length > 1;
                   // greys only when every one of its units is gone: 17 of 20
                   // left is a live card, with the three greyed inside it
@@ -288,9 +352,13 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                         <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />
                         {gone && <span className="gs-band">{bandFor(it)}</span>}
                       </button>
+                      {/* the label follows the press, so nothing announces
+                          "add" on a control that is about to remove */}
                       <button className="gs-heart" onClick={() => toggleCard(it)}
                         disabled={gone} aria-pressed={on}
-                        aria-label={many ? t.wantAll : t.addToList}>
+                        aria-label={on
+                          ? (many ? t.dropAll : t.onList)
+                          : (many ? t.wantAll : t.addToList)}>
                         <Heart on={on} />
                       </button>
                       <div className="gs-card-body">
@@ -307,7 +375,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                               : it.tags.map((x) => TAG_LABEL[x]?.[lang] ?? x).join(" · ")}
                           </span>
                         </div>
-                        {showBundlePrice(it) && (
+                        {bundleOn(it) && (
                           <p className="gs-card-bundle">{money(it.bundle_price!)} {t.forAll}</p>
                         )}
                       </div>
@@ -340,17 +408,18 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           {/* the heart here claims the unit this photo belongs to — so five
               angles of one crib share one heart, and each of twenty books has
               its own */}
-          <div className={"gs-slide" + (cur.unit.status !== "available" ? " gone" : "")}>
+          <div className={"gs-slide" + (standing(cur.unit) !== "free" ? " gone" : "")}>
             <div className="gs-detail-photo">
               <img src={photoUrl(cur.path)} alt={open.title} />
             </div>
-            {cur.unit.status === "sold" && <span className="gs-band">{t.soldBand}</span>}
-            {cur.unit.status === "reserved" && <span className="gs-band">{t.taken}</span>}
-            {cur.unit.status === "available" && (
+            {standing(cur.unit) === "free" ? (
               <button className="gs-heart" onClick={() => toggleUnit(cur.unit)}
-                aria-pressed={wishSet.has(cur.unit.id)} aria-label={t.addToList}>
+                aria-pressed={wishSet.has(cur.unit.id)}
+                aria-label={wishSet.has(cur.unit.id) ? t.onList : t.addToList}>
                 <Heart on={wishSet.has(cur.unit.id)} />
               </button>
+            ) : (
+              <span className="gs-band">{unitBand(cur.unit)}</span>
             )}
           </div>
 
@@ -358,12 +427,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             <div className="gs-pool gs-pool-sm">
               {slides.map((s, n) => (
                 <button key={`${s.unit.id}-${s.path}`} type="button"
-                  className={"gs-pick" + (n === at ? " cur" : "") + (s.unit.status !== "available" ? " gone" : "")}
+                  className={"gs-pick" + (n === at ? " cur" : "") + (standing(s.unit) !== "free" ? " gone" : "")}
                   onClick={() => setSlide(n)} aria-pressed={n === at}
                   aria-label={t.photoOf(n + 1, slides.length)}>
                   <img src={photoUrl(s.thumb)} alt="" loading="lazy" />
-                  {s.unit.status === "sold" && <span className="gs-pick-tag">{t.soldBand}</span>}
-                  {s.unit.status === "reserved" && <span className="gs-pick-tag">{t.taken}</span>}
+                  {standing(s.unit) !== "free" && <span className="gs-pick-tag">{unitBand(s.unit)}</span>}
                 </button>
               ))}
             </div>
@@ -373,12 +441,12 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             {money(open.price)}
             {open.units.length > 1 && <span className="gs-detail-per"> {t.perUnit}</span>}
           </p>
+          {/* "נשארו 0" is not a thing anyone says — a מארז with nothing left
+              says so instead, the same guard the card uses */}
           {open.units.length > 1 && (
             <p className="gs-detail-per">
-              {t.unitsLeft(availableUnits(open).length)}
-              {/* the bundle price goes quiet the moment one unit is gone —
-                  "all of it for ₪100" stopped being true (showBundlePrice) */}
-              {showBundlePrice(open) && ` · ${money(open.bundle_price!)} ${t.forAll}`}
+              {freeUnits(open).length > 0 ? t.unitsLeft(freeUnits(open).length) : bandFor(open)}
+              {bundleOn(open) && ` · ${money(open.bundle_price!)} ${t.forAll}`}
             </p>
           )}
           <p className="gs-detail-desc">{open.description}</p>
@@ -387,8 +455,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           )}
           <p className="gs-detail-tags">{open.tags.map((x) => TAG_LABEL[x]?.[lang] ?? x).join(" · ")}</p>
 
-          {cur.unit.status !== "available" ? (
-            <p className="gs-note">{cur.unit.status === "sold" ? t.soldNote : t.takenNote}</p>
+          {standing(cur.unit) !== "free" ? (
+            <p className="gs-note">
+              {standing(cur.unit) === "sold" ? t.soldNote
+                : standing(cur.unit) === "held" ? t.takenNote : t.goneNote}
+            </p>
           ) : (
             <button className={"gs-btn gs-btn-wide " + (wishSet.has(cur.unit.id) ? "gs-btn-cream" : "gs-btn-orange")}
               onClick={() => toggleUnit(cur.unit)}>
@@ -399,7 +470,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               It says "the whole מארז" in both directions, so it cannot be read
               as another way to press the button just above it, which speaks
               only for the photo on screen. */}
-          {open.units.length > 1 && availableUnits(open).length > 0 && (
+          {open.units.length > 1 && freeUnits(open).length > 0 && (
             <button className="gs-btn-ghost" onClick={() => toggleCard(open)}>
               {cardOn(open) ? t.dropAll : t.wantAll}
             </button>

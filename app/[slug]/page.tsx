@@ -1,9 +1,12 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
-import type { Item, Sale, Unit } from "@/lib/types";
+import type { Item, Sale, Unit, UnitPhoto } from "@/lib/types";
 import SaleClient from "./SaleClient";
 
 export const revalidate = 0;
+
+/** one row of the items query below, before its two levels are put in order */
+type Row = Omit<Item, "units"> & { units: (Unit & { photos: UnitPhoto[] })[] };
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = supabaseServer();
@@ -46,15 +49,20 @@ export default async function SalePage({ params }: { params: { slug: string } })
   // position 0 is the cover; an embedded select carries no order guarantee, at
   // either level. A card with no units at all is dropped: it has no photo to
   // show and nothing to claim.
-  const items: Item[] = ((rows ?? []) as any[])
+  //
+  // The one cast, and it goes through `unknown` on purpose. With no generated
+  // Database types the client parses the select string itself, cannot resolve
+  // the two-level embed, and infers `GenericStringError[]` — a parse artifact,
+  // not a description of what arrives. `Row` is what actually comes back, and
+  // saying so here is what types the two sorts below. Both embedded arrays are
+  // required rather than optional: PostgREST answers a to-many embed with `[]`,
+  // never null, which the live project confirms for a unit with no extra views.
+  const items: Item[] = ((rows ?? []) as unknown as Row[])
     .map((r) => ({
       ...r,
-      units: [...(r.units ?? [])]
-        .sort((a: Unit, b: Unit) => a.position - b.position)
-        .map((u: Unit) => ({
-          ...u,
-          photos: [...(u.photos ?? [])].sort((a, b) => a.position - b.position),
-        })),
+      units: [...r.units]
+        .sort((a, b) => a.position - b.position)
+        .map((u) => ({ ...u, photos: [...u.photos].sort((a, b) => a.position - b.position) })),
     }))
     .filter((i) => i.units.length > 0);
 

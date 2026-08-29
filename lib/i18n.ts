@@ -33,6 +33,11 @@ export const STR = {
     measurements: "מידות",
     takenNote: "מישהו כבר ביקש את הפריט. אם זה לא ייצא לפועל הוא יחזור ללוח.",
     soldNote: "זה כבר נמכר.",
+    // reserve_units says a unit is no longer yours without saying whether it
+    // was sold or just held — true of both, and claims neither
+    claimedBand: "כבר נתפס",
+    allGone: "הכל נתפס",
+    goneNote: "מישהו הקדים אתכם על זה.",
     // the heart on a card takes the whole מארז at once; the hearts inside take
     // one photo each
     wantAll: "אני רוצה את כל המארז",
@@ -213,6 +218,9 @@ export const STR = {
     measurements: "Measurements",
     takenNote: "Someone's already asked for this one. If it falls through it comes back to the board.",
     soldNote: "This one's already sold.",
+    claimedBand: "Claimed",
+    allGone: "All claimed",
+    goneNote: "Someone got to this one first.",
     wantAll: "I want the whole box",
     dropAll: "Take the whole box off my list",
     nothingFree: "Everything left has been claimed.",
