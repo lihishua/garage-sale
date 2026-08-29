@@ -24,8 +24,8 @@ create table item_units (
   thumb_path        text not null,
   position          integer not null default 0,      -- 0 is the cover
   status            item_status not null default 'available',
-  reserved_by_name  text,
-  reserved_by_phone text,
+  -- deliberately NO reserved_by_* columns: this table is world-readable,
+  -- so buyer contact details live only in `requests`. See Global Constraints.
   created_at        timestamptz not null default now()
 );
 create index item_units_item_idx on item_units (item_id, position);
@@ -69,9 +69,9 @@ create policy "anyone can browse units" on item_units
   for select using (true);
 create policy "sellers manage their own units" on item_units
   for all using (exists (
-    select 1 from items i where i.id = item_id and i.seller_id = auth.uid()))
+    select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()))
   with check (exists (
-    select 1 from items i where i.id = item_id and i.seller_id = auth.uid()));
+    select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()));
 
 -- the pool is private; it is never public in any direction
 create policy "sellers own their staged photos" on staged_photos

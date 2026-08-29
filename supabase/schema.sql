@@ -38,8 +38,8 @@ create table if not exists item_units (
   thumb_path        text not null,
   position          integer not null default 0,      -- 0 is the cover
   status            item_status not null default 'available',
-  reserved_by_name  text,
-  reserved_by_phone text,
+  -- deliberately NO reserved_by_* columns: this table is world-readable,
+  -- so buyer contact details live only in `requests`. See Global Constraints.
   created_at        timestamptz not null default now()
 );
 create index if not exists item_units_item_idx on item_units (item_id, position);
@@ -106,9 +106,9 @@ create policy "anyone can browse units" on item_units
 drop policy if exists "sellers manage their own units" on item_units;
 create policy "sellers manage their own units" on item_units
   for all using (exists (
-    select 1 from items i where i.id = item_id and i.seller_id = auth.uid()))
+    select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()))
   with check (exists (
-    select 1 from items i where i.id = item_id and i.seller_id = auth.uid()));
+    select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()));
 
 -- the pool is private; it is never public in any direction
 drop policy if exists "sellers own their staged photos" on staged_photos;
@@ -125,75 +125,10 @@ create policy "sellers read their own request lines" on request_items
     select 1 from requests r where r.id = request_id and r.seller_id = auth.uid()
   ));
 
--- note: nobody has insert rights on requests. buyers go through the
--- function below, which is the only way a reservation can be created.
-
--- ---------- reserving items ----------
--- runs as the definer so an anonymous buyer can lock items without
--- being handed write access to the items table. the update filters on
--- status='available', so if two buyers ask for the same sofa at once
--- the second one gets it back in "unavailable" instead of overwriting.
-
-create or replace function reserve_items(
-  p_slug     text,
-  p_item_ids uuid[],
-  p_name     text,
-  p_phone    text
-) returns jsonb
-language plpgsql
-security definer
-set search_path = public
-as $$
-declare
-  v_seller  uuid;
-  v_phone   text;
-  v_name    text;
-  v_ok      uuid[];
-  v_request uuid;
-begin
-  if btrim(coalesce(p_name, '')) = '' or btrim(coalesce(p_phone, '')) = '' then
-    return jsonb_build_object('ok', false, 'error', 'missing_details');
-  end if;
-  if coalesce(array_length(p_item_ids, 1), 0) = 0 then
-    return jsonb_build_object('ok', false, 'error', 'empty_list');
-  end if;
-
-  select id, phone, display_name into v_seller, v_phone, v_name
-    from profiles where slug = p_slug;
-  if v_seller is null then
-    return jsonb_build_object('ok', false, 'error', 'no_such_sale');
-  end if;
-
-  with locked as (
-    update items
-       set status            = 'reserved',
-           reserved_by_name  = btrim(p_name),
-           reserved_by_phone = btrim(p_phone)
-     where id = any(p_item_ids)
-       and seller_id = v_seller
-       and status = 'available'
-    returning id
-  )
-  select coalesce(array_agg(id), '{}') into v_ok from locked;
-
-  if array_length(v_ok, 1) > 0 then
-    insert into requests (seller_id, buyer_name, buyer_phone)
-      values (v_seller, btrim(p_name), btrim(p_phone))
-      returning id into v_request;
-    insert into request_items (request_id, item_id)
-      select v_request, unnest(v_ok);
-  end if;
-
-  return jsonb_build_object(
-    'ok', true,
-    'reserved', to_jsonb(v_ok),
-    'unavailable', to_jsonb(array(select unnest(p_item_ids) except select unnest(v_ok))),
-    'seller_name', v_name,
-    'seller_phone', v_phone
-  );
-end $$;
-
-grant execute on function reserve_items(text, uuid[], text, text) to anon, authenticated;
+-- note: nobody has insert rights on requests. buyers go through a
+-- security-definer function, which is the only way a reservation can be
+-- created. reserve_items() was dropped along with the old items shape;
+-- Task 2 adds its replacement, reserve_units(), here.
 
 -- ---------- photo storage ----------
 
