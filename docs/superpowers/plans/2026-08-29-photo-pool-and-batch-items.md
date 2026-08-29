@@ -320,7 +320,22 @@ git add supabase/ && git commit -m "reserve_units: per-photo claiming with the s
 
 - [ ] **Step 1: Define the types**
 
-`Unit` deliberately omits `reserved_by_*` — those columns exist in the database but must never reach a public page, and leaving them off the type makes an accidental leak a compile error. The dashboard uses a separate `OwnUnit = Unit & { reserved_by_name: string|null; reserved_by_phone: string|null }`.
+`Unit` has no `reserved_by_*` fields because the columns no longer exist — see Global Constraints. There is one `Unit` type for both the public page and the dashboard.
+
+The dashboard needs "who holds this unit", so add:
+
+```ts
+export type Holder = { name: string; phone: string };
+/** built from requests the dashboard already loads; most recent request wins */
+export const holdersByUnit = (requests: RequestRow[]): Map<string, Holder> => {
+  const m = new Map<string, Holder>();
+  // oldest first, so later requests overwrite earlier ones
+  [...requests].reverse().forEach(r =>
+    r.request_items.forEach(({ unit_id }) =>
+      m.set(unit_id, { name: r.buyer_name, phone: r.buyer_phone })));
+  return m;
+};
+```
 
 - [ ] **Step 2: Add the derived helpers**
 
@@ -466,7 +481,9 @@ Expected: one item with 1 unit, one with 3 units at positions 0,1,2, all `availa
 ```ts
 .select("id, seller_id, title, description, price, bundle_price, tags, measurements, created_at, item_units(id, item_id, photo_path, thumb_path, position, status)")
 ```
-`reserved_by_name` / `reserved_by_phone` are absent. This is a Global Constraint.
+There are no `reserved_by_*` columns to omit — the table does not have them. Naming
+columns explicitly is still the house style, but it is no longer what protects buyer
+details; the schema is. See Global Constraints.
 
 - [ ] **Step 2: The wish list holds unit ids**, not item ids. `localStorage` key stays `gs.wish.{slug}` — existing lists become stale ids that simply match nothing, which is harmless.
 
