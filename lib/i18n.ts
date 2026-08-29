@@ -69,6 +69,9 @@ export const STR = {
     startMine: "לפתוח מכירת חצר משלי",
     // seller
     boardTitle: "הלוח שלי",
+    // two sections on the board: things she does, then what is happening
+    sectionAddH: "מכניסים סחורה",
+    sectionStatusH: "מצב המכירה",
     statFree: "פנוי",
     statHeld: "מישהו ביקש",
     statSold: "נמכר",
@@ -88,6 +91,7 @@ export const STR = {
     signOut: "יציאה",
     deleteItem: "מחיקה",
     confirmDelete: "למחוק את הפריט לצמיתות?",
+    confirmDeletePhoto: "למחוק את התמונה לצמיתות?",
     // add item
     addTitle: "הוספת פריט",
     photo: "לחצו להוספת תמונה",
@@ -133,6 +137,7 @@ export const STR = {
         ? "תמונה אחת נשארה תקועה באחסון בלי שהיא מחוברת לכלום."
         : `${n} תמונות נשארו תקועות באחסון בלי שהן מחוברות לכלום.`,
     photosNotDeleted: "הפריט נמחק, אבל התמונות שלו נשארו באחסון.",
+    photoNotDeleted: "התמונה הוסרה מהתמונות שמחכות, אבל הקובץ שלה נשאר באחסון.",
     photosNotAttached: (n: number) =>
       n === 1
         ? "תמונה אחת לא צורפה לפריט ונשארה בתמונות שמחכות."
@@ -246,6 +251,8 @@ export const STR = {
     backToSale: "Back to the sale",
     startMine: "Start my own garage sale",
     boardTitle: "My board",
+    sectionAddH: "Bringing in stock",
+    sectionStatusH: "How the sale's going",
     statFree: "up for grabs",
     statHeld: "someone's asked",
     statSold: "sold",
@@ -265,6 +272,7 @@ export const STR = {
     signOut: "Sign out",
     deleteItem: "Delete",
     confirmDelete: "Delete this item for good?",
+    confirmDeletePhoto: "Delete this photo for good?",
     addTitle: "Add something",
     photo: "Tap to add a photo",
     photoNote: "Shoot in daylight. Anything under 1200px wide gets rejected.",
@@ -307,6 +315,7 @@ export const STR = {
         ? "1 photo is stuck in storage, attached to nothing."
         : `${n} photos are stuck in storage, attached to nothing.`,
     photosNotDeleted: "The item was deleted, but its photos are still in storage.",
+    photoNotDeleted: "The photo was removed from the waiting photos, but its file is still in storage.",
     photosNotAttached: (n: number) =>
       n === 1
         ? "1 photo wasn't attached to the item and is still in the waiting photos."

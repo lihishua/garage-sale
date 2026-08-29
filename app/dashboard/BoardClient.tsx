@@ -142,92 +142,124 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     if (gone?.error) say(t.photosNotDeleted);
   }
 
+  async function removePhoto(photo: StagedPhoto) {
+    if (!confirm(t.confirmDeletePhoto)) return;
+    const { error } = await supabase.from("staged_photos").delete().eq("id", photo.id);
+    if (error) return say(error.message);
+
+    // Row first, same as remove() above and for the same reason: better a
+    // stray blob than a row surviving with no photo behind it — here that
+    // would mean a broken thumbnail stuck in the pool with no way to clear
+    // it, worse than a file merely wasting space in the bucket. The cost is
+    // the same too: once the row is gone these paths exist nowhere else, so
+    // a failure below strands them for good — say so instead of dropping it.
+    // Local state drops the photo regardless of how the blob delete goes,
+    // because the row really is gone from the database; leaving it drawn in
+    // the pool here would just be lying about that.
+    const gone = await supabase.storage.from("photos").remove([photo.photo_path, photo.thumb_path]);
+    setPool((p) => p.filter((x) => x.id !== photo.id));
+    if (gone.error) say(t.photoNotDeleted);
+  }
+
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
 
   return (
     <main className="gs-wrap">
-      <div className="gs-board-head">
-        <h1 className="gs-board-title">{t.boardTitle}</h1>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button className="gs-btn gs-btn-cream" onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
-          <button className="gs-btn-ghost" onClick={async () => {
-            await supabase.auth.signOut(); router.push("/login");
-          }}>{t.signOut}</button>
+      <h1 className="gs-board-title" style={{ marginBottom: 18 }}>{t.boardTitle}</h1>
+
+      {/* Section one: everything about getting stock onto the board — her
+          words. Tinted and bordered so it reads as one card even at a glance
+          on a phone, distinct from the plain flow of section two below it. */}
+      <section className="gs-section gs-section-add">
+        <div className="gs-board-head">
+          <h2 className="gs-section-h">{t.sectionAddH}</h2>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className="gs-btn gs-btn-cream" onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
+            <button className="gs-btn-ghost" onClick={async () => {
+              await supabase.auth.signOut(); router.push("/login");
+            }}>{t.signOut}</button>
+          </div>
         </div>
-      </div>
 
-      <div className="gs-linkbar">
-        <b>{t.myLink}</b>
-        <code>{saleUrl}</code>
-        <button className="gs-btn gs-btn-sm" onClick={() => {
-          navigator.clipboard?.writeText(saleUrl); say(t.copied);
-        }}>{t.copy}</button>
-      </div>
-
-      <div className="gs-stats">
-        <StatChip n={free.length} label={t.statFree} on={f === "available"}
-          onClick={() => setF((c) => (c === "available" ? "all" : "available"))} />
-        <StatChip n={held.length} label={t.statHeld} color="#F7BC45" on={f === "reserved"}
-          onClick={() => setF((c) => (c === "reserved" ? "all" : "reserved"))} />
-        <StatChip n={sold.length} label={t.statSold} color="#9ACB3B" on={f === "sold"}
-          onClick={() => setF((c) => (c === "sold" ? "all" : "sold"))} />
-        <StatChip n={money(earned)} label={t.statEarned} color="#EE5A2A" />
-      </div>
-
-      <h2 className="gs-h2">{t.requestsH}</h2>
-      {requests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
-        <div className="gs-reqs">
-          {requests.map((r) => {
-            const lines = r.request_items
-              .map((ri) => unitIndex.get(ri.unit_id))
-              .filter(Boolean) as { unit: Unit; item: Item }[];
-            const total = lines.reduce((s, l) => s + l.item.price, 0);
-            return (
-              <div key={r.id} className="gs-req">
-                <div className="gs-req-top">
-                  <span className="gs-req-name">{r.buyer_name}</span>
-                  <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
-                  <span className="gs-req-time" dir="ltr">
-                    {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                  </span>
-                </div>
-                <ul className="gs-req-items">
-                  {lines.map(({ unit, item }) => (
-                    <li key={unit.id}>
-                      {item.title} — {money(item.price)}
-                      {unit.status === "sold" && <b> · {t.statSold}</b>}
-                      {unit.status === "available" && <b> · {t.backToStock}</b>}
-                    </li>
-                  ))}
-                </ul>
-                <div className="gs-req-foot">
-                  <b>{money(total)}</b>
-                  <button className="gs-btn gs-btn-green gs-btn-sm"
-                    onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
-                    {t.messageX(r.buyer_name.split(" ")[0])}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+        <div className="gs-linkbar">
+          <b>{t.myLink}</b>
+          <code>{saleUrl}</code>
+          <button className="gs-btn gs-btn-sm" onClick={() => {
+            navigator.clipboard?.writeText(saleUrl); say(t.copied);
+          }}>{t.copy}</button>
         </div>
-      )}
 
-      <h2 className="gs-h2">{t.poolTitle}</h2>
-      <PhotoPool photos={pool} listed={listed} onCreate={setMaking} />
+        <h3 className="gs-h2">{t.poolTitle}</h3>
+        <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto} />
+      </section>
 
-      <h2 className="gs-h2">
-        {f === "sold" ? t.statSold : t.stillHere}
-        {/* ties the chip's unit count to the card count below it, in one
-            sentence, so the two numbers cannot read as disagreeing. Skipped
-            at zero: "0 out of 0 items" is technically true but not a phrase
-            anyone would say, and an empty filter needs no reconciling. */}
-        {matchedCount !== null && matchedCount > 0 && (
-          <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>
+      {/* Section two: what is happening — what is left, what is sold, and the
+          wish lists that have come in. Plain page flow; the contrast with the
+          card above it is the seam. */}
+      <section className="gs-section">
+        <h2 className="gs-section-h" style={{ marginBottom: 16 }}>{t.sectionStatusH}</h2>
+
+        <div className="gs-stats">
+          <StatChip n={free.length} label={t.statFree} on={f === "available"}
+            onClick={() => setF((c) => (c === "available" ? "all" : "available"))} />
+          <StatChip n={held.length} label={t.statHeld} color="#F7BC45" on={f === "reserved"}
+            onClick={() => setF((c) => (c === "reserved" ? "all" : "reserved"))} />
+          <StatChip n={sold.length} label={t.statSold} color="#9ACB3B" on={f === "sold"}
+            onClick={() => setF((c) => (c === "sold" ? "all" : "sold"))} />
+          <StatChip n={money(earned)} label={t.statEarned} color="#EE5A2A" />
+        </div>
+
+        <h3 className="gs-h2">{t.requestsH}</h3>
+        {requests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
+          <div className="gs-reqs">
+            {requests.map((r) => {
+              const lines = r.request_items
+                .map((ri) => unitIndex.get(ri.unit_id))
+                .filter(Boolean) as { unit: Unit; item: Item }[];
+              const total = lines.reduce((s, l) => s + l.item.price, 0);
+              return (
+                <div key={r.id} className="gs-req">
+                  <div className="gs-req-top">
+                    <span className="gs-req-name">{r.buyer_name}</span>
+                    <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
+                    <span className="gs-req-time" dir="ltr">
+                      {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <ul className="gs-req-items">
+                    {lines.map(({ unit, item }) => (
+                      <li key={unit.id}>
+                        {item.title} — {money(item.price)}
+                        {unit.status === "sold" && <b> · {t.statSold}</b>}
+                        {unit.status === "available" && <b> · {t.backToStock}</b>}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="gs-req-foot">
+                    <b>{money(total)}</b>
+                    <button className="gs-btn gs-btn-green gs-btn-sm"
+                      onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
+                      {t.messageX(r.buyer_name.split(" ")[0])}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </h2>
-      <div className="gs-grid">
+
+        <h3 className="gs-h2">
+          {f === "sold" ? t.statSold : t.stillHere}
+          {/* ties the chip's unit count to the card count below it, in one
+              sentence, so the two numbers cannot read as disagreeing. Skipped
+              at zero: "0 out of 0 items" is technically true but not a phrase
+              anyone would say, and an empty filter needs no reconciling. */}
+          {matchedCount !== null && matchedCount > 0 && (
+            <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>
+          )}
+        </h3>
+        <div className="gs-grid">
         {list.map((it) => {
           const cover = it.units[0];
           const gone = it.units.length > 0 && it.units.every((u) => u.status !== "available");
@@ -319,6 +351,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           );
         })}
       </div>
+      </section>
 
       {uploading && (
         <UploadPhotos

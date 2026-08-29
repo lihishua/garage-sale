@@ -162,6 +162,13 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   padding:13px;white-space:pre-wrap;font-size:13.5px;line-height:1.6;margin-bottom:14px}
 
 /* seller board */
+/* The two halves of the board: a bordered, tinted card for "things she does"
+   so it reads as one unit even glanced at on a phone, then plain page flow
+   below it for "what is happening" — the contrast itself is the seam. */
+.gs-section{margin-bottom:30px}
+.gs-section-add{background:var(--cream);border:1.5px solid var(--ink);border-radius:14px;
+  padding:18px 16px 8px}
+.gs-section-h{font-family:var(--display);font-weight:var(--dw);font-size:20px;margin:0}
 .gs-board-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
   flex-wrap:wrap;margin-bottom:18px}
 .gs-board-title{font-family:var(--display);font-weight:var(--dw);font-size:clamp(24px,5vw,34px);margin:0}
@@ -223,6 +230,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-pick-tag{position:absolute;inset-block-end:6px;inset-inline-start:6px;inset-inline-end:6px;
   padding:3px 5px;background:var(--ink);color:#fff;border-radius:5px;text-align:center;
   font-size:10px;font-weight:800;line-height:1.2}
+/* a tile is a <button> (picking), so its delete control is a sibling, not a
+   child — a button cannot nest inside a button. Opposite corner from
+   gs-pick-n so a picked tile's order badge and its delete control never
+   collide. */
+.gs-pick-wrap{position:relative}
+.gs-pick-del{position:absolute;inset-block-start:6px;inset-inline-end:6px;width:24px;height:24px;
+  padding:0;display:grid;place-items:center;background:#fff;border:1.5px solid var(--ink);
+  border-radius:50%;cursor:pointer;font-size:15px;line-height:1;font-weight:800;color:var(--ink)}
+.gs-pick-del:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
   background:var(--ink);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;
