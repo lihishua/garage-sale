@@ -110,6 +110,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-detail-photo{border:2px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--display);font-weight:var(--dw);font-size:24px;color:var(--orange);margin:0}
+/* "ליחידה", "נשארו 17", "₪25 לכל המארז" — the quiet half of a price */
+.gs-detail-per{font-family:var(--body);font-size:12px;font-weight:700;color:var(--ink);opacity:.55;margin:3px 0 0}
+.gs-card-bundle{font-size:11px;font-weight:700;opacity:.55;margin:5px 0 0}
+/* One slide per unit-photo. The heart sits on the slide because it claims that
+   slide's unit — five angles of one crib share one, twenty books have twenty.
+   A claimed unit is shown, greyed, and cannot be hearted. */
+.gs-slide{position:relative;margin-bottom:14px}
+.gs-slide .gs-detail-photo{margin-bottom:0}
+.gs-slide.gone .gs-detail-photo img{filter:grayscale(1);opacity:.55}
 .gs-detail-desc{font-size:15px;line-height:1.6;margin:8px 0;white-space:pre-wrap}
 .gs-detail-size{font-size:14px;background:var(--cream);border-radius:8px;padding:8px 12px;margin:10px 0}
 .gs-detail-tags{font-size:11px;font-weight:700;letter-spacing:.06em;opacity:.45}
@@ -203,6 +212,10 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
    of the running — picking it again would build the same listing twice */
 .gs-pick.used{cursor:not-allowed}
 .gs-pick.used img{opacity:.35}
+/* the sale page's gallery strip: which photo is showing, and which of them are
+   already claimed. Claimed ones stay pickable — they are still worth a look. */
+.gs-pick.cur img{border-color:var(--orange);border-width:3px}
+.gs-pick.gone img{filter:grayscale(1);opacity:.45}
 .gs-pick-n{position:absolute;inset-block-start:6px;inset-inline-start:6px;
   min-width:22px;height:22px;padding:0 5px;display:flex;align-items:center;justify-content:center;
   background:var(--lime);border:2px solid var(--ink);border-radius:11px;
