@@ -9,6 +9,20 @@ export type Unit = {
   status: ItemStatus;
 };
 
+/**
+ * Extra views of one unit. A crib shot from five angles is one claimable unit
+ * with five pictures: `Unit.photo_path` is the first, these are the rest, in
+ * `position` order. A unit photographed once has none of these at all — which
+ * is why twenty books produce twenty units and zero rows here.
+ */
+export type UnitPhoto = {
+  id: string;
+  unit_id: string;
+  photo_path: string;
+  thumb_path: string;
+  position: number;
+};
+
 export type Item = {
   id: string;
   seller_id: string;

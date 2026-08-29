@@ -136,6 +136,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-drop.bad{border-color:var(--pink)}
 .gs-drop-note{font-size:12px;font-weight:600;opacity:.55;text-align:center}
 .gs-drop img{max-height:150px;border-radius:6px;border:1.5px solid var(--ink)}
+/* the binary question: one thing, or several? an <ol> so the browser puts
+   "1." / "2." on the correct side under rtl */
+.gs-choices{list-style:decimal;margin:0 0 16px;padding-inline-start:22px;font-weight:800;font-size:14px}
+.gs-choices li{margin-bottom:8px}
+.gs-choice{display:flex;gap:9px;align-items:flex-start;background:#fff;
+  border:1.5px solid var(--line);border-radius:9px;padding:11px 12px;cursor:pointer;
+  font-size:14px;font-weight:700;line-height:1.45}
+.gs-choice.on{border-color:var(--ink);background:var(--cream)}
+.gs-choice input{flex:none;margin:2px 0 0;accent-color:var(--ink)}
 .gs-wa{background:#E4F3D3;border:1.5px solid var(--line);border-radius:10px;border-end-end-radius:2px;
   padding:13px;white-space:pre-wrap;font-size:13.5px;line-height:1.6;margin-bottom:14px}
 
@@ -176,6 +185,20 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-req-items{margin:0 0 9px;padding-inline-start:18px;font-size:14px;line-height:1.7}
 .gs-req-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;
   border-top:1px solid var(--line);padding-top:9px;font-size:14px}
+
+/* the photo pool. thumbs are big enough to tell a crib from a chair on a
+   phone, and the badge carries the pick order — 1 is the cover. */
+.gs-pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-bottom:10px}
+.gs-pool-sm{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));margin-bottom:16px}
+.gs-pool img{width:100%;aspect-ratio:1;object-fit:cover;display:block;
+  border:2px solid var(--ink);border-radius:8px}
+.gs-pick{position:relative;display:block;padding:0;line-height:0;background:none;border:0;cursor:pointer}
+.gs-pick img{transition:opacity .12s}
+.gs-pick.on img{opacity:.55}
+.gs-pick-n{position:absolute;inset-block-start:6px;inset-inline-start:6px;
+  min-width:22px;height:22px;padding:0 5px;display:flex;align-items:center;justify-content:center;
+  background:var(--lime);border:2px solid var(--ink);border-radius:11px;
+  font-size:12px;font-weight:800;line-height:1}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
   background:var(--ink);color:#fff;font-weight:700;font-size:14px;padding:11px 20px;

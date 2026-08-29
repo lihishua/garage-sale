@@ -101,6 +101,7 @@ export const STR = {
     poolWaiting: (n: number) => (n === 1 ? "תמונה אחת ממתינה" : `${n} תמונות ממתינות`),
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
+    coverHint: "התמונה הראשונה שתבחרו היא תמונת השער.",
     uploadingN: (done: number, total: number) => `מעלה ${done} מתוך ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "תמונה אחת נוספה לתמונות שמחכות." : `${n} תמונות נוספו לתמונות שמחכות.`,
@@ -113,9 +114,22 @@ export const STR = {
         ? "תמונה אחת נשארה תקועה באחסון בלי שהיא מחוברת לכלום."
         : `${n} תמונות נשארו תקועות באחסון בלי שהן מחוברות לכלום.`,
     photosNotDeleted: "הפריט נמחק, אבל התמונות שלו נשארו באחסון.",
+    photosNotAttached: (n: number) =>
+      n === 1
+        ? "תמונה אחת לא צורפה לפריט ונשארה בתמונות שמחכות."
+        : `${n} תמונות לא צורפו לפריט ונשארו בתמונות שמחכות.`,
+    poolNotCleared: "הפריט עלה ללוח, אבל התמונות שלו עדיין מופיעות בתמונות שמחכות.",
+    itemLeftEmpty: "הפריט נוצר בלי תמונות ולא הצלחנו למחוק אותו. מחקו אותו מהלוח.",
+    errCreate: "לא הצלחנו ליצור את הפריט. נסו שוב.",
     serverSaid: "מה שהשרת החזיר:",
     createItem: "יצירת פריט",
     createItemFrom: (n: number) => (n === 1 ? "יצירת פריט מתמונה אחת" : `יצירת פריט מ־${n} תמונות`),
+    // the one question the app cannot answer for her: six photos of six things,
+    // or six views of one? her own wording, verbatim.
+    oneOrMany: (n: number) => `בחרת ${n} תמונות. הן מייצגות:`,
+    oneThing: "פריט אחד/סט שנמכר כיחידה אחת.",
+    manyThings: (n: number) => `מארז תמונות של ${n} פריטים.`,
+    pricePerUnitHint: "המחיר של פריט אחד מתוך הלוט.",
     bundlePrice: "מחיר ללוט",
     bundlePriceHint: "מחיר מיוחד למי שלוקח את כל הלוט. רשות.",
     perUnit: "ליחידה",
@@ -239,6 +253,7 @@ export const STR = {
     poolWaiting: (n: number) => `${n} photo${n > 1 ? "s" : ""} waiting`,
     poolEmpty: "No photos waiting right now. Upload a few to get started.",
     selectPhotos: "Select photos",
+    coverHint: "The first photo you pick is the cover.",
     uploadingN: (done: number, total: number) => `Uploading ${done} of ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "1 photo added to the waiting photos." : `${n} photos added to the waiting photos.`,
@@ -251,9 +266,20 @@ export const STR = {
         ? "1 photo is stuck in storage, attached to nothing."
         : `${n} photos are stuck in storage, attached to nothing.`,
     photosNotDeleted: "The item was deleted, but its photos are still in storage.",
+    photosNotAttached: (n: number) =>
+      n === 1
+        ? "1 photo wasn't attached to the item and is still in the waiting photos."
+        : `${n} photos weren't attached to the item and are still in the waiting photos.`,
+    poolNotCleared: "The item is on the board, but its photos still show in the waiting photos.",
+    itemLeftEmpty: "The item was created with no photos and we couldn't remove it. Delete it from the board.",
+    errCreate: "We couldn't create the item. Try again.",
     serverSaid: "What the server said:",
     createItem: "Create item",
     createItemFrom: (n: number) => `Create an item from ${n} photo${n > 1 ? "s" : ""}`,
+    oneOrMany: (n: number) => `You picked ${n} photos. They are:`,
+    oneThing: "One thing / a set sold as a single unit.",
+    manyThings: (n: number) => `A batch of photos of ${n} things.`,
+    pricePerUnitHint: "The price of one thing from the lot.",
     bundlePrice: "Bundle price",
     bundlePriceHint: "A special price for someone who takes the whole lot. Optional.",
     perUnit: "per unit",

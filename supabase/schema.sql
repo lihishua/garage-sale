@@ -44,6 +44,20 @@ create table if not exists item_units (
 );
 create index if not exists item_units_item_idx on item_units (item_id, position);
 
+-- extra views of one thing: a crib shot from five angles is one claimable
+-- unit with five pictures. item_units.photo_path is the unit's first photo,
+-- the rest live here, so a one-photo unit adds no rows at all. Only image
+-- paths — no buyer details here either, see the note on item_units above.
+create table if not exists unit_photos (
+  id         uuid primary key default gen_random_uuid(),
+  unit_id    uuid not null references item_units(id) on delete cascade,
+  photo_path text not null,
+  thumb_path text not null,
+  position   integer not null default 0,
+  created_at timestamptz not null default now()
+);
+create index if not exists unit_photos_unit_idx on unit_photos (unit_id, position);
+
 create table if not exists staged_photos (
   id         uuid primary key default gen_random_uuid(),
   seller_id  uuid not null references profiles(id) on delete cascade,
@@ -83,6 +97,7 @@ grant select on public_sales to anon, authenticated;
 alter table profiles      enable row level security;
 alter table items         enable row level security;
 alter table item_units    enable row level security;
+alter table unit_photos   enable row level security;
 alter table staged_photos enable row level security;
 alter table requests      enable row level security;
 alter table request_items enable row level security;
@@ -109,6 +124,20 @@ create policy "sellers manage their own units" on item_units
     select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()))
   with check (exists (
     select 1 from items i where i.id = item_units.item_id and i.seller_id = auth.uid()));
+
+-- world-readable like item_units, and safe for the same reason: image paths only
+drop policy if exists "anyone can browse unit photos" on unit_photos;
+create policy "anyone can browse unit photos" on unit_photos
+  for select using (true);
+
+drop policy if exists "sellers manage their own unit photos" on unit_photos;
+create policy "sellers manage their own unit photos" on unit_photos
+  for all using (exists (
+    select 1 from item_units u join items i on i.id = u.item_id
+     where u.id = unit_photos.unit_id and i.seller_id = auth.uid()))
+  with check (exists (
+    select 1 from item_units u join items i on i.id = u.item_id
+     where u.id = unit_photos.unit_id and i.seller_id = auth.uid()));
 
 -- the pool is private; it is never public in any direction
 drop policy if exists "sellers own their staged photos" on staged_photos;

@@ -7,6 +7,8 @@ import { STR, money } from "@/lib/i18n";
 import type { Item, ItemStatus, RequestRow, StagedPhoto, Unit } from "@/lib/types";
 import { StatChip, Toast } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
+import PhotoPool from "./PhotoPool";
+import CreateItem from "./CreateItem";
 
 type Profile = { display_name: string; phone: string; slug: string };
 
@@ -26,6 +28,8 @@ export default function BoardClient({ profile, items: initial, requests, staged 
   const [pool, setPool] = useState(staged);
   const [f, setF] = useState<"all" | ItemStatus>("all");
   const [uploading, setUploading] = useState(false);
+  // the photos she picked in the pool, frozen for the duration of the form
+  const [making, setMaking] = useState<StagedPhoto[] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
@@ -160,16 +164,7 @@ export default function BoardClient({ profile, items: initial, requests, staged 
       )}
 
       <h2 className="gs-h2">{t.poolTitle}</h2>
-      {pool.length === 0 ? <p className="gs-empty">{t.poolEmpty}</p> : (
-        <>
-          <p className="gs-lead">{t.poolWaiting(pool.length)}</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {pool.map((p) => (
-              <img key={p.id} className="gs-mini" src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
-            ))}
-          </div>
-        </>
-      )}
+      <PhotoPool photos={pool} onCreate={setMaking} />
 
       <h2 className="gs-h2">{f === "sold" ? t.statSold : t.stillHere}</h2>
       <div className="gs-grid">
@@ -225,6 +220,23 @@ export default function BoardClient({ profile, items: initial, requests, staged 
             // appended, matching the oldest-first order the board is fetched in
             setPool((p) => [...p, ...photos]);
             say(t.photosAdded(photos.length));
+          }}
+        />
+      )}
+
+      {making && (
+        <CreateItem
+          photos={making}
+          onClose={() => setMaking(null)}
+          // `used` is only the photos that genuinely landed in the listing, so
+          // anything the save could not attach or could not clear stays in the
+          // pool — which is both the retry path and an honest record. The form
+          // closes itself only after a clean run; it stays open otherwise to
+          // hold the explanation, which is why closing is not done here.
+          onCreated={(item, used) => {
+            setItems((prev) => [item, ...prev]);
+            setPool((p) => p.filter((x) => !used.includes(x.id)));
+            say(t.itemAdded);
           }}
         />
       )}
