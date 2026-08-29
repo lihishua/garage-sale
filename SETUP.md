@@ -161,6 +161,12 @@ than 1200px at source.
   Supabase Edge Function would tell her even when the buyer abandons halfway.
 - **Automatic release.** A unit reserved and never completed stays held forever. A daily job
   should return anything held longer than 48 hours.
+- **A sweep for stranded photos.** Uploads write the blobs first and the row second, and
+  deleting a listing removes the row first and the blobs second. Either way, a connection
+  that dies between the two leaves files in the `photos` bucket that nothing points at. The
+  app compensates where it can and tells the seller when it cannot, but no retry can be
+  trusted on a dead line. A periodic job should list the bucket and delete anything with no
+  matching `staged_photos.photo_path` or `item_units.photo_path`.
 - **Deleting a sale, and exporting the data.**
 - **Hebrew only for now** — `lib/i18n.ts` carries both languages, but there is no language
   switch in the interface yet.

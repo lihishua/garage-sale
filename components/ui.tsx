@@ -30,14 +30,19 @@ export function StatChip({ n, label, color = "#FFFFFF", on, onClick }:
   );
 }
 
-export function Sheet({ title, onClose, children }:
-  { title: string; onClose: () => void; children: React.ReactNode }) {
+/**
+ * `busy` holds the sheet shut through work that must not be interrupted — and
+ * says so: an × that silently does nothing reads as a broken button.
+ */
+export function Sheet({ title, onClose, busy, children }:
+  { title: string; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
+  const close = busy ? undefined : onClose;
   return (
-    <div className="gs-scrim" onClick={onClose}>
+    <div className="gs-scrim" onClick={close}>
       <div className="gs-sheet" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
           <h2 className="gs-sheet-title">{title}</h2>
-          <button className="gs-x" onClick={onClose} aria-label="×">×</button>
+          <button className="gs-x" onClick={close} disabled={busy} aria-label="×">×</button>
         </div>
         {children}
       </div>

@@ -75,10 +75,16 @@ export default function BoardClient({ profile, items: initial, requests, staged 
     if (!confirm(t.confirmDelete)) return;
     const { error } = await supabase.from("items").delete().eq("id", item.id);
     if (error) return say(error.message);
-    // the units cascade with the row; their blobs do not
+
+    // Row first on purpose: better an orphan blob than a listing pointing at a
+    // photo that is gone. The cost is that once the row is deleted these paths
+    // exist nowhere else, so a failure here strands them for good — say so
+    // instead of dropping it. They need the same reconciliation sweep the
+    // upload orphans do (see SETUP.md).
     const paths = item.units.flatMap((u) => [u.photo_path, u.thumb_path]);
-    if (paths.length) await supabase.storage.from("photos").remove(paths);
+    const gone = paths.length ? await supabase.storage.from("photos").remove(paths) : null;
     setItems((prev) => prev.filter((i) => i.id !== item.id));
+    if (gone?.error) say(t.photosNotDeleted);
   }
 
   const openWa = (phone: string, text: string) =>

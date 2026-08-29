@@ -108,6 +108,12 @@ export const STR = {
       n === 1 ? "תמונה אחת נדחתה — קטנה מדי או לא נקראה." : `${n} תמונות נדחו — קטנות מדי או לא נקראו.`,
     photosFailed: (n: number) =>
       n === 1 ? "תמונה אחת לא עלתה. נסו שוב." : `${n} תמונות לא עלו. נסו שוב.`,
+    photosStuck: (n: number) =>
+      n === 1
+        ? "תמונה אחת נשארה תקועה באחסון בלי שהיא מחוברת לכלום."
+        : `${n} תמונות נשארו תקועות באחסון בלי שהן מחוברות לכלום.`,
+    photosNotDeleted: "הפריט נמחק, אבל התמונות שלו נשארו באחסון.",
+    serverSaid: "מה שהשרת החזיר:",
     createItem: "יצירת פריט",
     createItemFrom: (n: number) => (n === 1 ? "יצירת פריט מתמונה אחת" : `יצירת פריט מ־${n} תמונות`),
     bundlePrice: "מחיר ללוט",
@@ -240,6 +246,12 @@ export const STR = {
       n === 1 ? "1 photo was rejected — too small or unreadable." : `${n} photos were rejected — too small or unreadable.`,
     photosFailed: (n: number) =>
       n === 1 ? "1 photo didn't upload. Try again." : `${n} photos didn't upload. Try again.`,
+    photosStuck: (n: number) =>
+      n === 1
+        ? "1 photo is stuck in storage, attached to nothing."
+        : `${n} photos are stuck in storage, attached to nothing.`,
+    photosNotDeleted: "The item was deleted, but its photos are still in storage.",
+    serverSaid: "What the server said:",
     createItem: "Create item",
     createItemFrom: (n: number) => `Create an item from ${n} photo${n > 1 ? "s" : ""}`,
     bundlePrice: "Bundle price",

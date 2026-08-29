@@ -24,6 +24,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
   const [added, setAdded] = useState(0);
   const [rejected, setRejected] = useState(0);
   const [failed, setFailed] = useState(0);
+  const [stuck, setStuck] = useState(0);
   const [err, setErr] = useState("");
 
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -33,26 +34,49 @@ export default function UploadPhotos({ onClose, onUploaded }:
   }
 
   async function run(files: File[]) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setErr(t.errSend); return; }
-
+    // Everything that guards re-entry is set here, before the first await.
+    // The picker is only disabled while `busy`, so setting it after the
+    // getUser() round trip — seconds on the flaky phone this is built for —
+    // would let a second pick start a second loop, and the two would upload in
+    // parallel and clobber each other's counters. That is precisely what the
+    // sequential design exists to prevent.
     setBusy(true);
     setErr("");
     setTotal(files.length);
-    setAt(0); setAdded(0); setRejected(0); setFailed(0);
+    setAt(0); setAdded(0); setRejected(0); setFailed(0); setStuck(0);
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setBusy(false); setErr(t.errSend); return; }
 
     const done: StagedPhoto[] = [];
-    let bad = 0, lost = 0, lastErr = "";
+    let sent = 0, bad = 0, lost = 0, orphans = 0, lastErr = "";
+
+    /**
+     * Compensating delete: the blobs are up but nothing references them.
+     *
+     * This cannot be made reliable. When the upload failed because the
+     * connection died, this delete dies with it, and retrying on a dead line
+     * only makes things worse — so the failure is counted and shown rather
+     * than swallowed. Blobs stranded this way need a periodic reconciliation
+     * sweep of the `photos` bucket against `staged_photos` and `item_units`,
+     * which does not exist yet. See SETUP.md.
+     */
+    const dropBlobs = async (paths: string[]) => {
+      const { error } = await supabase.storage.from("photos").remove(paths);
+      if (error) { orphans += paths.length; setStuck(orphans); }
+    };
 
     // Strictly sequential, never Promise.all: twenty parallel uploads from a
     // phone stall the connection, and a stalled batch loses every photo
     // instead of some. One bad file is skipped, not fatal to the rest.
     for (let n = 0; n < files.length; n++) {
-      setAt(n + 1);
-
       // too small (under PHOTO_MIN_WIDTH) or unreadable — count it and move on
       const blobs = await prepare(files[n]).catch(() => null);
       if (!blobs) { setRejected(++bad); continue; }
+
+      // the counter moves only for a photo actually being uploaded, so a batch
+      // of rejects never claims to have sent anything
+      setAt(++sent);
 
       const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const fullPath = `${user.id}/${stamp}.webp`;
@@ -65,7 +89,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
       const up2 = await supabase.storage.from("photos").upload(thumbPath, blobs.thumb, opts);
       if (up2.error) {
         // the full-size blob is already up and now references nothing
-        await supabase.storage.from("photos").remove([fullPath]);
+        await dropBlobs([fullPath]);
         lastErr = up2.error.message; setFailed(++lost); continue;
       }
 
@@ -79,7 +103,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
 
       if (error || !data) {
         // nothing references these blobs — do not leave them filling the bucket
-        await supabase.storage.from("photos").remove([fullPath, thumbPath]);
+        await dropBlobs([fullPath, thumbPath]);
         lastErr = error?.message ?? "insert failed";
         setFailed(++lost);
         continue;
@@ -95,21 +119,23 @@ export default function UploadPhotos({ onClose, onUploaded }:
   }
 
   return (
-    // closing mid-batch would hide the progress of uploads that keep running
-    <Sheet title={t.uploadPhotos} onClose={() => { if (!busy) onClose(); }}>
+    // closing mid-batch would hide the progress of uploads that keep running,
+    // so the × and the scrim are held shut — and look it — until the run ends
+    <Sheet title={t.uploadPhotos} onClose={onClose} busy={busy}>
       <input ref={fileRef} type="file" accept="image/*" multiple hidden onChange={pick} />
 
-      <button className={"gs-drop" + (rejected || failed ? " bad" : "")}
-        onClick={() => fileRef.current?.click()} disabled={busy}>
+      <button className="gs-drop" onClick={() => fileRef.current?.click()} disabled={busy}>
         {t.selectPhotos}
         <span className="gs-drop-note">{t.photoNote}</span>
       </button>
 
-      {busy && <p className="gs-lead">{t.uploadingN(at, total)}</p>}
+      {/* at === 0 while the first photo is still being resized in the browser */}
+      {busy && <p className="gs-lead">{at ? t.uploadingN(at, total) : t.loading}</p>}
       {!busy && added > 0 && <p className="gs-lead">{t.photosAdded(added)}</p>}
       {rejected > 0 && <span className="gs-err">{t.photosRejected(rejected)}</span>}
       {failed > 0 && <span className="gs-err">{t.photosFailed(failed)}</span>}
-      {err && <p className="gs-hint">{err}</p>}
+      {stuck > 0 && <span className="gs-err">{t.photosStuck(stuck)}</span>}
+      {err && <p className="gs-hint">{t.serverSaid} <span dir="ltr">{err}</span></p>}
 
       <button className="gs-btn gs-btn-cream gs-btn-wide" onClick={onClose} disabled={busy}>
         {t.close}
