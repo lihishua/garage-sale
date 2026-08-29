@@ -1,77 +1,102 @@
 # Garage Sale
 
-מכירת חצר בקישור אחד. Next.js + Supabase.
-הדומיין: **garagesale-online.com**
+A garage sale in a single link. Next.js + Supabase.
+Domain: **garagesale-online.com**
 
-## הקמה — בערך רבע שעה
+A seller photographs what she's selling, gets one link, and sends it to her neighbours.
+They heart what they want and send her the list over WhatsApp.
+
+> **In progress:** the seller flow is being rebuilt so photos upload in bulk into a pool
+> and become items afterwards, and so one item can hold several individually claimable
+> photos. The database already has this shape; the interface is catching up. See
+> `docs/superpowers/plans/2026-08-29-photo-pool-and-batch-items.md`.
+
+## Setup — about fifteen minutes
 
 ### 1. Supabase
-1. פתחי חשבון ב-supabase.com וצרי פרויקט חדש (התוכנית החינמית מספיקה).
-2. בתפריט: **SQL Editor** → New query → הדביקי את כל התוכן של `supabase/schema.sql` → Run.
-   זה יוצר את הטבלאות, ההרשאות, פונקציית השמירה ואת דלי התמונות.
-3. **Authentication → Providers → Email**: ודאי שהוא פעיל.
-   אין סיסמאות באפליקציה — הכניסה היא בקישור שנשלח למייל.
-4. **Authentication → URL Configuration → Redirect URLs**: הוסיפי את שתי הכתובות
-   `http://localhost:3000/**` ו-`https://garagesale-online.com/**`.
-   בלי זה הקישור מהמייל יידחה.
-5. **Authentication → Emails → Magic Link**: החליפי את גוף התבנית ב:
-   ```html
-   <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">כניסה למכירה שלי</a>
-   ```
-   זה **חובה**. תבנית ברירת המחדל שולחת את הטוקן בסוף הכתובת אחרי `#`,
-   והשרת לא יכול לקרוא אותו — הכניסה פשוט לא תעבוד.
-6. **Project Settings → API**: העתיקי את `Project URL` ואת `anon public`.
 
-### 2. הפרויקט
+1. Create an account at supabase.com and start a new project. The free plan is plenty.
+   **Pick an EU region** — closest to Israel. This cannot be changed later.
+2. **SQL Editor → New query** → paste all of `supabase/schema.sql` → **Run**.
+   That creates the tables, the access rules, the reservation function and the photo
+   bucket. Expect "Success. No rows returned".
+3. **Authentication → Providers → Email**: make sure it's enabled.
+   There are no passwords in this app — signing in means clicking a link sent by email.
+4. **Authentication → URL Configuration → Redirect URLs**: add both
+   `http://localhost:3000/**` and `https://garagesale-online.com/**`.
+   Without these, Supabase refuses to send anyone back to your own site.
+5. **Set up SMTP before touching the email templates.** Supabase locks template editing
+   until you connect your own mail sender, and its built-in one only delivers a handful
+   of messages an hour. Since *every* sign-in here is an email, this is required, not
+   optional. **Project Settings → Authentication → SMTP Settings** — Resend, Postmark and
+   SendGrid all have free tiers that cover a project this size.
+6. **Authentication → Emails**: replace the body of **both** the *Magic link* and the
+   *Confirm signup* templates with:
+   ```html
+   <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Sign in to my sale</a>
+   ```
+   This is **mandatory**. The default template puts the token after a `#`, which browsers
+   never send to a server — the sign-in would fail with nothing to explain why. Both
+   templates need it: a brand-new seller may be sent the signup one rather than the magic
+   link one, so fixing only one leaves first-time sellers stranded.
+7. **Project Settings → API**: copy the `Project URL` and the `anon public` key.
+
+### 2. The project
+
 ```bash
 npm install
-cp .env.local.example .env.local     # הדביקי לשם את שני המפתחות
+cp .env.local.example .env.local     # paste the two values in
 npm run dev
 ```
-פתחי http://localhost:3000
 
-### 3. מסלול בדיקה
-1. "לפתוח מכירת חצר משלי" → אימייל, שם, טלפון וכתובת עמוד (למשל `dana`) → "שלחו לי קישור כניסה".
-   הקישור מגיע למייל; לחיצה עליו יוצרת את הפרופיל ופותחת את הלוח.
-2. בלוח: "הוספת פריט", העלי תמונה אמיתית ברוחב 1200 פיקסלים ומעלה.
-3. פתחי `http://localhost:3000/dana` בחלון פרטי — זה מה שהשכנים רואים.
-4. סמני כמה פריטים בלב, שלחי רשימה, ובדקי שהיא מופיעה בלוח.
+Open http://localhost:3000
 
-### 4. העלאה לאוויר
-דחפי ל-GitHub, חברי ל-Vercel, הוסיפי שם את שני משתני הסביבה. הדומיין
-`garagesale-online.com` מתחבר דרך Vercel → Settings → Domains.
+To open it from a phone on the same Wi-Fi, run `npx next dev -H 0.0.0.0`, browse to your
+Mac's LAN address, and add that address to the Redirect URLs list too — otherwise the
+sign-in link will be rejected.
 
-שימי לב: הדומיין מופיע גם בקוד, ב-`metadataBase` שב-`app/layout.tsx` וב-`addressHint`
-שב-`lib/i18n.ts`. אם הוא משתנה, צריך לעדכן גם שם.
+### 3. A test run
 
-**לפני שזה באוויר — SMTP.** שרת המיילים המובנה של Supabase מוגבל לכמה מיילים בשעה
-ומיועד לבדיקות בלבד. מכיוון שכל הכניסה לאפליקציה היא במייל, בלי שרת מיילים אמיתי
-מוכרות פשוט לא ייכנסו. **Project Settings → Authentication → SMTP Settings**,
-ואפשר להתחבר ל-Resend / Postmark / SendGrid — לכולם יש תוכנית חינמית שמספיקה בגודל הזה.
+1. "לפתוח מכירת חצר משלי" → email, name, phone and page address (say `dana`) →
+   "שלחו לי קישור כניסה". The link arrives by email; clicking it creates the profile and
+   opens the board.
+2. On the board, upload photos and turn them into items.
+3. Open `http://localhost:3000/dana` in a private window — that's what the neighbours see.
+4. Heart a few things, send the list, and check it appears on the board.
 
-## מבנה
+### 4. Going live
+
+Push to GitHub, connect Vercel, and add the two environment variables there.
+`garagesale-online.com` is attached under **Vercel → Settings → Domains**.
+
+Note the domain also appears in the code, in `metadataBase` in `app/layout.tsx` and in
+`addressHint` in `lib/i18n.ts`. If it changes, update those too.
+
+## Layout
 
 ```
-app/[slug]/       עמוד המכירה הציבורי (שרת) + כל האינטראקציה (לקוח)
-app/dashboard/    הלוח של המוכר, כולל הוספת פריט
-app/login/        בקשת קישור כניסה
-app/auth/confirm/ הנחיתה של הקישור מהמייל — הופך אותו לכניסה
-lib/images.ts     הקטנת תמונות בדפדפן לפני העלאה
-supabase/schema.sql  כל מסד הנתונים
+app/[slug]/          the public sale page (server) plus all the interaction (client)
+app/dashboard/       the seller's board
+app/login/           requesting a sign-in link
+app/auth/confirm/    where the emailed link lands and becomes a session
+lib/images.ts        resizing photos in the browser before upload
+supabase/schema.sql  the whole database, for a fresh project
+supabase/migrations/ changes to apply to a database that already exists
+supabase/tests/      SQL checks run by hand in the SQL Editor
 ```
 
-## האייקון
+## The icon
 
-`garage-sale-icon.png` בשורש הפרויקט הוא מקור האמת לאייקון (2000×2000).
-כל הקבצים ב-`public/` נגזרים ממנו, ומחוברים ב-`app/layout.tsx` וב-`public/manifest.json`:
+`garage-sale-icon.png` in the project root is the source of truth (2000×2000). Everything
+in `public/` is derived from it and wired up in `app/layout.tsx` and `public/manifest.json`:
 
-| קובץ | לאן |
+| file | where it shows |
 |---|---|
-| `favicon.ico` | לשונית הדפדפן (16/32/48) |
-| `icon-192.png`, `icon-512.png` | ה-manifest, מסך הבית באנדרואיד |
-| `apple-touch-icon-180.png` | מסך הבית באייפון |
+| `favicon.ico` | browser tab (16/32/48) |
+| `icon-192.png`, `icon-512.png` | the manifest, Android home screen |
+| `apple-touch-icon-180.png` | iPhone home screen |
 
-אחרי החלפת ציור המקור, אפשר לייצר מחדש את הגדלים ב-macOS:
+After replacing the source artwork, regenerate the sizes on macOS:
 
 ```bash
 sips -Z 512 garage-sale-icon.png --out public/icon-512.png
@@ -79,41 +104,65 @@ sips -Z 192 garage-sale-icon.png --out public/icon-192.png
 sips -Z 180 garage-sale-icon.png --out public/apple-touch-icon-180.png
 ```
 
-## החלטות שכדאי להכיר
+The source image should be full-bleed with no white margin and no pre-rounded corners —
+iOS and Android apply their own rounded mask, and baked-in corners produce a small icon
+floating inside a white tile.
 
-**אין סיסמאות.** הכניסה היא קישור חד-פעמי שנשלח למייל. מכירת חצר היא אירוע —
-מוכרת נכנסת פעם אחת, מעלה פריטים לאורך כמה ערבים, ומסמנת "נמכר" בסוף השבוע. הכל
-באותו מכשיר, באותו session. סיסמה במקרה כזה היא בעיקר דבר שנשכח עד המכירה הבאה,
-ו"שכחתי סיסמה" ממילא שולח קישור במייל — אז זה אותו מסלול, רק עם שלב מיותר לפניו.
+## Decisions worth knowing
 
-**הפרטים של המוכרת נשמרים על משתמש ה-auth, לא ב-localStorage.** שם, טלפון וכתובת
-עמוד נשלחים כ-metadata יחד עם בקשת הקישור, ושורת ה-`profiles` נוצרת ב-`app/auth/confirm`
-רק אחרי לחיצה מוצלחת. ככה זה עובד גם כשמבקשים את הקישור במחשב ופותחים אותו בטלפון.
+**An item is a card; each of its photos is a unit.** Twenty books are one card with one
+description and twenty individually claimable photos. A sofa is a card with one. Because a
+single item is just a lot of one, there is no separate code path for "normal" and "lot"
+items anywhere.
 
-**מספר הטלפון של המוכר לא חשוף.** הוא לא נמצא ב-view הציבורי. הוא מוחזר רק
-בתשובה של `reserve_items`, כלומר אחרי שקונה באמת ביקש משהו. אחרת כל אחד היה
-יכול לגרד מספרי טלפון מהאתר.
+**No passwords.** Signing in means clicking a one-time link sent by email. A garage sale is
+an event: a seller signs in once, adds things over a few evenings, and marks them sold at
+the weekend — same device, same session throughout. A password is mainly a thing to forget
+by the next sale, and "forgot password" sends a link by email anyway, so it was the same
+journey with an extra step in front of it.
 
-**שני קונים, אותה ספה.** השמירה נעשית ב-`update ... where status='available'`
-בתוך פונקציה אחת בבסיס הנתונים. מי שהגיע שני מקבל את הפריט בחזרה ברשימת
-`unavailable` ורואה הודעה שחלק נתפס. אין מצב ששניים מקבלים את אותו פריט.
+**The seller's details ride on the auth user, not on the browser.** Name, phone and page
+address travel as metadata with the link request, and the `profiles` row is created in
+`app/auth/confirm` only after a successful click. That survives requesting the link on a
+laptop and opening it on a phone, which browser storage would not.
 
-**קונים בלי חשבון.** רשימת המשאלות נשמרת ב-localStorage של הדפדפן. היא לא
-עוברת בין מכשירים, וזה מקובל — מבקשים שם וטלפון רק ברגע השליחה.
+**Buyer contact details exist in exactly one place.** `requests` holds who asked for what,
+and its access rule filters by row (`seller_id = auth.uid()`), so an anonymous caller
+matches nothing at all. They are deliberately *not* duplicated onto `item_units`, because
+that table is world-readable — and row level security is row-level only, so any column on a
+world-readable table is public regardless of what the app's own queries ask for. You cannot
+leak a column that does not exist.
 
-**תמונות מוקטנות בדפדפן.** מהמצלמה מגיעות תמונות של 6 מגה. הקוד מייצר שתי
-גרסאות: 1600 פיקסלים לעמוד הפריט ו-480 לרשת. תמונה שהמקור שלה צר מ-1200
-נדחית.
+**The seller's own phone is released only in exchange for a real claim.** It is not in the
+`public_sales` view, and `reserve_units` returns it only when at least one unit was actually
+reserved. Returning it on every successful call — which an earlier version did — let anyone
+who knew the sale's address harvest it with a made-up photo id, reserving nothing and
+leaving no trace.
 
-## מה עוד חסר לפני שזה באוויר באמת
+**Two buyers, one sofa.** Claiming is a single
+`update ... where status = 'available' ... returning` inside one database function. The
+second buyer's copy finds the row no longer available, so it doesn't match, and the item
+comes back to her in the `unavailable` list with a message saying some were taken. There is
+no sequence of events in which both get it.
 
-- **הגבלת קצב על `reserve_items`.** כרגע כל אחד יכול לקרוא לה שוב ושוב ולנעול
-  מכירה שלמה. הפתרון: Edge Function עם בדיקת IP, או captcha לפני שליחה.
-- **התראה אמיתית למוכר.** היום הרשימה נרשמת בבסיס הנתונים, אבל ההודעה מגיעה
-  רק אם הקונה לוחץ על כפתור הוואטסאפ. שווה להוסיף מייל אוטומטי דרך Supabase
-  Edge Function, כדי שהמוכרת תדע גם אם הקונה נטש באמצע.
-- **שחרור אוטומטי.** פריט שנשמר לקונה ולא נסגר נשאר תפוס לנצח. כדאי job יומי
-  שמחזיר למלאי כל מה ששמור יותר מ-48 שעות.
-- **מחיקת מכירה וייצוא נתונים.**
-- **עברית בלבד כרגע** — יש קובץ מחרוזות דו-לשוני ב-`lib/i18n.ts`, אבל אין
-  עדיין מתג שפה בממשק.
+**Buyers need no account.** The wish list lives in the browser's `localStorage`. It doesn't
+travel between devices, which is fine — a name and number are asked for only at the moment
+of sending.
+
+**Photos are resized in the browser.** A phone camera produces 6MB files. The code makes two
+versions, 1600px for the item page and 480px for the grid, and rejects anything narrower
+than 1200px at source.
+
+## Still missing before this is really live
+
+- **Rate limiting on `reserve_units`.** Anyone can call it repeatedly, and a single call has
+  no cap on how many photos it claims, so one request could lock an entire sale. The fix is
+  an Edge Function checking IP, or a captcha before sending.
+- **A real notification to the seller.** The list is recorded in the database, but she only
+  hears about it if the buyer taps the WhatsApp button. An automatic email through a
+  Supabase Edge Function would tell her even when the buyer abandons halfway.
+- **Automatic release.** A unit reserved and never completed stays held forever. A daily job
+  should return anything held longer than 48 hours.
+- **Deleting a sale, and exporting the data.**
+- **Hebrew only for now** — `lib/i18n.ts` carries both languages, but there is no language
+  switch in the interface yet.
