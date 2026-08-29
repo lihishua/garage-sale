@@ -36,7 +36,11 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   border:1.5px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
 
 /* item grid */
-.gs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:18px}
+/* align-items:start so a card sizes to its own content. A מארז with several
+   units is tall, and the default `stretch` dragged its neighbour to match,
+   leaving a big empty panel that reads as a loading failure. */
+.gs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
+  gap:18px;align-items:start}
 .gs-card{position:relative;background:#fff;border:2px solid var(--ink);border-radius:10px;
   transform:rotate(-.3deg);transition:transform .14s}
 .gs-card:nth-child(even){transform:rotate(.35deg)}
