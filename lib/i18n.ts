@@ -149,6 +149,10 @@ export const STR = {
         : `נמכרו ${sold} מתוך ${total} בלוט הזה. אולי כדאי לעדכן את המחיר?`,
     deletePhoto: "מחיקת תמונה",
     photoCount: (n: number) => (n === 1 ? "תמונה אחת" : `${n} תמונות`),
+    // a chip up top counts units ("12 פנוי"); the grid below it counts cards.
+    // both numbers are true, but side by side they read as a bug — this ties
+    // them together in one sentence instead of leaving her to reconcile them.
+    matchCount: (n: number) => (n === 1 ? "מתוך פריט אחד" : `מתוך ${n} פריטים`),
     // auth
     signIn: "כניסה",
     signUp: "פתיחת מכירה",
@@ -299,6 +303,7 @@ export const STR = {
     bundleNudge: (sold: number, total: number) => `${sold} of ${total} sold from this lot. Maybe update the price?`,
     deletePhoto: "Delete photo",
     photoCount: (n: number) => `${n} photo${n > 1 ? "s" : ""}`,
+    matchCount: (n: number) => (n === 1 ? "out of 1 item" : `out of ${n} items`),
     signIn: "Sign in",
     signUp: "Start a sale",
     email: "Email",

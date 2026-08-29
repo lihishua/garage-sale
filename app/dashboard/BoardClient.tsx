@@ -4,19 +4,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, money } from "@/lib/i18n";
-import { unitPaths, type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit } from "@/lib/types";
+import {
+  availableUnits, holdersByUnit, unitPaths,
+  type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
+} from "@/lib/types";
 import { StatChip, Toast } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
 
 type Profile = { display_name: string; phone: string; slug: string };
-
-// who holds a reserved unit is derived from `requests`, not stored on the unit
-// — Task 6 wires holdersByUnit in. Until then the request list below is where
-// the seller reads a buyer's name and number.
-const unitState = (s: ItemStatus) =>
-  s === "sold" ? STR.he.statSold : s === "reserved" ? STR.he.statHeld : STR.he.waiting;
 
 export default function BoardClient({ profile, items: initial, requests, staged }:
   { profile: Profile; items: Item[]; requests: RequestRow[]; staged: StagedPhoto[] }) {
@@ -56,12 +53,40 @@ export default function BoardClient({ profile, items: initial, requests, staged 
     return items.filter((i) => i.units.some((u) => u.status === f));
   }, [f, items]);
 
+  // A chip up top reads e.g. "12 פנוי" (12 units); the grid below, filtered to
+  // the same status, shows however many cards that spans — a different, smaller
+  // number, because one card can hold several units. Both are true, but shown
+  // bare they read as disagreeing. `matchCount` on the section heading below
+  // ties them together in one sentence instead of leaving her to reconcile two
+  // bare numbers herself. `null` under "all": there is no single chip to check
+  // the grid against, so nothing needs tying together.
+  const matchedCount =
+    f === "available" ? free.length : f === "reserved" ? held.length : f === "sold" ? sold.length : null;
+
   // which card a reserved unit belongs to, for the request lists below
   const unitIndex = useMemo(() => {
     const m = new Map<string, { unit: Unit; item: Item }>();
     items.forEach((item) => item.units.forEach((unit) => m.set(unit.id, { unit, item })));
     return m;
   }, [items]);
+
+  // Who holds each reserved unit — derived from `requests`, never stored on
+  // `item_units` (no `reserved_by_*` columns: that table is world-readable).
+  // `requests` arrives newest-first from page.tsx, which is what holdersByUnit
+  // requires to let a later request overwrite an earlier one for the same unit.
+  const holders = useMemo(() => holdersByUnit(requests), [requests]);
+
+  const unitLabel = (u: Unit) => {
+    if (u.status === "sold") return t.statSold;
+    if (u.status === "reserved") {
+      const h = holders.get(u.id);
+      // heldFor takes a first name, matching messageX/waReply elsewhere on
+      // this board; statHeld is the fallback for the split second before a
+      // holder can be derived, or if a unit is reserved with no request row
+      return h ? t.heldFor(h.name.split(" ")[0]) : t.statHeld;
+    }
+    return t.waiting;
+  };
 
   // read after mount: the origin is unknown on the server, and rendering a
   // different string there than in the browser is a hydration mismatch
@@ -175,11 +200,26 @@ export default function BoardClient({ profile, items: initial, requests, staged 
       <h2 className="gs-h2">{t.poolTitle}</h2>
       <PhotoPool photos={pool} listed={listed} onCreate={setMaking} />
 
-      <h2 className="gs-h2">{f === "sold" ? t.statSold : t.stillHere}</h2>
+      <h2 className="gs-h2">
+        {f === "sold" ? t.statSold : t.stillHere}
+        {/* ties the chip's unit count to the card count below it, in one
+            sentence, so the two numbers cannot read as disagreeing */}
+        {matchedCount !== null && <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>}
+      </h2>
       <div className="gs-grid">
         {list.map((it) => {
           const cover = it.units[0];
           const gone = it.units.length > 0 && it.units.every((u) => u.status !== "available");
+          const soldCount = it.units.filter((u) => u.status === "sold").length;
+          // the "all for" price only shows to buyers while every unit is still
+          // available (showBundlePrice, lib/types.ts) — once one sells it goes
+          // quiet with no signal to her, unless something says so here
+          const bundleBroken = it.bundle_price != null && it.units.length > 1
+            && soldCount > 0 && soldCount < it.units.length;
+          // extra views beyond one photo per unit (a crib shot from five
+          // angles) — worth a mention; redundant with unitsLeft otherwise
+          const extraPhotos = it.units.reduce((s, u) => s + (u.photos?.length ?? 0), 0);
+          const totalPhotos = it.units.length + extraPhotos;
           return (
             <article key={it.id} className={"gs-card" + (gone ? " taken" : "")}>
               <div className="gs-photo">
@@ -189,31 +229,60 @@ export default function BoardClient({ profile, items: initial, requests, staged 
                 <h3 className="gs-card-title">{it.title}</h3>
                 <div className="gs-card-row">
                   <span className="gs-price">{money(it.price)}</span>
-                  <span className="gs-tags">{t.photoCount(it.units.length)}</span>
+                  <span className="gs-tags">
+                    {t.unitsLeft(availableUnits(it).length)}
+                    {extraPhotos > 0 && ` · ${t.photoCount(totalPhotos)}`}
+                  </span>
                 </div>
 
-                {/* one row per photo. a single-photo item is a batch of one, so
-                    there is no second code path for it. */}
-                <ul className="gs-list">
-                  {it.units.map((u) => (
-                    <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
-                      {it.units.length > 1 && (
+                {/* A lot (>1 unit) gets one row per photo — each a separate
+                    claimable thing, so marking one sold is obviously about
+                    that photo alone. A single listing has exactly one thing
+                    to sell, so it gets one set of actions right on the card
+                    instead of a one-row "list" that would only imply there
+                    could be more. */}
+                {it.units.length > 1 ? (
+                  <ul className="gs-list">
+                    {it.units.map((u) => (
+                      <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
                         <img className="gs-mini" src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
+                        <span className="gs-list-name">{unitLabel(u)}</span>
+                        <div className="gs-actions" style={{ marginTop: 0 }}>
+                          {u.status !== "sold" && (
+                            <button className="gs-btn gs-btn-green gs-btn-sm"
+                              onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
+                          )}
+                          {u.status !== "available" && (
+                            <button className="gs-btn gs-btn-cream gs-btn-sm"
+                              onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : it.units[0] && (
+                  <>
+                    {it.units[0].status !== "available" && (
+                      <p className="gs-waiting">{unitLabel(it.units[0])}</p>
+                    )}
+                    <div className="gs-actions">
+                      {it.units[0].status !== "sold" && (
+                        <button className="gs-btn gs-btn-green gs-btn-sm"
+                          onClick={() => setUnitStatus(it.units[0].id, "sold")}>{t.markSold}</button>
                       )}
-                      <span className="gs-list-name">{unitState(u.status)}</span>
-                      <div className="gs-actions" style={{ marginTop: 0 }}>
-                        {u.status !== "sold" && (
-                          <button className="gs-btn gs-btn-green gs-btn-sm"
-                            onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
-                        )}
-                        {u.status !== "available" && (
-                          <button className="gs-btn gs-btn-cream gs-btn-sm"
-                            onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
+                      {it.units[0].status !== "available" && (
+                        <button className="gs-btn gs-btn-cream gs-btn-sm"
+                          onClick={() => setUnitStatus(it.units[0].id, "available")}>{t.backToStock}</button>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* informational only — points at editing, but the edit form
+                    is Task 7 and does not exist yet, so this stays text-only
+                    on purpose. This is the seam: Task 7 hangs a real link to
+                    the edit screen (t.editItem) off this note. */}
+                {bundleBroken && <p className="gs-note">{t.bundleNudge(soldCount, it.units.length)}</p>}
 
                 <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
               </div>
