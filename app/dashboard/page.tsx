@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
-import type { Item, RequestRow, StagedPhoto, Unit } from "@/lib/types";
+import { unitPaths, type Item, type RequestRow, type StagedPhoto, type Unit } from "@/lib/types";
 import BoardClient from "./BoardClient";
 
 export const revalidate = 0;
@@ -64,12 +64,30 @@ export default async function Dashboard() {
     .eq("seller_id", user.id)
     .order("created_at", { ascending: true });
 
+  /**
+   * Drop staged rows whose photo is already in a listing.
+   *
+   * This is an exact test, not a fuzzy dedupe, and it must not be weakened
+   * into one. `UploadPhotos` mints every path as `${user.id}/${Date.now()}-
+   * ${random}.webp`, so two photos cannot legitimately share a path — a match
+   * has exactly one cause: `CreateItem` built the listing but the follow-up
+   * delete of the `staged_photos` row failed, leaving the row behind.
+   *
+   * Without this, a reload puts those photos back in the pool unmarked and she
+   * can build a second listing out of photos that are already in one.
+   * `BoardClient` guards the same thing within a session; this is what makes
+   * the guard survive a refresh. The paths are already in memory from the
+   * items query, so it costs one Set and one pass.
+   */
+  const inAListing = new Set(items.flatMap((i) => i.units.flatMap(unitPaths)));
+  const pool = ((staged ?? []) as StagedPhoto[]).filter((p) => !inAListing.has(p.photo_path));
+
   return (
     <BoardClient
       profile={profile}
       items={items}
       requests={(requests ?? []) as RequestRow[]}
-      staged={(staged ?? []) as StagedPhoto[]}
+      staged={pool}
     />
   );
 }

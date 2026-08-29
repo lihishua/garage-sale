@@ -33,7 +33,15 @@ export type Unit = {
   photos?: UnitPhoto[];
 };
 
-/** every storage path a unit owns: its own photo, plus each extra view */
+/**
+ * Every storage path a unit owns: its own photo, plus each extra view.
+ *
+ * Deliberately does not deduplicate. Paths are unique by construction —
+ * `UploadPhotos` mints each as `${user.id}/${Date.now()}-${random}.webp` — and
+ * both consumers are indifferent anyway: `storage.remove()` no-ops on a path
+ * it has already deleted, and the dashboard's pool filter feeds the result
+ * into a Set.
+ */
 export const unitPaths = (u: Unit): string[] => [
   u.photo_path, u.thumb_path,
   ...(u.photos ?? []).flatMap((p) => [p.photo_path, p.thumb_path]),
