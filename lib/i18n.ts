@@ -124,7 +124,7 @@ export const STR = {
     itemAdded: "הפריט עלה ללוח",
     // photo pool & units
     uploadPhotos: "העלאת תמונות",
-    poolTitle: "תמונות שמחכות",
+    poolTitle: "גלריית תמונות",
     poolWaiting: (n: number) => (n === 1 ? "תמונה אחת ממתינה" : `${n} תמונות ממתינות`),
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
@@ -304,7 +304,7 @@ export const STR = {
     uploading: "Uploading…",
     itemAdded: "It's on the board",
     uploadPhotos: "Upload photos",
-    poolTitle: "Waiting photos",
+    poolTitle: "Photo gallery",
     poolWaiting: (n: number) => `${n} photo${n > 1 ? "s" : ""} waiting`,
     poolEmpty: "No photos waiting right now. Upload a few to get started.",
     selectPhotos: "Select photos",

@@ -166,23 +166,20 @@ export default function BoardClient({ profile, items: initial, requests, holderR
 
   return (
     <main className="gs-wrap">
-      <h1 className="gs-board-title" style={{ marginBottom: 18 }}>{t.boardTitle}</h1>
+      {/* Signing out belongs to the page, not to the photos — it sits on the
+          title row, outside the tinted panel, where it cannot read as one of
+          the controls for adding stock. */}
+      <div className="gs-board-head">
+        <h1 className="gs-board-title">{t.boardTitle}</h1>
+        <button className="gs-btn-ghost" onClick={async () => {
+          await supabase.auth.signOut(); router.push("/login");
+        }}>{t.signOut}</button>
+      </div>
 
       {/* Section one: everything about getting stock onto the board — her
           words. Tinted and bordered so it reads as one card even at a glance
           on a phone, distinct from the plain flow of section two below it. */}
       <section className="gs-section gs-section-add">
-        {/* no heading here: the tint and border already say this is one place,
-            and naming it added a label without adding meaning */}
-        <div className="gs-board-head">
-          <div style={{ display: "flex", gap: 8 }}>
-            <button className="gs-btn gs-btn-cream" onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
-            <button className="gs-btn-ghost" onClick={async () => {
-              await supabase.auth.signOut(); router.push("/login");
-            }}>{t.signOut}</button>
-          </div>
-        </div>
-
         <div className="gs-linkbar">
           <b>{t.myLink}</b>
           <code>{saleUrl}</code>
@@ -191,8 +188,14 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           }}>{t.copy}</button>
         </div>
 
+        {/* the gallery first, then the way to add to it: the button sits under
+            what it fills, so the eye lands on the photos rather than on a
+            control for photos it has not seen yet */}
         <h3 className="gs-h2">{t.poolTitle}</h3>
         <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto} />
+
+        <button className="gs-btn gs-btn-cream gs-btn-wide"
+          onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
       </section>
 
       {/* Section two: what is happening — what is left, what is sold, and the
