@@ -13,7 +13,8 @@
 ## Global Constraints
 
 - Hebrew is the only shipped locale, but **every new string goes into both `he` and `en`** in `lib/i18n.ts`. The `en` block is kept in sync so a language switch stays possible.
-- `reserved_by_name` and `reserved_by_phone` are **never** selected by public-page queries. Public queries name their columns explicitly; never `select("*")` on `item_units` from the sale page.
+- **No buyer contact details may live on any table carrying a `using (true)` select policy.** Row level security is row-level only: a policy that exposes every row exposes every column in it, whatever the app's own queries happen to ask for. `item_units` therefore has **no** `reserved_by_*` columns at all — the record of who asked for what lives solely in `requests`, whose policy filters by row (`seller_id = auth.uid()`) and so reveals nothing to an anonymous caller.
+  *(Corrected mid-build: the original constraint relied on public queries naming their columns, which protects against the app leaking but not against a direct API call with the anon key. Verified against the live project.)*
 - Photos are resized in the browser before upload — 1600px full, 480px thumb, source under 1200px wide rejected. `lib/images.ts` is unchanged and must keep being used.
 - Items keep `not null` on `title`, `description`, `price`. No draft/incomplete item rows ever exist.
 - `price` means **price per unit**. `bundle_price` is nullable and only meaningful when an item has more than one unit.
@@ -78,8 +79,8 @@ create table item_units (
   thumb_path        text not null,
   position          integer not null default 0,      -- 0 is the cover
   status            item_status not null default 'available',
-  reserved_by_name  text,
-  reserved_by_phone text,
+  -- deliberately NO reserved_by_* columns: this table is world-readable,
+  -- so buyer contact details live only in `requests`. See Global Constraints.
   created_at        timestamptz not null default now()
 );
 create index item_units_item_idx on item_units (item_id, position);
@@ -213,11 +214,10 @@ begin
   end if;
 
   -- one statement, conditional on status: two buyers, one winner
+  -- who asked is recorded in `requests` below, never on the unit itself
   with locked as (
     update item_units u
-       set status            = 'reserved',
-           reserved_by_name  = btrim(p_name),
-           reserved_by_phone = btrim(p_phone)
+       set status = 'reserved'
       from items i
      where u.item_id = i.id
        and u.id = any(p_unit_ids)
@@ -428,6 +428,11 @@ Expected: one item with 1 unit, one with 3 units at positions 0,1,2, all `availa
 - [ ] **Step 2: Stat chips count units, not items** — `free`, `held`, `sold` and earnings all sum over units. Add a `poolWaiting` chip.
 
 - [ ] **Step 3: Item cards show unit state** — `unitsLeft(n)` on a multi-unit item; mark-sold and back-to-stock act per unit for a lot, on the whole item for a single.
+
+  **Who holds a reserved unit** is derived, not stored. The dashboard already loads
+  `requests` with their `request_items(unit_id)`; build a `Map<unit_id, {name, phone}>`
+  from the most recent request containing each unit. There are no `reserved_by_*`
+  columns to read — see Global Constraints.
 
 - [ ] **Step 4: The bundle nudge** — when an item has `bundle_price` and some units are sold, show `bundleNudge(sold, total)` linking to the edit form.
 
