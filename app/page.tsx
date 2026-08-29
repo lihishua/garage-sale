@@ -11,8 +11,9 @@ export default async function Home() {
     <main className="gs-landing">
       <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
       <p>
-        מעלים תמונות של מה שמוכרים, מקבלים קישור אחד, ושולחים אותו לשכנים.
-        הם מסמנים בלב מה שהם רוצים ושולחים לכם רשימה בוואטסאפ.
+        מעלים תמונות של כל הפריטים למכירה/למסירה מהבית, מקבלים קישור אחד
+        שמעבירים לחברים בשכונה, והם מסמנים בקלות מה הם רוצים.
+        תנסו, מקסימום תתייעלו <span dir="ltr">:-)</span>
       </p>
       <img className="gs-arrow" src="/arrow.webp" alt="" aria-hidden="true" />
       <Link href="/login?mode=signup">
