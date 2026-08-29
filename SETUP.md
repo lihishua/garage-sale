@@ -1,47 +1,44 @@
-# Garage Sale
+# Setup and technical notes
 
-A garage sale in a single link. Next.js + Supabase.
-Domain: **garagesale-online.com**
+Everything needed to run and work on Garage Sale. For what the app *is*, see
+[README.md](README.md).
 
-A seller photographs what she's selling, gets one link, and sends it to her neighbours.
-They heart what they want and send her the list over WhatsApp.
+Next.js 14 (App Router) + Supabase. Domain: **garagesale-online.com**.
 
 > **In progress:** the seller flow is being rebuilt so photos upload in bulk into a pool
-> and become items afterwards, and so one item can hold several individually claimable
-> photos. The database already has this shape; the interface is catching up. See
-> `docs/superpowers/plans/2026-08-29-photo-pool-and-batch-items.md`.
+> and become listings afterwards, and so one listing can hold several individually
+> claimable photos. The database already has this shape; the interface is catching up.
+> See `docs/superpowers/plans/2026-08-29-photo-pool-and-batch-items.md`.
 
-## Setup — about fifteen minutes
+## Standing up a Supabase project
 
-### 1. Supabase
-
-1. Create an account at supabase.com and start a new project. The free plan is plenty.
-   **Pick an EU region** — closest to Israel. This cannot be changed later.
+1. Create a project at supabase.com — the free plan is plenty.
+   **Pick an EU region**, closest to Israel. This cannot be changed afterwards.
 2. **SQL Editor → New query** → paste all of `supabase/schema.sql` → **Run**.
    That creates the tables, the access rules, the reservation function and the photo
    bucket. Expect "Success. No rows returned".
-3. **Authentication → Providers → Email**: make sure it's enabled.
-   There are no passwords in this app — signing in means clicking a link sent by email.
-4. **Authentication → URL Configuration → Redirect URLs**: add both
+3. **Authentication → Providers → Email**: make sure it's enabled. There are no passwords
+   here — signing in means clicking a link sent by email.
+4. **Authentication → URL Configuration → Redirect URLs**: add
    `http://localhost:3000/**` and `https://garagesale-online.com/**`.
-   Without these, Supabase refuses to send anyone back to your own site.
+   Without these, Supabase refuses to send anyone back to the site.
 5. **Set up SMTP before touching the email templates.** Supabase locks template editing
-   until you connect your own mail sender, and its built-in one only delivers a handful
-   of messages an hour. Since *every* sign-in here is an email, this is required, not
-   optional. **Project Settings → Authentication → SMTP Settings** — Resend, Postmark and
-   SendGrid all have free tiers that cover a project this size.
+   until you connect your own mail sender, and its built-in one only delivers a handful of
+   messages an hour. Since *every* sign-in is an email, this is required, not optional.
+   **Project Settings → Authentication → SMTP Settings** — Resend, Postmark and SendGrid
+   all have free tiers that cover a project this size.
 6. **Authentication → Emails**: replace the body of **both** the *Magic link* and the
    *Confirm signup* templates with:
    ```html
    <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email">Sign in to my sale</a>
    ```
    This is **mandatory**. The default template puts the token after a `#`, which browsers
-   never send to a server — the sign-in would fail with nothing to explain why. Both
-   templates need it: a brand-new seller may be sent the signup one rather than the magic
-   link one, so fixing only one leaves first-time sellers stranded.
+   never send to a server — sign-in would fail with nothing to explain why. Both templates
+   need it: a brand-new seller may be sent the signup one rather than the magic link one,
+   so fixing only one leaves first-time sellers stranded.
 7. **Project Settings → API**: copy the `Project URL` and the `anon public` key.
 
-### 2. The project
+## Running it
 
 ```bash
 npm install
@@ -49,27 +46,27 @@ cp .env.local.example .env.local     # paste the two values in
 npm run dev
 ```
 
-Open http://localhost:3000
+http://localhost:3000
 
-To open it from a phone on the same Wi-Fi, run `npx next dev -H 0.0.0.0`, browse to your
+To reach it from a phone on the same Wi-Fi, run `npx next dev -H 0.0.0.0`, browse to the
 Mac's LAN address, and add that address to the Redirect URLs list too — otherwise the
-sign-in link will be rejected.
+sign-in link is rejected.
 
-### 3. A test run
+## A test run
 
 1. "לפתוח מכירת חצר משלי" → email, name, phone and page address (say `dana`) →
    "שלחו לי קישור כניסה". The link arrives by email; clicking it creates the profile and
    opens the board.
-2. On the board, upload photos and turn them into items.
-3. Open `http://localhost:3000/dana` in a private window — that's what the neighbours see.
+2. On the board, upload photos and turn them into listings.
+3. Open `http://localhost:3000/dana` in a private window — that's the buyer's view.
 4. Heart a few things, send the list, and check it appears on the board.
 
-### 4. Going live
+## Deploying
 
-Push to GitHub, connect Vercel, and add the two environment variables there.
+Push to GitHub, connect Vercel, add the two environment variables there.
 `garagesale-online.com` is attached under **Vercel → Settings → Domains**.
 
-Note the domain also appears in the code, in `metadataBase` in `app/layout.tsx` and in
+The domain also appears in the code, in `metadataBase` in `app/layout.tsx` and in
 `addressHint` in `lib/i18n.ts`. If it changes, update those too.
 
 ## Layout
@@ -83,6 +80,7 @@ lib/images.ts        resizing photos in the browser before upload
 supabase/schema.sql  the whole database, for a fresh project
 supabase/migrations/ changes to apply to a database that already exists
 supabase/tests/      SQL checks run by hand in the SQL Editor
+docs/superpowers/    specs and implementation plans
 ```
 
 ## The icon
@@ -96,7 +94,7 @@ in `public/` is derived from it and wired up in `app/layout.tsx` and `public/man
 | `icon-192.png`, `icon-512.png` | the manifest, Android home screen |
 | `apple-touch-icon-180.png` | iPhone home screen |
 
-After replacing the source artwork, regenerate the sizes on macOS:
+Regenerate after replacing the source artwork:
 
 ```bash
 sips -Z 512 garage-sale-icon.png --out public/icon-512.png
@@ -104,16 +102,16 @@ sips -Z 192 garage-sale-icon.png --out public/icon-192.png
 sips -Z 180 garage-sale-icon.png --out public/apple-touch-icon-180.png
 ```
 
-The source image should be full-bleed with no white margin and no pre-rounded corners —
-iOS and Android apply their own rounded mask, and baked-in corners produce a small icon
-floating inside a white tile.
+The source should be full-bleed — no white margin, no pre-rounded corners. iOS and Android
+apply their own rounded mask, and leftover white reads as a pale fringe on the home screen.
+The current generated icons flood-fill any edge-connected white before resizing.
 
 ## Decisions worth knowing
 
-**An item is a card; each of its photos is a unit.** Twenty books are one card with one
+**A listing is a card; each of its photos is a unit.** Twenty books are one card with one
 description and twenty individually claimable photos. A sofa is a card with one. Because a
 single item is just a lot of one, there is no separate code path for "normal" and "lot"
-items anywhere.
+listings anywhere.
 
 **No passwords.** Signing in means clicking a one-time link sent by email. A garage sale is
 an event: a seller signs in once, adds things over a few evenings, and marks them sold at
