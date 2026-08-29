@@ -77,7 +77,6 @@ export const STR = {
     // seller
     boardTitle: "הלוח שלי",
     // two sections on the board: things she does, then what is happening
-    sectionAddH: "מכניסים סחורה",
     sectionStatusH: "מצב המכירה",
     statFree: "פנוי",
     statHeld: "מישהו ביקש",
@@ -85,7 +84,7 @@ export const STR = {
     statEarned: "נכנס",
     requestsH: "רשימות שהגיעו",
     requestsEmpty: "עדיין כלום.",
-    stillHere: "מה שעוד נשאר",
+    allItems: "כל הפריטים",
     markSold: "קיבלתי תשלום",
     backToStock: "חזרה למלאי",
     waiting: "מחכה למישהו",
@@ -261,7 +260,6 @@ export const STR = {
     backToSale: "Back to the sale",
     startMine: "Start my own garage sale",
     boardTitle: "My board",
-    sectionAddH: "Bringing in stock",
     sectionStatusH: "How the sale's going",
     statFree: "up for grabs",
     statHeld: "someone's asked",
@@ -269,7 +267,7 @@ export const STR = {
     statEarned: "taken in",
     requestsH: "Wish lists that came in",
     requestsEmpty: "Nothing yet.",
-    stillHere: "Everything still here",
+    allItems: "All items",
     markSold: "Money changed hands",
     backToStock: "Back to stock",
     waiting: "waiting for someone",

@@ -251,7 +251,14 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         )}
 
         <h3 className="gs-h2">
-          {f === "sold" ? t.statSold : t.stillHere}
+          {/* name the slice actually on screen. "what is still left" was only
+              true under the פנוי chip — with a chip off, this list includes
+              reserved and sold units, and something claimed is the opposite
+              of left over. */}
+          {f === "all" ? t.allItems
+            : f === "available" ? t.statFree
+            : f === "reserved" ? t.statHeld
+            : t.statSold}
           {/* ties the chip's unit count to the card count below it, in one
               sentence, so the two numbers cannot read as disagreeing. Skipped
               at zero: "0 out of 0 items" is technically true but not a phrase
