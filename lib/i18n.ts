@@ -35,7 +35,10 @@ export const STR = {
     total: "סך הכל",
     sendList: (n: string) => `לשלוח את הרשימה ל${n}`,
     whoAsks: "מי מבקש?",
-    checkoutLead: (n: number, name: string) => `${name} צריך שם ומספר טלפון כדי לשמור לכם ${n} פריטים.`,
+    checkoutLead: (n: number, name: string) =>
+      n === 1
+        ? `${name} צריך שם ומספר טלפון כדי לשמור לכם פריט אחד.`
+        : `${name} צריך שם ומספר טלפון כדי לשמור לכם ${n} פריטים.`,
     yourName: "השם שלך",
     namePh: "נועה לוי",
     phone: "מספר טלפון",
@@ -95,24 +98,27 @@ export const STR = {
     // photo pool & units
     uploadPhotos: "העלאת תמונות",
     poolTitle: "תמונות שמחכות",
-    poolWaiting: (n: number) => `${n} תמונות ממתינות`,
+    poolWaiting: (n: number) => (n === 1 ? "תמונה אחת ממתינה" : `${n} תמונות ממתינות`),
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
     createItem: "יצירת פריט",
-    createItemFrom: (n: number) => `יצירת פריט מ־${n} תמונות`,
+    createItemFrom: (n: number) => (n === 1 ? "יצירת פריט מתמונה אחת" : `יצירת פריט מ־${n} תמונות`),
     bundlePrice: "מחיר ללוט",
     bundlePriceHint: "מחיר מיוחד למי שלוקח את כל הלוט. רשות.",
     perUnit: "ליחידה",
     forAll: "לכל הלוט",
-    unitsLeft: (n: number) => `נשארו ${n}`,
+    unitsLeft: (n: number) => (n === 1 ? "נשארה אחת" : `נשארו ${n}`),
     soldBand: "נמכר",
     onlyAvailable: "רק מה שפנוי",
     allSold: "הכל נמכר",
     editItem: "עריכת פריט",
     saveChanges: "שמירת שינויים",
-    bundleNudge: (sold: number, total: number) => `נמכרו ${sold} מתוך ${total} בלוט הזה. אולי כדאי לעדכן את המחיר?`,
+    bundleNudge: (sold: number, total: number) =>
+      sold === 1
+        ? `נמכרה אחת מתוך ${total} בלוט הזה. אולי כדאי לעדכן את המחיר?`
+        : `נמכרו ${sold} מתוך ${total} בלוט הזה. אולי כדאי לעדכן את המחיר?`,
     deletePhoto: "מחיקת תמונה",
-    photoCount: (n: number) => `${n} תמונות`,
+    photoCount: (n: number) => (n === 1 ? "תמונה אחת" : `${n} תמונות`),
     // auth
     signIn: "כניסה",
     signUp: "פתיחת מכירה",
@@ -224,7 +230,7 @@ export const STR = {
     createItemFrom: (n: number) => `Create an item from ${n} photo${n > 1 ? "s" : ""}`,
     bundlePrice: "Bundle price",
     bundlePriceHint: "A special price for someone who takes the whole lot. Optional.",
-    perUnit: "per item",
+    perUnit: "per unit",
     forAll: "for the whole lot",
     unitsLeft: (n: number) => `${n} left`,
     soldBand: "Sold",

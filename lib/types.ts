@@ -40,7 +40,17 @@ export type RequestRow = {
 };
 
 export type Holder = { name: string; phone: string };
-/** built from requests the dashboard already loads; most recent request wins */
+/**
+ * Built from requests the dashboard already loads; most recent request wins.
+ *
+ * Precondition: `requests` must be ordered newest-first (as
+ * `app/dashboard/page.tsx` already does via `.order("created_at", { ascending: false })`).
+ * This function reverses that order internally so the forward pass overwrites
+ * earlier holders with later ones. Pass requests in any other order and the
+ * map silently returns a stale holder for a unit reserved more than once —
+ * the wrong buyer's name and phone would show on the board, with no crash
+ * and no compile error to signal it.
+ */
 export const holdersByUnit = (requests: RequestRow[]): Map<string, Holder> => {
   const m = new Map<string, Holder>();
   // oldest first, so later requests overwrite earlier ones
