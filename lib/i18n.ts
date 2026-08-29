@@ -42,6 +42,13 @@ export const STR = {
     // one photo each
     wantAll: "אני רוצה את כל המארז",
     dropAll: "להסיר את כל המארז",
+    // the decision at the bottom of the item sheet. One thing — however many
+    // angles it was photographed from — has one decision, so it gets one
+    // button; a מארז has two, because "all of it" and "only these" are
+    // genuinely different things to want.
+    dropThis: "כבר ברשימה — להסיר",
+    wantEverything: "אני רוצה הכל",
+    wantMarked: "אני רוצה רק את מה שסימנתי",
     nothingFree: "כל מה שנשאר כבר נתפס.",
     photoOf: (n: number, total: number) => `תמונה ${n} מתוך ${total}`,
     allTaken: "בזמן ההתלבטות הכל נתפס, והרשימה התרוקנה.",
@@ -228,6 +235,9 @@ export const STR = {
     goneNote: "Someone got to this one first.",
     wantAll: "I want the whole box",
     dropAll: "Take the whole box off my list",
+    dropThis: "Already on your list — remove it",
+    wantEverything: "I want all of it",
+    wantMarked: "I only want what I've marked",
     nothingFree: "Everything left has been claimed.",
     photoOf: (n: number, total: number) => `Photo ${n} of ${total}`,
     allTaken: "It all got claimed while you were deciding, and your list is empty now.",

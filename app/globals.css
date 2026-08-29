@@ -49,6 +49,27 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-photo{display:block;width:100%;border:0;background:var(--cream);border-radius:8px 8px 0 0;
   padding:0;cursor:pointer;position:relative;border-bottom:2px solid var(--ink);overflow:hidden}
 .gs-photo img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+/* A מארז's thumbnail is a collage, so the card says "several things" before a
+   word of it is read. A single item or set keeps its one cover photo.
+
+   The rule: the grid is always completely full. Take the largest tile count
+   the photos can fill without leaving a hole, from 2, 3, 4 and 9 — two photos
+   are two full-height halves, three are one tall beside two stacked, four to
+   eight are a plain 2×2, nine or more a 3×3. A count that would leave holes
+   (five in a 3×3) simply shows fewer photos, which costs nothing: how many are
+   still free is written under the card and never counted off the tiles.
+
+   The ink gap is the seam, matching the 2px ink borders everywhere else. The
+   img rules undo .gs-photo img's square aspect-ratio, which would otherwise
+   force every tile square and burst the grid. */
+.gs-collage{display:grid;gap:2px;background:var(--ink);aspect-ratio:1/1}
+.gs-collage img{width:100%;height:100%;min-width:0;min-height:0;aspect-ratio:auto;
+  object-fit:cover;display:block}
+.gs-collage-2{grid-template-columns:1fr 1fr;grid-template-rows:1fr}
+.gs-collage-3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.gs-collage-3 > :first-child{grid-row:span 2}
+.gs-collage-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.gs-collage-9{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
 .gs-band{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-5deg);
   font-size:11px;font-weight:800;background:var(--mustard);border:1.5px solid var(--ink);
   border-radius:4px;padding:3px 9px;white-space:nowrap}

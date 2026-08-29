@@ -31,6 +31,20 @@ const slidesOf = (i: Item): Slide[] =>
     ...(u.photos ?? []).map((p) => ({ unit: u, path: p.photo_path, thumb: p.thumb_path })),
   ]);
 
+/**
+ * How many photos a מארז's collage shows — see `.gs-collage` in globals.css
+ * for the layout each count gets. The rule is that the grid is always
+ * completely full: take the largest tile count the photos can fill without
+ * leaving a hole, from 2, 3, 4 and 9. Two photos are two full-height halves,
+ * three are one tall beside two stacked, four to eight are a plain 2×2, nine
+ * or more a 3×3 — so a count that would leave holes (five in a 3×3) shows
+ * fewer photos instead. Nothing is lost by that: what is still free is written
+ * under the card in words, never counted off the tiles.
+ *
+ * Only ever called with n > 1, because a single item or set keeps its cover.
+ */
+const collageTiles = (n: number) => (n >= 9 ? 9 : n >= 4 ? 4 : n);
+
 export default function SaleClient({ sale, items: initial }: { sale: Sale; items: Item[] }) {
   const [lang] = useState<Lang>("he");
   const t = STR[lang];
@@ -199,6 +213,35 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       : [...w, ...free.filter((x) => !w.includes(x))]));
   };
 
+  /* ---- the decision at the bottom of the item sheet ----
+     Every one of these closes the card. The buyer came in to make up her
+     mind; once she has, there is nothing else in there to do. The × in the
+     sheet's own header is the way out without deciding. */
+
+  // a single item or set: one unit, one button, either direction
+  const decideOne = (u: Unit) => { toggleUnit(u); setOpenId(null); };
+
+  // a מארז, "אני רוצה הכל": every unit of it still up for grabs. Adds rather
+  // than replaces, so units already hearted inside stay exactly once.
+  const decideAll = (i: Item) => {
+    const free = freeUnits(i).map((u) => u.id);
+    setWish((w) => [...w, ...free.filter((x) => !w.includes(x))]);
+    setOpenId(null);
+  };
+
+  /**
+   * A מארז, "אני רוצה רק את מה שסימנתי". The hearts on the photos have already
+   * written every marked unit to the list, so there is nothing left to add —
+   * what she is saying with this button is "that is the lot, I am done", and
+   * closing is the whole of it. It has a name of its own so it reads as the
+   * decision it is rather than as a stray close, and it is held shut while
+   * nothing is marked: "only what I marked" is not a sentence about nothing.
+   */
+  const decideMarked = () => setOpenId(null);
+
+  /** how many of a card's free units carry a heart right now */
+  const markedIn = (i: Item) => freeUnits(i).filter((u) => wishSet.has(u.id)).length;
+
   // the × in the list panel drops the whole grouped row it sits on
   const dropCard = (i: Item) => {
     const ids = new Set(i.units.map((u) => u.id));
@@ -349,7 +392,20 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                   return (
                     <article key={it.id} className={"gs-card" + (gone ? " taken" : "")}>
                       <button className="gs-photo" onClick={() => openCard(it)} aria-label={it.title}>
-                        <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />
+                        {/* A מארז shows a collage of its units, in their own
+                            order — deliberately not "the ones still free".
+                            Which photos land in the grid says nothing about
+                            availability; the count below and the greying of
+                            the whole card carry that, and only they. */}
+                        {many ? (
+                          <div className={`gs-collage gs-collage-${collageTiles(it.units.length)}`}>
+                            {it.units.slice(0, collageTiles(it.units.length)).map((u) => (
+                              <img key={u.id} src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
+                            ))}
+                          </div>
+                        ) : (
+                          <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />
+                        )}
                         {gone && <span className="gs-band">{bandFor(it)}</span>}
                       </button>
                       {/* the label follows the press, so nothing announces
@@ -405,21 +461,24 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
       {open && cur && (
         <Sheet title={open.title} onClose={() => setOpenId(null)}>
-          {/* the heart here claims the unit this photo belongs to — so five
-              angles of one crib share one heart, and each of twenty books has
-              its own */}
+          {/* Hearts belong to a מארז alone. There each photo is a separate
+              thing to want, so each carries its own claim on its own unit.
+              A single item or set is one decision however many angles it was
+              shot from, and a heart per angle was the wrong instrument for
+              it — so its gallery is just pictures, and the one decision is
+              the one button at the bottom. */}
           <div className={"gs-slide" + (standing(cur.unit) !== "free" ? " gone" : "")}>
             <div className="gs-detail-photo">
               <img src={photoUrl(cur.path)} alt={open.title} />
             </div>
-            {standing(cur.unit) === "free" ? (
+            {standing(cur.unit) !== "free" ? (
+              <span className="gs-band">{unitBand(cur.unit)}</span>
+            ) : open.units.length > 1 && (
               <button className="gs-heart" onClick={() => toggleUnit(cur.unit)}
                 aria-pressed={wishSet.has(cur.unit.id)}
                 aria-label={wishSet.has(cur.unit.id) ? t.onList : t.addToList}>
                 <Heart on={wishSet.has(cur.unit.id)} />
               </button>
-            ) : (
-              <span className="gs-band">{unitBand(cur.unit)}</span>
             )}
           </div>
 
@@ -455,24 +514,35 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           )}
           <p className="gs-detail-tags">{open.tags.map((x) => TAG_LABEL[x]?.[lang] ?? x).join(" · ")}</p>
 
-          {standing(cur.unit) !== "free" ? (
+          {/* about the photo on screen, whichever kind of card this is */}
+          {standing(cur.unit) !== "free" && (
             <p className="gs-note">
               {standing(cur.unit) === "sold" ? t.soldNote
                 : standing(cur.unit) === "held" ? t.takenNote : t.goneNote}
             </p>
-          ) : (
-            <button className={"gs-btn gs-btn-wide " + (wishSet.has(cur.unit.id) ? "gs-btn-cream" : "gs-btn-orange")}
-              onClick={() => toggleUnit(cur.unit)}>
-              {wishSet.has(cur.unit.id) ? t.onList : t.addToList}
-            </button>
           )}
-          {/* the same gesture as the heart on the card, reachable from inside.
-              It says "the whole מארז" in both directions, so it cannot be read
-              as another way to press the button just above it, which speaks
-              only for the photo on screen. */}
-          {open.units.length > 1 && freeUnits(open).length > 0 && (
-            <button className="gs-btn-ghost" onClick={() => toggleCard(open)}>
-              {cardOn(open) ? t.dropAll : t.wantAll}
+
+          {/* The decision. A מארז gets two, because "all of it" and "only
+              these" are genuinely different things to want; anything else
+              gets one, because there is only one thing here to want. Nothing
+              at all when nothing is left to claim — the note above has
+              already said why. */}
+          {open.units.length > 1 ? (
+            freeUnits(open).length > 0 && (
+              <>
+                <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => decideAll(open)}>
+                  {t.wantEverything}
+                </button>
+                <button className="gs-btn gs-btn-cream gs-btn-wide" onClick={decideMarked}
+                  disabled={markedIn(open) === 0}>
+                  {t.wantMarked}
+                </button>
+              </>
+            )
+          ) : standing(cur.unit) === "free" && (
+            <button className={"gs-btn gs-btn-wide " + (wishSet.has(cur.unit.id) ? "gs-btn-cream" : "gs-btn-orange")}
+              onClick={() => decideOne(cur.unit)}>
+              {wishSet.has(cur.unit.id) ? t.dropThis : t.addToList}
             </button>
           )}
         </Sheet>
