@@ -606,3 +606,40 @@ when `showBundlePrice(item)`.
 **Type consistency:** `Unit` / `Item` / `StagedPhoto` / `OwnUnit` defined in T3 and used unchanged in T4–T9. `reserve_units` signature identical in T2 and T8. `availableUnits` / `showBundlePrice` defined in T3, used in T6 and T8.
 
 **Known gap:** no automated coverage of the React layer. Task 2 covers the one piece where a bug is silent and costly — the reservation race. UI regressions surface in the browser.
+
+---
+
+### Task 10: Two sections on the board
+
+**Added after the seller used it.** Her words: the board should have two sections —
+first upload, waiting photos, the sale link and sign out; second the state of the sale:
+what is left, what is sold, and messages waiting.
+
+The current order grew task by task and reads as one long column with no seam. Her split
+is the right one: **things I do** above, **what is happening** below.
+
+**Files:** `app/dashboard/BoardClient.tsx`, `app/dashboard/PhotoPool.tsx`,
+`app/dashboard/page.tsx` if the query needs it.
+
+- [ ] **Step 1: Section one — putting things in**
+
+Upload button, the waiting-photos pool, the sale link with its copy button, and sign out.
+Everything about getting stock onto the board, in one place.
+
+- [ ] **Step 2: Remove a photo from the pool — new capability**
+
+There is currently no way to discard a bad photo; it waits forever. Deleting must remove
+the `staged_photos` row **and** both blobs (`photo_path`, `thumb_path`), reporting failure
+rather than swallowing it, exactly as `remove()` does for a listing.
+
+Confirm first — it is irreversible, and the photo is already uploaded.
+
+- [ ] **Step 3: Section two — what is happening**
+
+What is left, what is sold, and the wish lists that have arrived. The stat chips and their
+filter belong here, with the listings grid.
+
+- [ ] **Step 4: Make the seam visible** — a heading per section, in the existing style. The
+two halves should be distinguishable at a glance on a phone, which is where she will use it.
+
+- [ ] **Step 5: Verify and commit.**
