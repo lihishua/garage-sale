@@ -49,12 +49,39 @@ export default async function Dashboard() {
 
   // row level security already scopes this to the signed-in seller; the
   // explicit filter keeps that intent visible in the query itself
+  //
+  // This is a display list — "wish lists that came in" — and capping it at
+  // the newest 50 is the right call there. It must NOT be reused to derive
+  // who holds a reserved unit: on a busy sale an older still-pending hold
+  // can fall outside this window, and that is exactly the hold she most
+  // needs the name on. See `holderRequests` below for that.
   const { data: requests } = await supabase
     .from("requests")
     .select("id, buyer_name, buyer_phone, created_at, request_items(unit_id)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);
+
+  /**
+   * The requests that hold today's still-reserved units — exact, unlike the
+   * capped list above. `reserve_units` (see the migration) sets a unit's
+   * status to 'reserved' and inserts its `request_items` row in the same
+   * function call, so a reserved unit always has at least one such row; this
+   * query fetches exactly those rows, filtered on the join with `!inner`, so
+   * its size is bounded by how many units are currently reserved — naturally
+   * small — rather than by how many requests the seller has ever received.
+   */
+  const reservedUnitIds = items.flatMap((i) => i.units)
+    .filter((u) => u.status === "reserved").map((u) => u.id);
+
+  const { data: holderRequests } = reservedUnitIds.length
+    ? await supabase
+        .from("requests")
+        .select("id, buyer_name, buyer_phone, created_at, request_items!inner(unit_id)")
+        .eq("seller_id", user.id)
+        .in("request_items.unit_id", reservedUnitIds)
+        .order("created_at", { ascending: false })
+    : { data: [] as RequestRow[] };
 
   // the pool: photos uploaded but not yet made into a listing. private to this
   // seller by RLS, and never handed to the public sale page.
@@ -87,6 +114,7 @@ export default async function Dashboard() {
       profile={profile}
       items={items}
       requests={(requests ?? []) as RequestRow[]}
+      holderRequests={(holderRequests ?? []) as RequestRow[]}
       staged={pool}
     />
   );

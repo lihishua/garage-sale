@@ -15,8 +15,15 @@ import CreateItem from "./CreateItem";
 
 type Profile = { display_name: string; phone: string; slug: string };
 
-export default function BoardClient({ profile, items: initial, requests, staged }:
-  { profile: Profile; items: Item[]; requests: RequestRow[]; staged: StagedPhoto[] }) {
+export default function BoardClient({ profile, items: initial, requests, holderRequests, staged }:
+  {
+    profile: Profile; items: Item[];
+    /** the capped "wish lists that came in" display list — do not use for holders, see `holderRequests` */
+    requests: RequestRow[];
+    /** exact, uncapped: every request that touches a unit still `reserved` today. See page.tsx. */
+    holderRequests: RequestRow[];
+    staged: StagedPhoto[];
+  }) {
   const t = STR.he;
   const router = useRouter();
   const supabase = supabaseBrowser();
@@ -70,19 +77,26 @@ export default function BoardClient({ profile, items: initial, requests, staged 
     return m;
   }, [items]);
 
-  // Who holds each reserved unit — derived from `requests`, never stored on
-  // `item_units` (no `reserved_by_*` columns: that table is world-readable).
-  // `requests` arrives newest-first from page.tsx, which is what holdersByUnit
-  // requires to let a later request overwrite an earlier one for the same unit.
-  const holders = useMemo(() => holdersByUnit(requests), [requests]);
+  // Who holds each reserved unit — derived from `holderRequests`, never
+  // stored on `item_units` (no `reserved_by_*` columns: that table is
+  // world-readable). `holderRequests` is the exact, uncapped set for this —
+  // unlike the capped `requests` display list above, it cannot lose an older
+  // still-pending hold on a busy sale. It arrives newest-first from
+  // page.tsx, which is what holdersByUnit requires to let a later request
+  // overwrite an earlier one for the same unit.
+  const holders = useMemo(() => holdersByUnit(holderRequests), [holderRequests]);
 
   const unitLabel = (u: Unit) => {
     if (u.status === "sold") return t.statSold;
     if (u.status === "reserved") {
       const h = holders.get(u.id);
       // heldFor takes a first name, matching messageX/waReply elsewhere on
-      // this board; statHeld is the fallback for the split second before a
-      // holder can be derived, or if a unit is reserved with no request row
+      // this board. statHeld is a defensive fallback, not an expected path:
+      // reserve_units inserts a unit's request_items row in the same call
+      // that reserves it, and `holderRequests` is fetched scoped to exactly
+      // today's reserved unit ids, so every reserved unit should resolve a
+      // holder here — a unit reserved with no request row at all shouldn't
+      // be reachable.
       return h ? t.heldFor(h.name.split(" ")[0]) : t.statHeld;
     }
     return t.waiting;
@@ -203,8 +217,12 @@ export default function BoardClient({ profile, items: initial, requests, staged 
       <h2 className="gs-h2">
         {f === "sold" ? t.statSold : t.stillHere}
         {/* ties the chip's unit count to the card count below it, in one
-            sentence, so the two numbers cannot read as disagreeing */}
-        {matchedCount !== null && <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>}
+            sentence, so the two numbers cannot read as disagreeing. Skipped
+            at zero: "0 out of 0 items" is technically true but not a phrase
+            anyone would say, and an empty filter needs no reconciling. */}
+        {matchedCount !== null && matchedCount > 0 && (
+          <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>
+        )}
       </h2>
       <div className="gs-grid">
         {list.map((it) => {
@@ -217,7 +235,13 @@ export default function BoardClient({ profile, items: initial, requests, staged 
           const bundleBroken = it.bundle_price != null && it.units.length > 1
             && soldCount > 0 && soldCount < it.units.length;
           // extra views beyond one photo per unit (a crib shot from five
-          // angles) — worth a mention; redundant with unitsLeft otherwise
+          // angles) — worth a mention; redundant with unitsLeft otherwise.
+          // Summing across every unit is only correct because CreateItem
+          // attaches unit_photos on the single-unit ("one thing") path
+          // alone — a UI-level invariant, not a database constraint. If a
+          // future change ever lets a multi-unit lot carry extra views too,
+          // this quietly turns into a whole-lot photo total instead of
+          // "this crib has N views" and needs a second look.
           const extraPhotos = it.units.reduce((s, u) => s + (u.photos?.length ?? 0), 0);
           const totalPhotos = it.units.length + extraPhotos;
           return (
