@@ -244,6 +244,14 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-linkbar code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-family:ui-monospace,monospace;font-size:13px;direction:ltr}
 .gs-linkbar-row .gs-btn{flex:none}
+/* the heading and the takings on one line: the number is a result, not a
+   control, so it is set like a price and never invites a tap */
+.gs-status-head{display:flex;justify-content:space-between;align-items:baseline;
+  gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.gs-earned{margin:0;display:flex;align-items:baseline;gap:7px}
+.gs-earned b{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange)}
+.gs-earned span{font-size:15px;opacity:.6}
+
 .gs-stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
 .gs-stat{position:relative;display:inline-block;font-family:var(--body);background:none;border:0;
   padding:0;cursor:pointer;transition:transform .1s}

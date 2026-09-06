@@ -291,16 +291,26 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       </section>
 
       <section className="gs-section">
-        <h2 className="gs-section-h" style={{ marginBottom: 16 }}>{t.sectionStatusH}</h2>
+        {/* what came in is not a filter and never was — it sits with the
+            heading, where a headline number belongs, instead of standing in a
+            row of things that all toggle when tapped */}
+        <div className="gs-status-head">
+          <h2 className="gs-section-h">{t.sectionStatusH}</h2>
+          <p className="gs-earned"><b>{money(earned)}</b> <span>{t.statEarned}</span></p>
+        </div>
 
         <div className="gs-stats">
+          {/* the way back. Tapping a lit chip already returned here, but
+              nothing on screen said so, so the first tap looked like a
+              one-way door. */}
+          <StatChip n={units.length} label={t.all} color="#EE5A2A" on={f === "all"}
+            onClick={() => setF("all")} />
           <StatChip n={free.length} label={t.statFree} on={f === "available"}
             onClick={() => setF((c) => (c === "available" ? "all" : "available"))} />
           <StatChip n={held.length} label={t.statHeld} color="#F7BC45" on={f === "reserved"}
             onClick={() => setF((c) => (c === "reserved" ? "all" : "reserved"))} />
           <StatChip n={sold.length} label={t.statSold} color="#9ACB3B" on={f === "sold"}
             onClick={() => setF((c) => (c === "sold" ? "all" : "sold"))} />
-          <StatChip n={money(earned)} label={t.statEarned} color="#EE5A2A" />
         </div>
 
 
