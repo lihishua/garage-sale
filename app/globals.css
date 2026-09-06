@@ -110,6 +110,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-btn-sm{font-size:15px;padding:6px 12px;border-width:1px}
 .gs-btn-ghost{background:none;border:0;font-weight:400;text-decoration:underline;cursor:pointer;
   font-size:17px;opacity:.7;padding:4px}
+/* it sits alone against a big title, so it needs to hold its own there */
+.gs-signout{font-size:21px;opacity:.8}
 
 /* floating controls */
 .gs-fab{position:fixed;top:14px;inset-inline-end:14px;z-index:35;width:44px;height:44px;
@@ -233,9 +235,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-board-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
   flex-wrap:wrap;margin-bottom:18px}
 .gs-board-title{font-family:var(--display);font-weight:var(--dw);font-size:clamp(30px,6vw,44px);margin:0;line-height:1.15}
-.gs-linkbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;
-  border:1px solid var(--line);border-radius:9px;padding:8px 12px;margin-bottom:18px;font-size:17px}
-.gs-linkbar code{font-family:ui-monospace,monospace;font-size:13px;direction:ltr}
+.gs-linkbar{background:#fff;border:1px solid var(--line);border-radius:9px;
+  padding:9px 12px 10px;margin-bottom:18px;font-size:17px}
+.gs-linkbar-h{display:block;margin-bottom:6px}
+.gs-linkbar-row{display:flex;align-items:center;gap:9px}
+/* the link takes the room and truncates rather than wrapping to a second line
+   and pushing the button around */
+.gs-linkbar code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-family:ui-monospace,monospace;font-size:13px;direction:ltr}
+.gs-linkbar-row .gs-btn{flex:none}
 .gs-stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
 .gs-stat{position:relative;display:inline-block;font-family:var(--body);background:none;border:0;
   padding:0;cursor:pointer;transition:transform .1s}
@@ -258,7 +266,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-stat-face > span{font-size:14px;opacity:.7}
 .gs-h2{font-family:var(--display);font-weight:var(--dw);font-size:20px;margin:28px 0 12px}
 .gs-reqs{display:grid;gap:12px}
-.gs-req{background:#fff;border:1px solid var(--ink);border-radius:10px;padding:13px}
+.gs-req{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;padding:13px}
+/* red, because it is the one control here that gives stock back and cannot be
+   undone from this screen; quiet until reached for */
+.gs-req-x{position:absolute;inset-block-start:8px;inset-inline-end:10px;
+  background:none;border:0;padding:0 4px;line-height:1;cursor:pointer;
+  font-size:26px;color:var(--pink);opacity:.55;transition:opacity .12s}
+.gs-req-x:hover{opacity:1}
+/* the time would otherwise run under the × */
+.gs-req-top{padding-inline-end:26px}
 .gs-req-top{display:flex;gap:9px;align-items:baseline;flex-wrap:wrap;margin-bottom:7px}
 .gs-req-name{font-family:var(--display);font-weight:var(--dw);font-size:19px}
 .gs-req-phone{font-size:17px;opacity:.75}
@@ -268,7 +284,13 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   border-top:1px solid var(--line);padding-top:9px;font-size:18px}
 /* removing sits next to messaging but stays quiet: it is the rarer of the two,
    and it puts stock back on the board */
-.gs-req-acts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+/* The seller's own grid. Hers is a stock list she scans, not a shop window:
+   smaller tiles so more of it fits at once, and none of the buyer grid's tilt,
+   which reads as charm on a sale page and as wonkiness on a worksheet. */
+.gs-grid-board{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
+.gs-grid-board .gs-card,
+.gs-grid-board .gs-card:nth-child(even){transform:none}
+.gs-grid-board .gs-card:hover{transform:translateY(-2px)}
 
 /* the photo pool. thumbs are big enough to tell a crib from a chair on a
    phone, and the badge carries the pick order — 1 is the cover. */

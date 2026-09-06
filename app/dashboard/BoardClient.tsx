@@ -206,7 +206,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           the controls for adding stock. */}
       <div className="gs-board-head">
         <h1 className="gs-board-title">{t.boardTitle}</h1>
-        <button className="gs-btn-ghost" onClick={async () => {
+        <button className="gs-btn-ghost gs-signout" onClick={async () => {
           await supabase.auth.signOut(); router.push("/login");
         }}>{t.signOut}</button>
       </div>
@@ -216,11 +216,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           on a phone, distinct from the plain flow of section two below it. */}
       <section className="gs-section gs-section-add">
         <div className="gs-linkbar">
-          <b>{t.myLink}</b>
-          <code>{saleUrl}</code>
-          <button className="gs-btn gs-btn-sm" onClick={() => {
-            navigator.clipboard?.writeText(saleUrl); say(t.copied);
-          }}>{t.copy}</button>
+          <b className="gs-linkbar-h">{t.myLink}</b>
+          {/* the link and the button that copies it are one thing, on their own
+              line — the heading above names them rather than sharing a row */}
+          <div className="gs-linkbar-row">
+            <code>{saleUrl}</code>
+            <button className="gs-btn gs-btn-sm" onClick={() => {
+              navigator.clipboard?.writeText(saleUrl); say(t.copied);
+            }}>{t.copy}</button>
+          </div>
         </div>
 
         {/* the gallery first, then the way to add to it: the button sits under
@@ -236,6 +240,56 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {/* Section two: what is happening — what is left, what is sold, and the
           wish lists that have come in. Plain page flow; the contrast with the
           card above it is the seam. */}
+      {/* The lists that came in are the part she acts on, so they come
+          before the shelf-check below. It also puts the stat chips next to
+          the grid they filter: with the requests in between, the filter and
+          the thing being filtered were a screen apart. */}
+      <section className="gs-section">
+        <h2 className="gs-section-h" style={{ marginBottom: 16 }}>{t.requestsH}</h2>
+          {shownRequests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
+            <div className="gs-reqs">
+              {shownRequests.map((r) => {
+                const lines = r.request_items
+                  .map((ri) => unitIndex.get(ri.unit_id))
+                  .filter(Boolean) as { unit: Unit; item: Item }[];
+                const total = lines.reduce((s, l) => s + l.item.price, 0);
+                return (
+                  <div key={r.id} className="gs-req">
+                    {/* in the corner rather than in the footer: it undoes the
+                        whole card, so it belongs to the card, not beside the
+                        one action that acts on its contents */}
+                    <button className="gs-req-x" onClick={() => releaseRequest(r)}
+                      title={t.removeReq} aria-label={t.removeReq}>×</button>
+                    <div className="gs-req-top">
+                      <span className="gs-req-name">{r.buyer_name}</span>
+                      <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
+                      <span className="gs-req-time" dir="ltr">
+                        {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <ul className="gs-req-items">
+                      {lines.map(({ unit, item }) => (
+                        <li key={unit.id}>
+                          {item.title} — {money(item.price)}
+                          {unit.status === "sold" && <b> · {t.statSold}</b>}
+                          {unit.status === "available" && <b> · {t.backToStock}</b>}
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="gs-req-foot">
+                      <b>{money(total)}</b>
+                      <button className="gs-btn gs-btn-green gs-btn-sm"
+                        onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
+                        {t.messageX(r.buyer_name.split(" ")[0])}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+      </section>
+
       <section className="gs-section">
         <h2 className="gs-section-h" style={{ marginBottom: 16 }}>{t.sectionStatusH}</h2>
 
@@ -249,49 +303,6 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           <StatChip n={money(earned)} label={t.statEarned} color="#EE5A2A" />
         </div>
 
-        <h3 className="gs-h2">{t.requestsH}</h3>
-        {shownRequests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
-          <div className="gs-reqs">
-            {shownRequests.map((r) => {
-              const lines = r.request_items
-                .map((ri) => unitIndex.get(ri.unit_id))
-                .filter(Boolean) as { unit: Unit; item: Item }[];
-              const total = lines.reduce((s, l) => s + l.item.price, 0);
-              return (
-                <div key={r.id} className="gs-req">
-                  <div className="gs-req-top">
-                    <span className="gs-req-name">{r.buyer_name}</span>
-                    <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
-                    <span className="gs-req-time" dir="ltr">
-                      {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                    </span>
-                  </div>
-                  <ul className="gs-req-items">
-                    {lines.map(({ unit, item }) => (
-                      <li key={unit.id}>
-                        {item.title} — {money(item.price)}
-                        {unit.status === "sold" && <b> · {t.statSold}</b>}
-                        {unit.status === "available" && <b> · {t.backToStock}</b>}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="gs-req-foot">
-                    <b>{money(total)}</b>
-                    <span className="gs-req-acts">
-                      <button className="gs-btn-ghost" onClick={() => releaseRequest(r)}>
-                        {t.removeReq}
-                      </button>
-                      <button className="gs-btn gs-btn-green gs-btn-sm"
-                        onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
-                        {t.messageX(r.buyer_name.split(" ")[0])}
-                      </button>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
 
         <h3 className="gs-h2">
           {/* name the slice actually on screen. "what is still left" was only
@@ -310,7 +321,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <span className="gs-tags"> · {matchedCount} {t.matchCount(list.length)}</span>
           )}
         </h3>
-        <div className="gs-grid">
+        <div className="gs-grid gs-grid-board">
         {list.map((it) => {
           const cover = it.units[0];
           const gone = it.units.length > 0 && it.units.every((u) => u.status !== "available");
