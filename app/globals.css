@@ -13,6 +13,11 @@
 }
 
 *{box-sizing:border-box}
+/* form controls do not inherit the page font — a browser gives them its own UI
+   font unless told otherwise, which is how the ghost buttons ("יציאה",
+   "מחיקה", "עריכת פריט", "חזרה למכירה") and the sheet's × kept rendering in
+   the system face while everything around them changed. */
+button,input,textarea,select{font-family:inherit}
 body{margin:0;font-family:var(--body);font-size:19px;line-height:1.45;color:var(--ink);background:var(--paper);
   min-height:100vh;padding-bottom:90px}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{
