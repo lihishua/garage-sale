@@ -453,14 +453,14 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         <button className="gs-top" aria-label={t.toTop}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-            <path d="M12 19V6M6 12l6-6 6 6" fill="none" stroke="#FCFBF7" strokeWidth="2.4"
+            <path d="M12 19V6M6 12l6-6 6 6" fill="none" stroke="#FCFBF7" strokeWidth="1.8"
               strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       )}
 
       {open && cur && (
-        <Sheet title={open.title} onClose={() => setOpenId(null)}>
+        <Sheet title={open.title} hand onClose={() => setOpenId(null)}>
           {/* Hearts belong to a מארז alone. There each photo is a separate
               thing to want, so each carries its own claim on its own unit.
               A single item or set is one decision however many angles it was

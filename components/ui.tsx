@@ -6,7 +6,7 @@ export function Heart({ on }: { on: boolean }) {
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path
         d="M12 20.5S3.5 14.8 3.5 9.2A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.5 2.8c0 5.6-8.5 11.3-8.5 11.3z"
-        fill={on ? "#E0336B" : "#FFFFFF"} stroke="#1B1815" strokeWidth="2" strokeLinejoin="round" />
+        fill={on ? "#E0336B" : "#FFFFFF"} stroke="#1B1815" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -34,14 +34,17 @@ export function StatChip({ n, label, color = "#FFFFFF", on, onClick }:
  * `busy` holds the sheet shut through work that must not be interrupted — and
  * says so: an × that silently does nothing reads as a broken button.
  */
-export function Sheet({ title, onClose, busy, children }:
-  { title: string; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
+// `hand` marks a title that is an item's own name rather than a label for the
+// sheet ("רשימת המשאלות", "מי מבקש?") — a name is set in the hand font, like
+// the name on the card it was opened from.
+export function Sheet({ title, hand, onClose, busy, children }:
+  { title: string; hand?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;
   return (
     <div className="gs-scrim" onClick={close}>
       <div className="gs-sheet" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
-          <h2 className="gs-sheet-title">{title}</h2>
+          <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
           <button className="gs-x" onClick={close} disabled={busy} aria-label="×">×</button>
         </div>
         {children}

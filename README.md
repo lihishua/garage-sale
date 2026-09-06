@@ -5,7 +5,7 @@
 You photograph what you're selling. You get one link. You send it to your neighbours.
 They tap a heart on what they want and send you the list on WhatsApp.
 
-🔗 **garagesale-online.com** — *not live yet; the site is still being built.*
+🔗 **garagesaleonline.app** — *not live yet; the site is still being built.*
 
 ---
 

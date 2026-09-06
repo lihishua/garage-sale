@@ -3,7 +3,7 @@
 Everything needed to run and work on Garage Sale. For what the app *is*, see
 [README.md](README.md).
 
-Next.js 14 (App Router) + Supabase. Domain: **garagesale-online.com**.
+Next.js 14 (App Router) + Supabase. Domain: **garagesaleonline.app**.
 
 > **In progress:** the seller flow is being rebuilt so photos upload in bulk into a pool
 > and become listings afterwards, and so one listing can hold several individually
@@ -20,7 +20,7 @@ Next.js 14 (App Router) + Supabase. Domain: **garagesale-online.com**.
 3. **Authentication → Providers → Email**: make sure it's enabled. There are no passwords
    here — signing in means clicking a link sent by email.
 4. **Authentication → URL Configuration → Redirect URLs**: add
-   `http://localhost:3000/**` and `https://garagesale-online.com/**`.
+   `http://localhost:3000/**` and `https://garagesaleonline.app/**`.
    Without these, Supabase refuses to send anyone back to the site.
 5. **Set up SMTP before touching the email templates.** Supabase locks template editing
    until you connect your own mail sender, and its built-in one only delivers a handful of
@@ -64,7 +64,7 @@ sign-in link is rejected.
 ## Deploying
 
 Push to GitHub, connect Vercel, add the two environment variables there.
-`garagesale-online.com` is attached under **Vercel → Settings → Domains**.
+`garagesaleonline.app` is attached under **Vercel → Settings → Domains**.
 
 The domain also appears in the code, in `metadataBase` in `app/layout.tsx` and in
 `addressHint` in `lib/i18n.ts`. If it changes, update those too.

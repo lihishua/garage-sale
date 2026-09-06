@@ -5,7 +5,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   // without metadataBase every relative URL in a share preview resolves
   // against localhost, so it has to be the real domain
-  metadataBase: new URL("https://garagesale-online.com"),
+  metadataBase: new URL("https://garagesaleonline.app"),
   title: "Garage Sale",
   description: "מכירת חצר בקישור אחד",
   manifest: "/manifest.json",
