@@ -208,7 +208,10 @@ export const STR = {
     openSale: "פתיחת מכירה",
     linkSentTitle: "בדקו את תיבת המייל",
     linkSentBody: (mail: string) => `שלחנו קישור כניסה ל־${mail}. לחיצה עליו מכניסה אתכם ללוח.`,
-    linkSentFine: "הקישור תקף לשעה ומיועד ללחיצה אחת. אם הוא לא הגיע, בדקו בספאם.",
+    // Said out loud rather than as fine print: on a young domain this mail
+    // genuinely does land in spam, so a footnote is the wrong volume for it.
+    linkSentSpam: "לא רואים אותו? חפשו בתיקיית הספאם — לא פעם הוא נוחת שם.",
+    linkSentFine: "הקישור תקף לשעה ומיועד ללחיצה אחת.",
     resend: "לשלוח שוב",
     useAnotherMail: "אימייל אחר",
     noSuchAccount: "אין מכירה עם האימייל הזה. אפשר לפתוח אחת חדשה.",
@@ -392,7 +395,8 @@ export const STR = {
     openSale: "Start the sale",
     linkSentTitle: "Check your inbox",
     linkSentBody: (mail: string) => `We sent a login link to ${mail}. Tapping it takes you straight to your board.`,
-    linkSentFine: "The link works once and expires in an hour. If it hasn't arrived, check your spam folder.",
+    linkSentSpam: "Not in your inbox? Look in the spam folder — it often lands there.",
+    linkSentFine: "The link works once and expires in an hour.",
     resend: "Send it again",
     useAnotherMail: "Use another email",
     noSuchAccount: "No sale with that email yet. You can start one.",

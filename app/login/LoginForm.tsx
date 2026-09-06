@@ -89,6 +89,7 @@ export default function LoginForm() {
         <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
         <h1 className="gs-sheet-title">{t.linkSentTitle}</h1>
         <p className="gs-lead">{t.linkSentBody(sentTo)}</p>
+        <p className="gs-note">{t.linkSentSpam}</p>
         <p className="gs-fine">{t.linkSentFine}</p>
         <button className="gs-btn gs-btn-wide" onClick={sendLink} disabled={busy}>
           {busy ? t.loading : t.resend}
