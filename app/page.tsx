@@ -14,8 +14,7 @@ export default async function Home() {
           than as a paragraph to get through */}
       <div className="gs-steps">
         <p>מעלים תמונות של פריטים למכירה/למסירה.</p>
-        <p>מקבלים קישור למכירה.</p>
-        <p>ומעבירים לחברים בשכונה.</p>
+        <p>מקבלים קישור ומעבירים לחברים בשכונה.</p>
         <p>הם מסמנים בקלות מה הם רוצים.</p>
         <p>ומכאן זה ביניכם, בווטסאפ.</p>
         {/* the aside, not a step — hence the air above it */}
