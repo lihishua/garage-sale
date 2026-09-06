@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { DIALS } from "@/lib/countries";
+import { DIALS, flag } from "@/lib/countries";
 import type { Lang } from "@/lib/i18n";
 
 export function Heart({ on }: { on: boolean }) {
@@ -93,8 +93,13 @@ export function PhoneField({ label, dial, onDial, value, onChange, err, hint, la
       <span className="gs-phone">
         <select className="gs-dial" value={dial} dir="ltr"
           onChange={(e) => onDial(e.target.value)} aria-label={label}>
+          {/* the code is the part that is doing work; the country name would
+              only be repeating what the flag already says, so it moves to the
+              title where it is there for anyone who wants it */}
           {DIALS.map((d) => (
-            <option key={d.code} value={d.code}>+{d.code} · {lang === "he" ? d.he : d.en}</option>
+            <option key={d.code} value={d.code} title={lang === "he" ? d.he : d.en}>
+              {flag(d.iso)} +{d.code}
+            </option>
           ))}
         </select>
         <input className={"gs-input" + (err ? " bad" : "")} value={value} dir="ltr"

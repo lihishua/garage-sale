@@ -193,10 +193,14 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-input.bad{border-color:var(--pink);background:#fff6f8}
 /* the country code and the number read as one field, so they sit on one line.
    The code is sized to its content and the number takes the rest. */
-.gs-phone{display:flex;gap:8px;align-items:stretch}
+/* direction:ltr, so the code sits to the left of the number the way a phone
+   number is actually written — the label above it stays with the page. */
+.gs-phone{display:flex;gap:8px;align-items:stretch;direction:ltr}
 .gs-phone .gs-input{flex:1;min-width:0}
-.gs-dial{flex:none;max-width:44%;font:inherit;font-size:17px;padding:10px 10px;background:#fff;
-  border:1px solid var(--ink);border-radius:8px;color:var(--ink);cursor:pointer}
+/* the hand, because a dial code is a number the seller reads, like a price */
+.gs-dial{flex:none;font-family:var(--hand);font-weight:300;font-size:16px;
+  padding:10px 8px;background:#fff;border:1px solid var(--ink);border-radius:8px;
+  color:var(--ink);cursor:pointer}
 .gs-err{display:block;color:var(--pink);font-size:15px;margin-top:5px}
 .gs-hint{display:block;font-size:15px;opacity:.55;margin-top:5px}
 .gs-fine{font-size:15px;opacity:.6;margin-top:12px;line-height:1.5}
