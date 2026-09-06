@@ -191,6 +191,12 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-input{width:100%;font:inherit;font-size:19px;padding:10px 12px;background:#fff;
   border:1px solid var(--ink);border-radius:8px;text-align:start;font-family:var(--body)}
 .gs-input.bad{border-color:var(--pink);background:#fff6f8}
+/* the country code and the number read as one field, so they sit on one line.
+   The code is sized to its content and the number takes the rest. */
+.gs-phone{display:flex;gap:8px;align-items:stretch}
+.gs-phone .gs-input{flex:1;min-width:0}
+.gs-dial{flex:none;max-width:44%;font:inherit;font-size:17px;padding:10px 10px;background:#fff;
+  border:1px solid var(--ink);border-radius:8px;color:var(--ink);cursor:pointer}
 .gs-err{display:block;color:var(--pink);font-size:15px;margin-top:5px}
 .gs-hint{display:block;font-size:15px;opacity:.55;margin-top:5px}
 .gs-fine{font-size:15px;opacity:.6;margin-top:12px;line-height:1.5}
@@ -302,7 +308,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-auth{max-width:420px;margin:0 auto;padding:40px 20px}
 .gs-auth .gs-logo{margin-bottom:26px}
 .gs-tabs{display:flex;gap:8px;margin-bottom:20px}
-.gs-tabs .gs-btn{flex:1}
+/* both tabs now name the thing they do, which is longer than "כניסה" was —
+   tighter padding so the pair still fits one line on a phone */
+.gs-tabs .gs-btn{flex:1;padding:9px 8px;font-size:16px;line-height:1.2}
 .gs-landing{max-width:640px;margin:0 auto;padding:48px 20px;text-align:center}
 .gs-landing p{font-size:20px;line-height:1.55;opacity:.8}
 

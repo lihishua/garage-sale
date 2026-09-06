@@ -1,5 +1,7 @@
 "use client";
 import React from "react";
+import { DIALS } from "@/lib/countries";
+import type { Lang } from "@/lib/i18n";
 
 export function Heart({ on }: { on: boolean }) {
   return (
@@ -68,6 +70,37 @@ export function Field({ label, value, onChange, placeholder, err, hint, type = "
           dir={ltr ? "ltr" : undefined} placeholder={placeholder}
           onChange={(e) => onChange(e.target.value)} />
       )}
+      {hint && !err && <span className="gs-hint">{hint}</span>}
+      {err && <span className="gs-err">{err}</span>}
+    </label>
+  );
+}
+
+/**
+ * The phone field: a country code picked from a list, and the number as she
+ * would say it out loud. See lib/countries.ts for why the code has to be there
+ * at all — it is WhatsApp's requirement, not ours, and it used to be the
+ * seller's problem to know that.
+ */
+export function PhoneField({ label, dial, onDial, value, onChange, err, hint, lang = "he" }: {
+  label: string; dial: string; onDial: (v: string) => void;
+  value: string; onChange: (v: string) => void;
+  err?: string; hint?: string; lang?: Lang;
+}) {
+  return (
+    <label className="gs-field">
+      <span className="gs-label">{label}</span>
+      <span className="gs-phone">
+        <select className="gs-dial" value={dial} dir="ltr"
+          onChange={(e) => onDial(e.target.value)} aria-label={label}>
+          {DIALS.map((d) => (
+            <option key={d.code} value={d.code}>+{d.code} · {lang === "he" ? d.he : d.en}</option>
+          ))}
+        </select>
+        <input className={"gs-input" + (err ? " bad" : "")} value={value} dir="ltr"
+          type="tel" inputMode="tel" placeholder="050-1234567"
+          onChange={(e) => onChange(e.target.value)} />
+      </span>
       {hint && !err && <span className="gs-hint">{hint}</span>}
       {err && <span className="gs-err">{err}</span>}
     </label>

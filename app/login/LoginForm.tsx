@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
-import { Field, Toast } from "@/components/ui";
+import { Field, PhoneField, Toast } from "@/components/ui";
+import { DEFAULT_DIAL, fullPhone, validLocal } from "@/lib/countries";
 
 export default function LoginForm() {
   const t = STR.he;
@@ -12,6 +13,8 @@ export default function LoginForm() {
   const [mode, setMode] = useState<"in" | "up">(params.get("mode") === "signup" ? "up" : "in");
 
   const [f, setF] = useState({ email: "", name: "", phone: "", slug: "" });
+  // kept apart from `phone`, which now holds only the number as she says it
+  const [dial, setDial] = useState(DEFAULT_DIAL);
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -32,7 +35,7 @@ export default function LoginForm() {
     if (!/^\S+@\S+\.\S+$/.test(f.email.trim())) e.email = t.errEmail;
     if (mode === "up") {
       if (!f.name.trim()) e.name = t.errTitle;
-      if (!/^[\d\s+-]{7,}$/.test(f.phone.trim())) e.phone = t.errPhone;
+      if (!validLocal(f.phone)) e.phone = t.errPhone;
       if (!/^[a-z0-9-]{2,32}$/.test(f.slug.trim())) e.slug = t.errSlug;
     }
     if (Object.keys(e).length) { setErr(e); return; }
@@ -70,7 +73,7 @@ export default function LoginForm() {
         emailRedirectTo,
         data: {
           display_name: f.name.trim(),
-          phone: f.phone.replace(/\D/g, ""),
+          phone: fullPhone(dial, f.phone),
           slug: f.slug.trim(),
         },
       },
@@ -115,8 +118,9 @@ export default function LoginForm() {
         <>
           <Field label={t.yourNameSeller} value={f.name} onChange={(v) => set("name", v)}
             err={err.name} placeholder={t.yourNamePh} />
-          <Field label={t.phoneSeller} value={f.phone} onChange={(v) => set("phone", v)}
-            err={err.phone} hint={t.phoneSellerHint} placeholder="972501234567" ltr />
+          <PhoneField label={t.phoneSeller} dial={dial} onDial={setDial}
+            value={f.phone} onChange={(v) => set("phone", v)}
+            err={err.phone} hint={t.phoneSellerHint} />
           <Field label={t.address} value={f.slug}
             onChange={(v) => set("slug", v.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
             err={err.slug} hint={t.addressHint} placeholder="dana" ltr />
@@ -124,7 +128,7 @@ export default function LoginForm() {
       )}
 
       <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={sendLink} disabled={busy}>
-        {busy ? t.loading : t.sendLink}
+        {busy ? t.loading : mode === "up" ? t.openSale : t.sendLink}
       </button>
 
       {toast && <Toast text={toast} />}
