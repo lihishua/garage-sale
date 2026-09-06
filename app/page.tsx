@@ -10,11 +10,17 @@ export default async function Home() {
   return (
     <main className="gs-landing">
       <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
-      <p>
-        מעלים תמונות של כל הפריטים למכירה/למסירה מהבית, מקבלים קישור אחד
-        שמעבירים לחברים בשכונה, והם מסמנים בקלות מה הם רוצים.
-        תנסו, מקסימום תתייעלו <span dir="ltr">:-)</span>
-      </p>
+      {/* one line per step, so the whole thing is read as a sequence rather
+          than as a paragraph to get through */}
+      <div className="gs-steps">
+        <p>מעלים תמונות של פריטים למכירה/למסירה.</p>
+        <p>מקבלים קישור למכירה.</p>
+        <p>ומעבירים לחברים בשכונה.</p>
+        <p>הם מסמנים בקלות מה הם רוצים.</p>
+        <p>ומכאן זה ביניכם, בווטסאפ.</p>
+        {/* the aside, not a step — hence the air above it */}
+        <p className="gs-steps-end">תנסו - מקסימום תתלהבו <span dir="ltr">:-)</span></p>
+      </div>
       <img className="gs-arrow" src="/arrow.webp" alt="" aria-hidden="true" />
       <Link href="/login?mode=signup">
         <button className="gs-btn gs-btn-orange gs-btn-big">לפתוח מכירת חצר משלי</button>

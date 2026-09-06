@@ -317,6 +317,10 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-tabs .gs-btn{flex:1;padding:9px 8px;font-size:16px;line-height:1.2}
 .gs-landing{max-width:640px;margin:0 auto;padding:48px 20px;text-align:center}
 .gs-landing p{font-size:20px;line-height:1.55;opacity:.8}
+/* the steps sit close together so six lines read as one thought; the closing
+   aside gets air above it, because it is not one of the steps */
+.gs-steps p{margin:0 0 5px}
+.gs-steps .gs-steps-end{margin-top:18px}
 
 @media(max-width:560px){
   .gs-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
