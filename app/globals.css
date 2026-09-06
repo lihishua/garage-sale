@@ -121,7 +121,26 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   border-radius:50%;font-size:14px;font-weight:700}
 .gs-top{position:fixed;bottom:18px;inset-inline-end:16px;z-index:35;width:40px;height:40px;
   display:grid;place-items:center;background:var(--ink);border:0;border-radius:50%;cursor:pointer;
-  box-shadow:0 3px 12px rgba(27,24,21,.28)}
+  box-shadow:0 3px 12px rgba(27,24,21,.28);transition:bottom .15s}
+/* out of the bar's way when the bar is up */
+.gs-top.lifted{bottom:calc(84px + env(safe-area-inset-bottom))}
+
+/* The bar that follows the buyer down the page. A heart in a corner has to be
+   decoded; the list is the whole point of the visit, so it gets a button that
+   says so in words and never scrolls away. It appears only once there is
+   something in it — an empty bar is a permanent nag — which is why the
+   floating heart stays: it is the way in before the first heart is tapped.
+   The body already reserves 90px at the bottom for it. */
+.gs-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;
+  background:var(--paper);border-top:1px solid var(--ink);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  box-shadow:0 -3px 14px rgba(27,24,21,.09)}
+.gs-bar-row{display:flex;gap:9px;justify-content:center;align-items:center;
+  max-width:520px;margin:0 auto}
+.gs-bar-row .gs-btn{flex:1}
+/* why a withdraw button is being offered at all */
+.gs-bar-note{max-width:520px;margin:0 auto 8px;text-align:center;font-size:15px;opacity:.65;
+  line-height:1.35}
 
 /* footer */
 .gs-footer{text-align:center;margin-top:64px;padding-top:32px;border-top:1px dashed var(--line)}
@@ -237,6 +256,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-req-items{margin:0 0 9px;padding-inline-start:18px;font-size:18px;line-height:1.55}
 .gs-req-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;
   border-top:1px solid var(--line);padding-top:9px;font-size:18px}
+/* removing sits next to messaging but stays quiet: it is the rarer of the two,
+   and it puts stock back on the board */
+.gs-req-acts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
 
 /* the photo pool. thumbs are big enough to tell a crib from a chair on a
    phone, and the badge carries the pick order — 1 is the cover. */

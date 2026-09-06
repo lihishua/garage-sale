@@ -43,6 +43,10 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   // legitimately shows them again as free.
   const [listed, setListed] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  // requests released in this session. The rows come from the server component,
+  // so they are held here until router.refresh() brings the board back without
+  // them — otherwise a removed buyer sits on screen until a manual reload.
+  const [dropped, setDropped] = useState<string[]>([]);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
 
@@ -120,6 +124,37 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       units: i.units.map((u) => (u.id === unitId ? { ...u, status } : u)),
     })));
     say(status === "sold" ? t.statSold : t.backToStock);
+  }
+
+  /**
+   * Taking a buyer off the board. Everything her request still holds goes back
+   * on sale in one statement — `release_request` frees only units that are
+   * still `reserved`, so a unit already marked sold stays sold: the sale
+   * happened, and removing the request is not a claim that it did not.
+   *
+   * The same function is what a buyer calls to withdraw her own list. The two
+   * differ only in how each side comes to know the request id.
+   */
+  /** the incoming lists minus the ones released here since the last refresh */
+  const shownRequests = useMemo(
+    () => requests.filter((r) => !dropped.includes(r.id)),
+    [requests, dropped]
+  );
+
+  async function releaseRequest(r: RequestRow) {
+    if (!confirm(t.confirmRemoveReq(r.buyer_name.split(" ")[0]))) return;
+    const { data, error } = await supabase.rpc("release_request", { p_request_id: r.id });
+    if (error || !data?.ok) return say(t.reqRemoveErr);
+
+    const released: string[] = data.released ?? [];
+    setItems((prev) => prev.map((i) => ({
+      ...i,
+      units: i.units.map((u) => (released.includes(u.id) ? { ...u, status: "available" as const } : u)),
+    })));
+    setDropped((d) => [...d, r.id]);
+    say(t.reqRemoved);
+    // the requests lists are server props; bring them back without this row
+    router.refresh();
   }
 
   async function remove(item: Item) {
@@ -215,9 +250,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         </div>
 
         <h3 className="gs-h2">{t.requestsH}</h3>
-        {requests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
+        {shownRequests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
           <div className="gs-reqs">
-            {requests.map((r) => {
+            {shownRequests.map((r) => {
               const lines = r.request_items
                 .map((ri) => unitIndex.get(ri.unit_id))
                 .filter(Boolean) as { unit: Unit; item: Item }[];
@@ -242,10 +277,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                   </ul>
                   <div className="gs-req-foot">
                     <b>{money(total)}</b>
-                    <button className="gs-btn gs-btn-green gs-btn-sm"
-                      onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
-                      {t.messageX(r.buyer_name.split(" ")[0])}
-                    </button>
+                    <span className="gs-req-acts">
+                      <button className="gs-btn-ghost" onClick={() => releaseRequest(r)}>
+                        {t.removeReq}
+                      </button>
+                      <button className="gs-btn gs-btn-green gs-btn-sm"
+                        onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
+                        {t.messageX(r.buyer_name.split(" ")[0])}
+                      </button>
+                    </span>
                   </div>
                 </div>
               );

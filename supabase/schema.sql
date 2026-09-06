@@ -218,11 +218,60 @@ begin
     -- every ok:true let anyone with the (public) slug harvest it by calling with
     -- one made-up uuid, reserving nothing and leaving no request row behind.
     'seller_phone', case when coalesce(array_length(v_ok, 1), 0) > 0
-                         then v_phone else null end
+                         then v_phone else null end,
+    -- null when nothing was held, because no request row was written either.
+    -- This is what lets the buyer withdraw later; see release_request below.
+    'request', v_request
   );
 end $$;
 
 grant execute on function reserve_units(text, uuid[], text, text) to anon, authenticated;
+
+-- Taking a request back off the board. The seller removing a buyer and the
+-- buyer withdrawing her own list are the same thing done to the same rows, so
+-- they are one function. What differs is only how each side comes to know the
+-- request id: the seller reads it through her own RLS policy, the buyer's
+-- browser kept it from the moment she sent the list. The id is a uuid that is
+-- never displayed and never public, so holding one is the credential here --
+-- there is no account to check it against, because buyers never sign in.
+create or replace function release_request(p_request_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_released uuid[];
+begin
+  if p_request_id is null then
+    return jsonb_build_object('ok', false, 'error', 'no_request');
+  end if;
+
+  -- Only the units this request is still holding. One the seller has since
+  -- marked sold stays sold: the sale happened, and releasing a request is not
+  -- a claim that it did not. Freeing has to happen before the delete, because
+  -- request_items cascades away with the request row and would take the only
+  -- record of which units to free with it.
+  with freed as (
+    update item_units u
+       set status = 'available'
+      from request_items ri
+     where ri.request_id = p_request_id
+       and u.id = ri.unit_id
+       and u.status = 'reserved'
+    returning u.id
+  )
+  select coalesce(array_agg(id), '{}') into v_released from freed;
+
+  delete from requests where id = p_request_id;
+  if not found then
+    return jsonb_build_object('ok', false, 'error', 'no_such_request');
+  end if;
+
+  return jsonb_build_object('ok', true, 'released', to_jsonb(v_released));
+end $$;
+
+grant execute on function release_request(uuid) to anon, authenticated;
 
 -- ---------- photo storage ----------
 

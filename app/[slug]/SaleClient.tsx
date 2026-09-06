@@ -15,6 +15,17 @@ import { Heart, Chip, Sheet, Field, Toast } from "@/components/ui";
  */
 const wishKey = (slug: string) => `gs.wish.${slug}`;
 
+/**
+ * The request this browser last sent, so it can be taken back.
+ *
+ * Buyers never sign in, so there is no account to check a withdrawal against.
+ * The id is the credential: a uuid that is never displayed, and `requests` is
+ * readable only by its seller, so the only way to hold one is to have been the
+ * browser that sent the list. That also sets the limit honestly — from another
+ * phone, or after clearing the browser, she has to ask the seller instead.
+ */
+const reqKey = (slug: string) => `gs.req.${slug}`;
+
 /** one photo of one unit — what the gallery in the item sheet walks */
 type Slide = { unit: Unit; path: string; thumb: string };
 
@@ -69,6 +80,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // units a reserve_units reply took back from this buyer without saying why —
   // see `standing` below
   const [claimed, setClaimed] = useState<Set<string>>(new Set());
+  // the id of a request sent from this browser and not yet taken back
+  const [pending, setPending] = useState<string | null>(null);
 
   /* the wish list lives in the browser — no account needed to keep one */
   useEffect(() => {
@@ -81,6 +94,19 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   useEffect(() => {
     try { localStorage.setItem(wishKey(sale.slug), JSON.stringify(wish)); } catch { /* ignore */ }
   }, [wish, sale.slug]);
+
+  useEffect(() => {
+    try { setPending(localStorage.getItem(reqKey(sale.slug))); } catch { /* ignore */ }
+  }, [sale.slug]);
+
+  /** remembering, and forgetting, the request this browser is holding */
+  const holdRequest = (id: string | null) => {
+    setPending(id);
+    try {
+      if (id) localStorage.setItem(reqKey(sale.slug), id);
+      else localStorage.removeItem(reqKey(sale.slug));
+    } catch { /* private mode — the button simply will not survive a reload */ }
+  };
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 500);
@@ -281,6 +307,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     })));
     setClaimed((prev) => new Set([...prev, ...unavailable]));
     setWish([]);
+    // null when nothing was held, in which case no request row exists either
+    holdRequest(data.request ?? null);
 
     // Nothing held means nothing to send, and no number to send it to:
     // `seller_phone` comes back null unless something was actually reserved,
@@ -303,6 +331,41 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
     setSent({ msg, phone: data.seller_phone ?? null, dropped: unavailable.length });
     setPanel("sent");
+  }
+
+  /**
+   * Taking the whole request back. The units return to the sale and — the part
+   * that matters to a buyer who is rethinking rather than leaving — everything
+   * she asked for lands back on her own list, ready to send again or to edit
+   * down. `release_request` frees only units it still holds, so anything the
+   * seller has since marked sold stays sold and simply does not come back.
+   */
+  async function withdraw() {
+    if (!pending || busy) return;
+    if (!confirm(t.withdrawConfirm)) return;
+    setBusy(true);
+    const supabase = supabaseBrowser();
+    const { data, error } = await supabase.rpc("release_request", { p_request_id: pending });
+    setBusy(false);
+
+    if (error) { say(t.withdrawErr); return; }
+    // the row is gone: withdrawn twice, or the seller got there first. Stop
+    // offering a button for something that no longer exists.
+    if (!data?.ok) { holdRequest(null); say(t.withdrawGone); return; }
+
+    const released: string[] = data.released ?? [];
+    setItems((prev) => prev.map((i) => ({
+      ...i,
+      units: i.units.map((u) => (released.includes(u.id) ? { ...u, status: "available" as const } : u)),
+    })));
+    setClaimed((prev) => {
+      const next = new Set(prev);
+      released.forEach((id) => next.delete(id));
+      return next;
+    });
+    setWish((w) => [...w, ...released.filter((x) => !w.includes(x))]);
+    holdRequest(null);
+    say(t.withdrawn);
   }
 
   const openWa = (phone: string, text: string) =>
@@ -449,8 +512,32 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         </footer>
       </main>
 
+      {/* The bar rides along the bottom for the whole visit: the list is what
+          the buyer came to build, and it should never be more than a glance
+          away. It shows up once there is something to show — a list, or a
+          request still open — so an untouched sale is not fronted by a bar
+          about nothing. */}
+      {(wishUnits.length > 0 || pending) && (
+        <div className="gs-bar">
+          {pending && <p className="gs-bar-note">{t.pendingNote}</p>}
+          <div className="gs-bar-row">
+            {wishUnits.length > 0 && (
+              <button className="gs-btn gs-btn-orange" onClick={() => setPanel("wish")}>
+                {t.myList} ({wishUnits.length})
+              </button>
+            )}
+            {pending && (
+              <button className="gs-btn gs-btn-cream" onClick={withdraw} disabled={busy}>
+                {t.withdraw}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {showTop && (
-        <button className="gs-top" aria-label={t.toTop}
+        <button className={"gs-top" + (wishUnits.length > 0 || pending ? " lifted" : "")}
+          aria-label={t.toTop}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
             <path d="M12 19V6M6 12l6-6 6 6" fill="none" stroke="#FCFBF7" strokeWidth="1.8"
