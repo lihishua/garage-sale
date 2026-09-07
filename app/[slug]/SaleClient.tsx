@@ -13,6 +13,9 @@ import { Heart, Chip, Sheet, Field, Toast } from "@/components/ui";
  * true survives as ids that match nothing at all: it reads as empty, which is
  * the harmless outcome and needs no migration.
  */
+/** the למסירה chip. Prefixed so no tag a seller invents can ever collide. */
+const FREE = "__free";
+
 const wishKey = (slug: string) => `gs.wish.${slug}`;
 
 /**
@@ -116,6 +119,10 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
 
+  /** what a chip is called. A tag she invented has no entry in TAG_LABEL and
+      is simply its own name. */
+  const tagLabel = (x: string) => (x === FREE ? t.free : TAG_LABEL[x]?.[lang] ?? x);
+
   const wishSet = useMemo(() => new Set(wish), [wish]);
 
   /**
@@ -155,6 +162,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     items.forEach((i) => {
       const free = availableUnits(i).filter((u) => !claimed.has(u.id)).length;
       c.all += free;
+      if (i.price === 0) c[FREE] = (c[FREE] ?? 0) + free;
       i.tags.forEach((tag) => { c[tag] = (c[tag] ?? 0) + free; });
     });
     return c;
@@ -169,7 +177,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
   const shown = useMemo(() => {
     const list = items.filter((i) =>
-      (filter === "all" || i.tags.includes(filter)) &&
+      (filter === "all" || (filter === FREE ? i.price === 0 : i.tags.includes(filter))) &&
       (!onlyFree || availableUnits(i).some((u) => !claimed.has(u.id))));
     if (sort === "low") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") return [...list].sort((a, b) => b.price - a.price);
@@ -428,9 +436,14 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               <Chip on={filter === "all"} onClick={() => setFilter("all")}>
                 {t.all} <span className="gs-chip-n">{counts.all}</span>
               </Chip>
+              {counts[FREE] > 0 && (
+                <Chip on={filter === FREE} onClick={() => setFilter(FREE)}>
+                  {t.free} <span className="gs-chip-n">{counts[FREE]}</span>
+                </Chip>
+              )}
               {saleTags.filter((tag) => counts[tag] > 0).map((tag) => (
                 <Chip key={tag} on={filter === tag} onClick={() => setFilter(tag)}>
-                  {TAG_LABEL[tag][lang]} <span className="gs-chip-n">{counts[tag]}</span>
+                  {tagLabel(tag)} <span className="gs-chip-n">{counts[tag]}</span>
                 </Chip>
               ))}
               {/* sits with the tag chips because it filters the same grid, but
@@ -451,7 +464,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
             {shown.length === 0 ? (
               <p className="gs-empty">
-                {filter === "all" ? t.nothingFree : t.emptyFilter(TAG_LABEL[filter]?.[lang] ?? filter)}
+                {filter === "all" ? t.nothingFree : t.emptyFilter(tagLabel(filter))}
               </p>
             ) : (
               <div className="gs-grid">
@@ -499,12 +512,18 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                             {/* a single crib has nothing to be "per unit" of */}
                             {many && <span className="gs-detail-per"> {t.perUnit}</span>}
                           </span>
-                          <span className="gs-tags">
-                            {many && free > 0
-                              ? t.unitsLeft(free)
-                              : it.tags.map((x) => TAG_LABEL[x]?.[lang] ?? x).join(" · ")}
-                          </span>
+                          {many && free > 0 && (
+                            <span className="gs-tags">{t.unitsLeft(free)}</span>
+                          )}
                         </div>
+                        {/* on its own line rather than sharing one with the
+                            count: a lot showed the count *instead of* its tags,
+                            so a tagged lot never showed a tag at all */}
+                        {it.tags.length > 0 && (
+                          <p className="gs-card-tags">
+                            {it.tags.map((x) => tagLabel(x)).join(" · ")}
+                          </p>
+                        )}
                         {bundleOn(it) && (
                           <p className="gs-card-bundle">{money(it.bundle_price!)} {t.forAll}</p>
                         )}
@@ -610,7 +629,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           {open.measurements && (
             <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir="ltr">{open.measurements}</span></p>
           )}
-          <p className="gs-detail-tags">{open.tags.map((x) => TAG_LABEL[x]?.[lang] ?? x).join(" · ")}</p>
+          <p className="gs-detail-tags">{open.tags.map((x) => tagLabel(x)).join(" · ")}</p>
 
           {/* about the photo on screen, whichever kind of card this is */}
           {standing(cur.unit) !== "free" && (

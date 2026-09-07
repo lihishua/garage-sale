@@ -36,8 +36,11 @@ export type Prepared = { full: Blob; thumb: Blob; width: number };
 export async function prepare(file: File): Promise<Prepared> {
   const img = await loadImage(file);
   if (img.naturalWidth < MIN_WIDTH) throw new Error("too_small");
-  const full = await scaleTo(img, 1600, 0.84);
-  const thumb = await scaleTo(img, 480, 0.78);
+  // The grid draws thumbs at 132-168px, so 480 was three times more pixels
+  // than any screen asks for — bytes paid for on every upload and every card.
+  // 320 still covers a 2x phone screen at the widest tile.
+  const full = await scaleTo(img, 1400, 0.82);
+  const thumb = await scaleTo(img, 320, 0.74);
   URL.revokeObjectURL(img.src);
   return { full, thumb, width: img.naturalWidth };
 }

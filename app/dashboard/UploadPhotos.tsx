@@ -83,10 +83,16 @@ export default function UploadPhotos({ onClose, onUploaded }:
       const thumbPath = `${user.id}/${stamp}-thumb.webp`;
       const opts = { contentType: "image/webp" };
 
-      const up1 = await supabase.storage.from("photos").upload(fullPath, blobs.full, opts);
+      // The two blobs of one photo go together rather than one after the other.
+      // This is still one photo at a time — the reason uploads are sequential
+      // is to not flood a phone's uplink with twenty at once, and two is not
+      // twenty — but it halves the round trips a batch waits through.
+      const [up1, up2] = await Promise.all([
+        supabase.storage.from("photos").upload(fullPath, blobs.full, opts),
+        supabase.storage.from("photos").upload(thumbPath, blobs.thumb, opts),
+      ]);
       if (up1.error) { lastErr = up1.error.message; setFailed(++lost); continue; }
 
-      const up2 = await supabase.storage.from("photos").upload(thumbPath, blobs.thumb, opts);
       if (up2.error) {
         // the full-size blob is already up and now references nothing
         await dropBlobs([fullPath]);

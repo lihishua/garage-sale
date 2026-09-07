@@ -92,6 +92,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-card-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .gs-price{font-family:var(--hand);font-weight:300;font-size:16px;color:var(--orange)}
 .gs-tags{font-size:13px;letter-spacing:.05em;opacity:.45}
+.gs-card-tags{font-size:13px;font-weight:400;letter-spacing:.04em;opacity:.5;margin:5px 0 0}
 .gs-waiting{font-size:14px;opacity:.45;margin:8px 0 0}
 .gs-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
