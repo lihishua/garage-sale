@@ -94,8 +94,11 @@ export default function LoginForm() {
    */
   async function verify() {
     if (busy || !sentTo) return;
+    // Supabase's email OTP length is a project setting, anywhere from 6 to 10
+    // digits. Pinning this to 6 rejected a valid code before it was ever sent
+    // for checking, so the length is the server's business, not this form's.
     const token = code.trim();
-    if (token.length !== 6) { setErr({ code: t.errCode }); return; }
+    if (token.length < 6) { setErr({ code: t.errCode }); return; }
     setErr({}); setBusy(true);
 
     const supabase = supabaseBrowser();
@@ -139,7 +142,7 @@ export default function LoginForm() {
         <p className="gs-note">{t.linkSentSpam}</p>
 
         <Field label={t.codeLabel} value={code} err={err.code}
-          onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
+          onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 10))}
           placeholder="123456" ltr numeric />
         <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={verify}
           disabled={busy || code.length < 6}>

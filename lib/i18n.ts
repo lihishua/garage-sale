@@ -212,7 +212,7 @@ export const STR = {
     // the same button in the other tab: what it does, not how it does it
     openSale: "פתיחת מכירה",
     linkSentTitle: "הקוד בדרך אליכם",
-    linkSentBody: (mail: string) => `שלחנו קוד בן שש ספרות ל־${mail}.`,
+    linkSentBody: (mail: string) => `שלחנו קוד כניסה ל־${mail}.`,
     codeLabel: "הקוד מהמייל",
     enterCode: "כניסה",
     errCode: "הקוד לא נכון, או שפג תוקפו.",
@@ -406,7 +406,7 @@ export const STR = {
     sendLink: "Email me a login link",
     openSale: "Start the sale",
     linkSentTitle: "Your code is on its way",
-    linkSentBody: (mail: string) => `We sent a six-digit code to ${mail}.`,
+    linkSentBody: (mail: string) => `We sent a sign-in code to ${mail}.`,
     codeLabel: "The code from the email",
     enterCode: "Sign in",
     errCode: "That code is wrong, or it has expired.",
