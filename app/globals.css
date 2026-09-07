@@ -51,10 +51,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
    leaving a big empty panel that reads as a loading failure. */
 .gs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
   gap:18px;align-items:start}
+/* No tilt. Alternating a card a third of a degree each way was meant to read
+   as handmade, and at a glance it reads as a grid that failed to line up —
+   the cards are the one thing on the page that should look deliberate. The
+   lift on hover stays; that one is a response to the cursor, not decoration. */
 .gs-card{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;
-  transform:rotate(-.3deg);transition:transform .14s}
-.gs-card:nth-child(even){transform:rotate(.35deg)}
-.gs-card:hover{transform:rotate(0) translateY(-3px)}
+  transition:transform .14s}
+.gs-card:hover{transform:translateY(-3px)}
 .gs-card.taken{opacity:.55}
 .gs-photo{display:block;width:100%;border:0;background:var(--cream);border-radius:8px 8px 0 0;
   padding:0;cursor:pointer;position:relative;border-bottom:1px solid var(--ink);overflow:hidden}
@@ -305,8 +308,6 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
    smaller tiles so more of it fits at once, and none of the buyer grid's tilt,
    which reads as charm on a sale page and as wonkiness on a worksheet. */
 .gs-grid-board{grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:12px}
-.gs-grid-board .gs-card,
-.gs-grid-board .gs-card:nth-child(even){transform:none}
 .gs-grid-board .gs-card:hover{transform:translateY(-2px)}
 
 /* the photo pool. thumbs are big enough to tell a crib from a chair on a
