@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, money, priceOf } from "@/lib/i18n";
 import {
-  availableUnits, holdersByUnit, unitPaths,
+  availableUnits, holdersByUnit, unitPaths, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
 import { StatChip, Toast } from "@/components/ui";
@@ -60,6 +60,18 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const held = units.filter(({ u }) => u.status === "reserved");
   const sold = units.filter(({ u }) => u.status === "sold");
   const earned = sold.reduce((s, { i }) => s + i.price, 0);
+
+  /**
+   * Everything she can tag with: the built-ins, then every tag her board
+   * already carries. Custom tags have no table of their own — they live in the
+   * items that use them — so this union *is* the list, and it stays right
+   * without anything having to maintain it.
+   */
+  const knownTags = useMemo(() => {
+    const mine = new Set<string>();
+    items.forEach((i) => i.tags.forEach((x) => mine.add(x)));
+    return [...TAGS, ...[...mine].filter((x) => !TAGS.includes(x as never))];
+  }, [items]);
 
   const list = useMemo(() => {
     // a unit-less card would otherwise be unreachable, including to delete
@@ -439,6 +451,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {making && (
         <CreateItem
           photos={making}
+          knownTags={knownTags}
           onClose={() => setMaking(null)}
           // `used` is only the photos that genuinely landed in the listing, so
           // anything the save could not attach stays in the pool — both the
@@ -460,6 +473,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {editing && (
         <EditItem
           item={editing}
+          knownTags={knownTags}
           onClose={() => setEditing(null)}
           onSaved={(item) => {
             setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));

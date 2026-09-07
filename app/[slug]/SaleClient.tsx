@@ -139,6 +139,17 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // Every count is over *free units* — the things still there to claim.
   // A category whose units have all gone loses its chip rather than offering a
   // number that leads to nothing claimable; its cards are still in "הכל".
+  /**
+   * Which chips exist at all. Built from the sale's own items rather than from
+   * TAGS, because a seller can invent a tag — built-ins first, in their
+   * settled order, then hers in the order they turn up.
+   */
+  const saleTags = useMemo(() => {
+    const seen = new Set<string>();
+    items.forEach((i) => i.tags.forEach((x) => seen.add(x)));
+    return [...TAGS.filter((x) => seen.has(x)), ...[...seen].filter((x) => !TAGS.includes(x as never))];
+  }, [items]);
+
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: 0 };
     items.forEach((i) => {
@@ -417,7 +428,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               <Chip on={filter === "all"} onClick={() => setFilter("all")}>
                 {t.all} <span className="gs-chip-n">{counts.all}</span>
               </Chip>
-              {TAGS.filter((tag) => counts[tag] > 0).map((tag) => (
+              {saleTags.filter((tag) => counts[tag] > 0).map((tag) => (
                 <Chip key={tag} on={filter === tag} onClick={() => setFilter(tag)}>
                   {TAG_LABEL[tag][lang]} <span className="gs-chip-n">{counts[tag]}</span>
                 </Chip>

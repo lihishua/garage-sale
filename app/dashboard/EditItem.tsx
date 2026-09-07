@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
-import { STR, TAG_LABEL } from "@/lib/i18n";
-import { TAGS, type Item } from "@/lib/types";
-import { Sheet, Field, Chip } from "@/components/ui";
+import { STR } from "@/lib/i18n";
+import { type Item } from "@/lib/types";
+import { Sheet, Field, TagPicker } from "@/components/ui";
 
 /**
  * Change what a listing says, without touching its photos.
@@ -18,10 +18,12 @@ import { Sheet, Field, Chip } from "@/components/ui";
  * A bundle price belongs only to a lot (see CreateItem) — a single crib
  * never gets one, whatever she types, because the field isn't even shown.
  */
-export default function EditItem({ item, onClose, onSaved }: {
+export default function EditItem({ item, onClose, onSaved, knownTags }: {
   item: Item;
   onClose: () => void;
   onSaved: (item: Item) => void;
+  /** the built-in tags plus every one her board already uses */
+  knownTags: string[];
 }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
@@ -47,8 +49,6 @@ export default function EditItem({ item, onClose, onSaved }: {
   const isFurniture = f.tags.includes("furniture");
 
   const set = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
-  const toggleTag = (x: string) =>
-    set("tags", f.tags.includes(x) ? f.tags.filter((y) => y !== x) : [...f.tags, x]);
 
   async function submit() {
     if (busy) return;
@@ -56,7 +56,7 @@ export default function EditItem({ item, onClose, onSaved }: {
     const e: Record<string, string> = {};
     if (!f.title.trim()) e.title = t.errTitle;
     if (!free && (!f.price || Number(f.price) <= 0)) e.price = t.errPrice;
-    if (!f.desc.trim()) e.desc = t.errDesc;
+
     if (isFurniture && !f.size.trim()) e.size = t.errSize;
     if (Object.keys(e).length) { setErr(e); return; }
 
@@ -118,12 +118,7 @@ export default function EditItem({ item, onClose, onSaved }: {
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}
         err={err.desc} placeholder={t.descPh} area />
 
-      <span className="gs-label">{t.tagsLabel}</span>
-      <div className="gs-filters gs-filters-tight">
-        {TAGS.map((x) => (
-          <Chip key={x} on={f.tags.includes(x)} onClick={() => toggleTag(x)}>{TAG_LABEL[x].he}</Chip>
-        ))}
-      </div>
+      <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)} />
 
       {isFurniture && (
         <Field label={t.measurements} value={f.size} onChange={(v) => set("size", v)}

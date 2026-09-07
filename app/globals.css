@@ -224,6 +224,11 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the giveaway toggle stands on its own rather than inside a numbered pair,
    so it carries the gap a Field would have carried */
 .gs-choice-free{margin-bottom:14px}
+/* inventing a tag: the box and its button on one line, under the chips they
+   add to */
+.gs-tagadd{display:flex;gap:8px;align-items:stretch;margin:8px 0 16px}
+.gs-tagadd .gs-input{flex:1;min-width:0}
+.gs-tagadd .gs-btn{flex:none}
 .gs-wa{background:#E4F3D3;border:1px solid var(--line);border-radius:10px;border-end-end-radius:2px;
   padding:13px;white-space:pre-wrap;font-size:17px;line-height:1.5;margin-bottom:14px}
 

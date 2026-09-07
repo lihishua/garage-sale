@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { DIALS, flag } from "@/lib/countries";
-import type { Lang } from "@/lib/i18n";
+import { STR, TAG_LABEL, type Lang } from "@/lib/i18n";
 
 export function Heart({ on }: { on: boolean }) {
   return (
@@ -112,6 +112,58 @@ export function PhoneField({ label, dial, onDial, value, onChange, err, hint, la
       {hint && !err && <span className="gs-hint">{hint}</span>}
       {err && <span className="gs-err">{err}</span>}
     </label>
+  );
+}
+
+/**
+ * The tags to pick from, and a box to invent another.
+ *
+ * A tag she makes up is not stored anywhere of its own: it lives in the items
+ * that carry it, so the set on offer is simply every tag her board already
+ * uses, plus the built-in ones. That means no second table to keep in step,
+ * reuse on the next item comes free, and a tag stops being offered once
+ * nothing is tagged with it any more — which is the behaviour you would have
+ * to write by hand with a table.
+ */
+export function TagPicker({ known, chosen, onChange, lang = "he" }: {
+  known: string[]; chosen: string[]; onChange: (tags: string[]) => void; lang?: Lang;
+}) {
+  const t = STR[lang];
+  const [draft, setDraft] = React.useState("");
+  const shown = [...known, ...chosen.filter((c) => !known.includes(c))];
+
+  const toggle = (x: string) =>
+    onChange(chosen.includes(x) ? chosen.filter((y) => y !== x) : [...chosen, x]);
+
+  const add = () => {
+    const tag = draft.trim().replace(/\s+/g, " ");
+    if (!tag) return;
+    // "גינה" typed twice, or once against an existing "גינה", is one tag —
+    // match what is already there rather than making a near-twin of it
+    const existing = shown.find((k) => k.toLowerCase() === tag.toLowerCase());
+    const use = existing ?? tag;
+    if (!chosen.includes(use)) onChange([...chosen, use]);
+    setDraft("");
+  };
+
+  return (
+    <>
+      <span className="gs-label">{t.tagsLabel}</span>
+      <div className="gs-filters gs-filters-tight">
+        {shown.map((x) => (
+          <Chip key={x} on={chosen.includes(x)} onClick={() => toggle(x)}>
+            {TAG_LABEL[x]?.[lang] ?? x}
+          </Chip>
+        ))}
+      </div>
+      <div className="gs-tagadd">
+        <input className="gs-input" value={draft} placeholder={t.tagAddPh}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
+        <button type="button" className="gs-btn gs-btn-sm" onClick={add}
+          disabled={!draft.trim()}>{t.tagAdd}</button>
+      </div>
+    </>
   );
 }
 
