@@ -23,6 +23,10 @@ export const STR = {
     toTop: "חזרה למעלה",
     loading: "רגע…",
     // buyer
+    // what the whole thing is, for a preview with no particular sale behind it
+    tagline: "מכירת חצר בקישור אחד",
+    // the WhatsApp/link preview for one seller's sale page
+    shareBlurb: (name: string) => `מכירת החצר (ללא חצר) של ${name}`,
     wishList: "רשימת המשאלות",
     wishEmpty: "עדיין ריק. לחצו על הלב ליד כל דבר שמעניין אתכם.",
     // the bar that follows the buyer down the page
@@ -247,6 +251,8 @@ export const STR = {
     sortHigh: "Price: high to low",
     toTop: "Back to top",
     loading: "One moment…",
+    tagline: "A garage sale in a single link",
+    shareBlurb: (name: string) => `${name}'s garage sale — no garage required`,
     wishList: "My wish list",
     wishEmpty: "Empty so far. Tap the heart on anything you want.",
     myList: "My list",

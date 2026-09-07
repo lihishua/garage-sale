@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import type { Item, Sale, Unit, UnitPhoto } from "@/lib/types";
+import { STR } from "@/lib/i18n";
 import SaleClient from "./SaleClient";
 
 export const revalidate = 0;
@@ -8,10 +9,26 @@ export const revalidate = 0;
 /** one row of the items query below, before its two levels are put in order */
 type Row = Omit<Item, "units"> & { units: (Unit & { photos: UnitPhoto[] })[] };
 
+/**
+ * What a pasted link looks like in WhatsApp.
+ *
+ * The name goes in the second line rather than the first: the title is the
+ * thing itself and stays the same wherever it is shared, while whose sale it
+ * is belongs with the sentence describing it. openGraph is set out in full
+ * rather than left to be derived, because it is what the preview actually
+ * reads, and a chat app gets one shot at it.
+ */
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const supabase = supabaseServer();
   const { data } = await supabase.from("public_sales").select("display_name").eq("slug", params.slug).single();
-  return { title: data ? `Garage Sale — ${data.display_name}` : "Garage Sale" };
+  const t = STR.he;
+  const title = "Garage Sale";
+  const description = data ? t.shareBlurb(data.display_name) : t.tagline;
+  return {
+    title,
+    description,
+    openGraph: { title, description, type: "website", url: `/${params.slug}` },
+  };
 }
 
 export default async function SalePage({ params }: { params: { slug: string } }) {
