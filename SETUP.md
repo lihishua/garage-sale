@@ -18,7 +18,9 @@ Next.js 14 (App Router) + Supabase. Domain: **garagesaleonline.app**.
    That creates the tables, the access rules, the reservation function and the photo
    bucket. Expect "Success. No rows returned".
 3. **Authentication → Providers → Email**: make sure it's enabled. There are no passwords
-   here — signing in means clicking a link sent by email.
+   here — signing in means a code emailed to the seller, which she types into the app.
+   The code's length is a project setting (**Email OTP Length**, 6-10); the form reads
+   whatever arrives rather than assuming a number.
 4. **Authentication → URL Configuration → Redirect URLs**: add
    `http://localhost:3000/**` and `https://garagesaleonline.app/**`.
    Without these, Supabase refuses to send anyone back to the site.
@@ -54,12 +56,28 @@ sign-in link is rejected.
 
 ## A test run
 
-1. "לפתוח מכירת חצר משלי" → email, name, phone and page address (say `dana`) →
-   "שלחו לי קישור כניסה". The link arrives by email; clicking it creates the profile and
-   opens the board.
+1. "Start my own garage sale" on the landing page → email, name, WhatsApp number and
+   sale name (say `dana`) → "Open a sale". A code arrives by email; typing it in creates
+   the profile and opens the board. The emailed link still works, but it opens in the
+   browser — see the note on sessions below.
 2. On the board, upload photos and turn them into listings.
 3. Open `http://localhost:3000/dana` in a private window — that's the buyer's view.
 4. Heart a few things, send the list, and check it appears on the board.
+
+## Sessions, and why sign-in is a code
+
+An emailed link opens in the system browser. A web app added to an iPhone home screen
+keeps its own cookie jar, separate from Safari's — so a session created by clicking a
+link never reaches the installed app, and the seller lands back on the login page.
+
+Hence the code. It is typed where it was asked for, so the session is written in the
+container that needs it. The link still works and still goes through `app/auth/confirm`;
+the code path creates the same profile row from the same auth metadata, because it never
+visits that route.
+
+Both email templates must contain `{{ .Token }}` — the ready-made ones are in
+`docs/email-templates/`. A template without it sends a link and no code, and the app then
+rejects every code typed into it.
 
 ## Deploying
 
@@ -74,7 +92,7 @@ The domain also appears in the code, in `metadataBase` in `app/layout.tsx` and i
 ```
 app/[slug]/          the public sale page (server) plus all the interaction (client)
 app/dashboard/       the seller's board
-app/login/           requesting a sign-in link
+app/login/           asking for a code, and typing it in
 app/auth/confirm/    where the emailed link lands and becomes a session
 lib/images.ts        resizing photos in the browser before upload
 supabase/schema.sql  the whole database, for a fresh project
