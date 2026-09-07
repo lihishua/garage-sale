@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { Field, PhoneField, Toast } from "@/components/ui";
@@ -10,6 +10,7 @@ import { DEFAULT_DIAL, fullPhone, validLocal } from "@/lib/countries";
 export default function LoginForm() {
   const t = STR.he;
   const params = useSearchParams();
+  const router = useRouter();
   const [mode, setMode] = useState<"in" | "up">(params.get("mode") === "signup" ? "up" : "in");
 
   const [f, setF] = useState({ email: "", name: "", phone: "", slug: "" });
@@ -18,6 +19,7 @@ export default function LoginForm() {
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const [code, setCode] = useState("");
   const [toast, setToast] = useState<string | null>(null);
   const set = (k: string, v: string) => setF((p) => ({ ...p, [k]: v }));
 
@@ -83,6 +85,51 @@ export default function LoginForm() {
     setSentTo(email);
   }
 
+  /**
+   * The code path. It exists because of the home-screen app: an emailed link
+   * opens in Safari, and an installed web app has its own cookie jar, so a
+   * session created by clicking never reaches the app that asked for it. A
+   * code is typed where it was asked for, so the session lands in the right
+   * container. The link still works for anyone who would rather tap it.
+   */
+  async function verify() {
+    if (busy || !sentTo) return;
+    const token = code.trim();
+    if (token.length !== 6) { setErr({ code: t.errCode }); return; }
+    setErr({}); setBusy(true);
+
+    const supabase = supabaseBrowser();
+    const { data, error } = await supabase.auth.verifyOtp({ email: sentTo, token, type: "email" });
+    if (error || !data.user) { setBusy(false); setErr({ code: t.errCode }); return; }
+
+    // The same row app/auth/confirm writes when she clicks the link instead —
+    // whichever way she got here, one profile, created once. The details rode
+    // in on the auth user's metadata, so they survive asking on a laptop and
+    // finishing on a phone.
+    const user = data.user;
+    const { data: profile } = await supabase
+      .from("profiles").select("id").eq("id", user.id).maybeSingle();
+
+    if (!profile) {
+      const meta = user.user_metadata ?? {};
+      if (!meta.display_name || !meta.phone || !meta.slug) {
+        setBusy(false); say(t.profileFailed); return;
+      }
+      const { error: insErr } = await supabase.from("profiles").insert({
+        id: user.id,
+        display_name: String(meta.display_name),
+        phone: String(meta.phone),
+        slug: String(meta.slug),
+      });
+      // almost always a slug someone claimed between the form and the code
+      if (insErr) { setBusy(false); say(t.profileFailed); return; }
+    }
+
+    // refresh so the server components see the cookie this just wrote
+    router.push("/dashboard");
+    router.refresh();
+  }
+
   if (sentTo) {
     return (
       <main className="gs-auth">
@@ -90,11 +137,20 @@ export default function LoginForm() {
         <h1 className="gs-sheet-title">{t.linkSentTitle}</h1>
         <p className="gs-lead">{t.linkSentBody(sentTo)}</p>
         <p className="gs-note">{t.linkSentSpam}</p>
+
+        <Field label={t.codeLabel} value={code} err={err.code}
+          onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 6))}
+          placeholder="123456" ltr numeric />
+        <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={verify}
+          disabled={busy || code.length < 6}>
+          {busy ? t.loading : t.enterCode}
+        </button>
+
         <p className="gs-fine">{t.linkSentFine}</p>
         <button className="gs-btn gs-btn-wide" onClick={sendLink} disabled={busy}>
           {busy ? t.loading : t.resend}
         </button>
-        <button className="gs-btn-ghost" onClick={() => setSentTo(null)}>{t.useAnotherMail}</button>
+        <button className="gs-btn-ghost" onClick={() => { setSentTo(null); setCode(""); }}>{t.useAnotherMail}</button>
         {toast && <Toast text={toast} />}
       </main>
     );
