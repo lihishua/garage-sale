@@ -23,7 +23,10 @@ create table if not exists items (
   seller_id    uuid not null references profiles(id) on delete cascade,
   title        text not null,
   description  text not null,
-  price        integer not null check (price > 0),   -- per unit
+  -- 0 is למסירה: given away rather than sold. No is_free column — a second
+  -- source of truth for "does this cost anything" is a second thing to keep
+  -- in step, and every reader of `price` gets it right by asking for zero.
+  price        integer not null check (price >= 0),  -- per unit
   bundle_price integer check (bundle_price > 0),     -- optional "all for"
   tags         text[] not null default '{}',
   measurements text,

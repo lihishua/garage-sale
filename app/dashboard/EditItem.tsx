@@ -33,11 +33,13 @@ export default function EditItem({ item, onClose, onSaved }: {
   const [f, setF] = useState({
     title: item.title,
     desc: item.description,
-    price: String(item.price),
+    price: item.price > 0 ? String(item.price) : "",
     bundle: item.bundle_price != null ? String(item.bundle_price) : "",
     size: item.measurements ?? "",
     tags: item.tags,
   });
+  // seeded from the item itself: price 0 is what למסירה means
+  const [free, setFree] = useState(item.price === 0);
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState("");  // whatever the server last complained about
@@ -53,7 +55,7 @@ export default function EditItem({ item, onClose, onSaved }: {
 
     const e: Record<string, string> = {};
     if (!f.title.trim()) e.title = t.errTitle;
-    if (!f.price || Number(f.price) <= 0) e.price = t.errPrice;
+    if (!free && (!f.price || Number(f.price) <= 0)) e.price = t.errPrice;
     if (!f.desc.trim()) e.desc = t.errDesc;
     if (isFurniture && !f.size.trim()) e.size = t.errSize;
     if (Object.keys(e).length) { setErr(e); return; }
@@ -62,12 +64,12 @@ export default function EditItem({ item, onClose, onSaved }: {
 
     // an empty or zeroed field means "no bundle price" — `check (bundle_price
     // > 0)` rejects a literal 0, so it has to become null rather than a number
-    const bundlePrice = multi && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null;
+    const bundlePrice = !free && multi && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null;
 
     const { data: updated, error } = await supabase.from("items").update({
       title: f.title.trim(),
       description: f.desc.trim(),
-      price: Math.round(Number(f.price)),
+      price: free ? 0 : Math.round(Number(f.price)),
       bundle_price: bundlePrice,
       tags: f.tags,
       measurements: isFurniture ? f.size.trim() : null,
@@ -95,14 +97,22 @@ export default function EditItem({ item, onClose, onSaved }: {
       {/* a listing with several units prices per item; a single one just has a price */}
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
         err={err.title} placeholder={multi ? t.whatPhMany : t.whatPhOne} />
-      <Field label={multi ? t.pricePerUnit : t.price} value={f.price}
-        onChange={(v) => set("price", v.replace(/\D/g, ""))}
-        err={err.price} hint={multi ? t.pricePerUnitHint : undefined} ltr />
+      <label className={"gs-choice gs-choice-free" + (free ? " on" : "")}>
+        <input type="checkbox" checked={free} disabled={busy}
+          onChange={(e) => setFree(e.target.checked)} />
+        <span>{t.freeToggle}</span>
+      </label>
+
+      {!free && (
+        <Field label={multi ? t.pricePerUnit : t.price} value={f.price}
+          onChange={(v) => set("price", v.replace(/\D/g, ""))}
+          err={err.price} hint={multi ? t.pricePerUnitHint : undefined} ltr numeric />
+      )}
 
       {/* only a lot can be sold all at once — for one crib, `price` is the price */}
-      {multi && (
+      {!free && multi && (
         <Field label={t.bundlePrice} value={f.bundle} onChange={(v) => set("bundle", v.replace(/\D/g, ""))}
-          hint={t.bundlePriceHint} ltr />
+          hint={t.bundlePriceHint} ltr numeric />
       )}
 
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}

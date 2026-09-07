@@ -55,9 +55,11 @@ export function Sheet({ title, hand, onClose, busy, children }:
   );
 }
 
-export function Field({ label, value, onChange, placeholder, err, hint, type = "text", ltr, area }: {
+export function Field({ label, value, onChange, placeholder, err, hint, type = "text", ltr, area, numeric }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; err?: string; hint?: string; type?: string; ltr?: boolean; area?: boolean;
+  /** digits only — brings up the number pad on a phone instead of the letters */
+  numeric?: boolean;
 }) {
   return (
     <label className="gs-field">
@@ -68,6 +70,7 @@ export function Field({ label, value, onChange, placeholder, err, hint, type = "
       ) : (
         <input className={"gs-input" + (err ? " bad" : "")} value={value} type={type}
           dir={ltr ? "ltr" : undefined} placeholder={placeholder}
+          inputMode={numeric ? "numeric" : undefined} pattern={numeric ? "[0-9]*" : undefined}
           onChange={(e) => onChange(e.target.value)} />
       )}
       {hint && !err && <span className="gs-hint">{hint}</span>}

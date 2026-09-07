@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
-import { STR, money } from "@/lib/i18n";
+import { STR, money, priceOf } from "@/lib/i18n";
 import {
   availableUnits, holdersByUnit, unitPaths,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
@@ -270,7 +270,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                     <ul className="gs-req-items">
                       {lines.map(({ unit, item }) => (
                         <li key={unit.id}>
-                          {item.title} — {money(item.price)}
+                          {item.title} — {priceOf(item.price)}
                           {unit.status === "sold" && <b> · {t.statSold}</b>}
                           {unit.status === "available" && <b> · {t.backToStock}</b>}
                         </li>
@@ -359,7 +359,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               <div className="gs-card-body">
                 <h3 className="gs-card-title">{it.title}</h3>
                 <div className="gs-card-row">
-                  <span className="gs-price">{money(it.price)}</span>
+                  <span className="gs-price">{priceOf(it.price)}</span>
                   <span className="gs-tags">
                     {t.unitsLeft(availableUnits(it).length)}
                     {extraPhotos > 0 && ` · ${t.photoCount(totalPhotos)}`}

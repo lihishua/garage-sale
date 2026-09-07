@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
-import { STR, TAG_LABEL, money, type Lang } from "@/lib/i18n";
+import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { TAGS, availableUnits, showBundlePrice, type Item, type Sale, type Unit } from "@/lib/types";
 import { Heart, Chip, Sheet, Field, Toast } from "@/components/ui";
 
@@ -324,7 +324,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       held.set(i.id, g);
     }));
     const lines = [...held.values()]
-      .map(({ item, n }) => `• ${item.title}${n > 1 ? ` ×${n}` : ""} — ${money(item.price * n)}`)
+      .map(({ item, n }) => `• ${item.title}${n > 1 ? ` ×${n}` : ""} — ${priceOf(item.price * n, lang)}`)
       .join("\n");
     const total = [...held.values()].reduce((s, g) => s + g.item.price * g.n, 0);
     const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}\n\n${t.total}: ${money(total)}\n\n${buyer.name.trim()} — ${buyer.phone.trim()}`;
@@ -484,7 +484,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                         <h3 className="gs-card-title">{it.title}</h3>
                         <div className="gs-card-row">
                           <span className="gs-price">
-                            {money(it.price)}
+                            {priceOf(it.price, lang)}
                             {/* a single crib has nothing to be "per unit" of */}
                             {many && <span className="gs-detail-per"> {t.perUnit}</span>}
                           </span>
@@ -584,7 +584,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           )}
 
           <p className="gs-detail-price">
-            {money(open.price)}
+            {priceOf(open.price, lang)}
             {open.units.length > 1 && <span className="gs-detail-per"> {t.perUnit}</span>}
           </p>
           {/* "נשארו 0" is not a thing anyone says — a מארז with nothing left
@@ -646,7 +646,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                     <span className="gs-list-name">
                       {g.item.title}{g.units.length > 1 && ` ×${g.units.length}`}
                     </span>
-                    <span className="gs-price">{money(g.item.price * g.units.length)}</span>
+                    <span className="gs-price">{priceOf(g.item.price * g.units.length, lang)}</span>
                     <button className="gs-x" onClick={() => dropCard(g.item)} aria-label={t.close}>×</button>
                   </li>
                 ))}

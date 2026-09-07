@@ -44,6 +44,8 @@ export default function CreateItem({ photos, onClose, onCreated }: {
 
   const [f, setF] = useState({ title: "", price: "", desc: "", size: "", bundle: "", tags: [] as string[] });
   const [mode, setMode] = useState<"one" | "many">("one");
+  // למסירה. Stored as price 0, so there is nothing else to keep in step.
+  const [free, setFree] = useState(false);
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState("");        // whatever the server last complained about
@@ -68,7 +70,7 @@ export default function CreateItem({ photos, onClose, onCreated }: {
 
     const e: Record<string, string> = {};
     if (!f.title.trim()) e.title = t.errTitle;
-    if (!f.price || Number(f.price) <= 0) e.price = t.errPrice;
+    if (!free && (!f.price || Number(f.price) <= 0)) e.price = t.errPrice;
     if (!f.desc.trim()) e.desc = t.errDesc;
     if (isFurniture && !f.size.trim()) e.size = t.errSize;
     if (Object.keys(e).length) { setErr(e); return; }
@@ -83,10 +85,12 @@ export default function CreateItem({ photos, onClose, onCreated }: {
       seller_id: user.id,
       title: f.title.trim(),
       description: f.desc.trim(),
-      price: Math.round(Number(f.price)),
+      price: free ? 0 : Math.round(Number(f.price)),
       // only a lot has an all-for price, and `check (bundle_price > 0)` rejects
       // 0, so an empty or zeroed field must become null rather than a number
-      bundle_price: many && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null,
+      // "all of it for nothing" is not an offer anyone makes: a free lot is
+      // simply free per unit, so giving away drops the bundle price too
+      bundle_price: !free && many && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null,
       tags: f.tags,
       measurements: isFurniture ? f.size.trim() : null,
     }).select("id, seller_id, title, description, price, bundle_price, tags, measurements, created_at").single();
@@ -233,14 +237,26 @@ export default function CreateItem({ photos, onClose, onCreated }: {
       {/* the example, and the price label, follow the choice made above */}
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
         err={err.title} placeholder={many ? t.whatPhMany : t.whatPhOne} />
-      <Field label={many ? t.pricePerUnit : t.price} value={f.price}
-        onChange={(v) => set("price", v.replace(/\D/g, ""))}
-        err={err.price} hint={many ? t.pricePerUnitHint : undefined} ltr />
+      {/* ticked, there is no price to ask for — so the fields go rather than
+          sit there greyed, and nothing has to be cleared before saving */}
+      <label className={"gs-choice gs-choice-free" + (free ? " on" : "")}>
+        <input type="checkbox" checked={free} disabled={busy || done}
+          onChange={(e) => setFree(e.target.checked)} />
+        <span>{t.freeToggle}</span>
+      </label>
 
-      {/* only a lot can be sold all at once. For one crib, `price` is the price. */}
-      {many && (
-        <Field label={t.bundlePrice} value={f.bundle} onChange={(v) => set("bundle", v.replace(/\D/g, ""))}
-          hint={t.bundlePriceHint} ltr />
+      {!free && (
+        <>
+          <Field label={many ? t.pricePerUnit : t.price} value={f.price}
+            onChange={(v) => set("price", v.replace(/\D/g, ""))}
+            err={err.price} hint={many ? t.pricePerUnitHint : undefined} ltr numeric />
+
+          {/* only a lot can be sold all at once. For one crib, `price` is the price. */}
+          {many && (
+            <Field label={t.bundlePrice} value={f.bundle} onChange={(v) => set("bundle", v.replace(/\D/g, ""))}
+              hint={t.bundlePriceHint} ltr numeric />
+          )}
+        </>
       )}
 
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}

@@ -88,6 +88,9 @@ export const STR = {
     boardTitle: "הלוח שלי",
     // two sections on the board: things she does, then what is happening
     sectionStatusH: "מצב המכירה",
+    // what a buyer sees where a price would be, and what the seller ticks
+    free: "למסירה",
+    freeToggle: "למסירה — בחינם, בלי מחיר",
     statFree: "פנוי",
     statHeld: "מישהו ביקש",
     statSold: "נמכר",
@@ -123,8 +126,8 @@ export const STR = {
     // the example matches what she is actually making
     whatPhOne: "שולחן ילדים",
     whatPhMany: "מארז ספרים",
-    price: "מחיר",
-    pricePerUnit: "מחיר לפריט יחיד",
+    price: "מחיר (₪)",
+    pricePerUnit: "מחיר לפריט יחיד (₪)",
     description: "תיאור",
     descPh: "תיאור המוצר, מידות, מצבו, וכל פרט שיכול לעזור לקונה",
     tagsLabel: "תגיות",
@@ -176,7 +179,7 @@ export const STR = {
     oneThing: "פריט אחד/סט שנמכר כיחידה אחת.",
     manyThings: (n: number) => `מארז תמונות של ${n} פריטים.`,
     pricePerUnitHint: "המחיר של פריט אחד מתוך המארז.",
-    bundlePrice: "מחיר לכל המארז",
+    bundlePrice: "מחיר לכל המארז (₪)",
     bundlePriceHint: "מחיר מיוחד למי שלוקח את כל המארז. רשות.",
     perUnit: "ליחידה",
     forAll: "לכל המארז",
@@ -288,6 +291,8 @@ export const STR = {
     startMine: "Start my own garage sale",
     boardTitle: "My board",
     sectionStatusH: "How the sale's going",
+    free: "Free to a good home",
+    freeToggle: "Giving it away — free, no price",
     statFree: "up for grabs",
     statHeld: "someone's asked",
     statSold: "sold",
@@ -321,8 +326,8 @@ export const STR = {
     whatIsIt: "Item name",
     whatPhOne: "Children's table",
     whatPhMany: "A box of books",
-    price: "Price",
-    pricePerUnit: "Price per single item",
+    price: "Price (₪)",
+    pricePerUnit: "Price per single item (₪)",
     description: "Description",
     descPh: "Description, measurements, condition, and anything else that helps a buyer",
     tagsLabel: "Tags",
@@ -371,7 +376,7 @@ export const STR = {
     oneThing: "One thing / a set sold as a single unit.",
     manyThings: (n: number) => `A batch of photos of ${n} things.`,
     pricePerUnitHint: "The price of one thing from the lot.",
-    bundlePrice: "Price for the whole box",
+    bundlePrice: "Price for the whole box (₪)",
     bundlePriceHint: "A special price for someone who takes the whole lot. Optional.",
     perUnit: "per unit",
     forAll: "for the whole lot",
@@ -421,3 +426,13 @@ export type Str = (typeof STR)["he"];
 // the locale is pinned: without it Node and the browser can group digits
 // differently and React reports a hydration mismatch on every price
 export const money = (n: number) => "₪" + n.toLocaleString("he-IL");
+
+/**
+ * What an item costs, in words a buyer reads.
+ *
+ * Zero is not "₪0" — it is למסירה, and the whole reason someone might stop on
+ * that card. Totals keep using money(): a list that adds up to nothing is
+ * honestly ₪0, and calling that "free" would be describing the list rather
+ * than summing it.
+ */
+export const priceOf = (n: number, lang: Lang = "he") => (n > 0 ? money(n) : STR[lang].free);

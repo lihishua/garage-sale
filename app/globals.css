@@ -221,6 +221,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   font-size:18px;line-height:1.4}
 .gs-choice.on{border-color:var(--ink);background:var(--cream)}
 .gs-choice input{flex:none;margin:2px 0 0;accent-color:var(--ink)}
+/* the giveaway toggle stands on its own rather than inside a numbered pair,
+   so it carries the gap a Field would have carried */
+.gs-choice-free{margin-bottom:14px}
 .gs-wa{background:#E4F3D3;border:1px solid var(--line);border-radius:10px;border-end-end-radius:2px;
   padding:13px;white-space:pre-wrap;font-size:17px;line-height:1.5;margin-bottom:14px}
 
