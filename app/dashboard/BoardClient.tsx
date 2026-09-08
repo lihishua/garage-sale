@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
-import { STR, money, priceOf } from "@/lib/i18n";
+import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import {
   availableUnits, holdersByUnit, unitPaths, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
@@ -377,6 +377,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                     {extraPhotos > 0 && ` · ${t.photoCount(totalPhotos)}`}
                   </span>
                 </div>
+
+                {/* the same line the buyer's card carries, so she can see what
+                    a listing is filed under without opening it — a tag she
+                    invented has no TAG_LABEL entry and is simply its own name */}
+                {it.tags.length > 0 && (
+                  <p className="gs-card-tags">
+                    {it.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}
+                  </p>
+                )}
 
                 {/* A lot (>1 unit) gets one row per photo — each a separate
                     claimable thing, so marking one sold is obviously about
