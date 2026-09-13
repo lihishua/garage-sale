@@ -507,15 +507,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               {openItem.units[0].status !== "available" && (
                 <p className="gs-waiting">{unitLabel(openItem.units[0])}</p>
               )}
-              {/* the same size as a lot's per-unit buttons: one action, one look */}
+              {/* The same size as a lot's per-unit buttons: one action, one
+                  look. But unlike a lot, a single item has nothing left to do
+                  once it is paid, so the tap that marks it also closes the
+                  preview — she is back at the grid with the check on the tile.
+                  A lot stays open, because its next unit is right there. */}
               <div className="gs-actions">
                 {openItem.units[0].status !== "sold" && (
                   <button className="gs-btn gs-btn-green gs-btn-sm"
-                    onClick={() => setUnitStatus(openItem.units[0].id, "sold")}>{t.markSold}</button>
+                    onClick={async () => { await setUnitStatus(openItem.units[0].id, "sold"); setOpenId(null); }}>
+                    {t.markSold}
+                  </button>
                 )}
                 {openItem.units[0].status !== "available" && (
                   <button className="gs-btn gs-btn-cream gs-btn-sm"
-                    onClick={() => setUnitStatus(openItem.units[0].id, "available")}>{t.backToStock}</button>
+                    onClick={async () => { await setUnitStatus(openItem.units[0].id, "available"); setOpenId(null); }}>
+                    {t.backToStock}
+                  </button>
                 )}
               </div>
             </>
