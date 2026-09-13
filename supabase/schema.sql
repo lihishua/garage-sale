@@ -17,6 +17,9 @@ create table if not exists profiles (
 do $$ begin
   create type item_status as enum ('available', 'reserved', 'sold');
 exception when duplicate_object then null; end $$;
+do $$ begin
+  create type price_for as enum ('each', 'all');
+exception when duplicate_object then null; end $$;
 
 create table if not exists items (
   id           uuid primary key default gen_random_uuid(),
@@ -26,8 +29,12 @@ create table if not exists items (
   -- 0 is למסירה: given away rather than sold. No is_free column — a second
   -- source of truth for "does this cost anything" is a second thing to keep
   -- in step, and every reader of `price` gets it right by asking for zero.
-  price        integer not null check (price >= 0),  -- per unit
-  bundle_price integer check (bundle_price > 0),     -- optional "all for"
+  price        integer not null check (price >= 0),
+  -- what `price` covers: each unit, or the whole lot. One number, one switch.
+  price_for    price_for not null default 'each',
+  -- retired: nothing writes it. A lot that had one became a price_for='all'
+  -- lot at that price. Kept so an old row still reads.
+  bundle_price integer check (bundle_price > 0),
   tags         text[] not null default '{}',
   measurements text,
   created_at   timestamptz not null default now()
@@ -41,6 +48,9 @@ create table if not exists item_units (
   thumb_path        text not null,
   position          integer not null default 0,      -- 0 is the cover
   status            item_status not null default 'available',
+  -- what it actually went for, written when marked sold. Null: not sold, or
+  -- sold before this existed; the board shows the list price for those.
+  sold_price        integer check (sold_price >= 0),
   -- deliberately NO reserved_by_* columns: this table is world-readable,
   -- so buyer contact details live only in `requests`. See Global Constraints.
   created_at        timestamptz not null default now()

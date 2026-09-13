@@ -61,7 +61,7 @@ export default async function SalePage({ params }: { params: { slug: string } })
   const { data: rows } = await supabase
     .from("items")
     .select(
-      "id, seller_id, title, description, price, bundle_price, tags, measurements, created_at," +
+      "id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at," +
       " units:item_units(id, item_id, photo_path, thumb_path, position, status," +
       " photos:unit_photos(id, unit_id, photo_path, thumb_path, position))"
     )

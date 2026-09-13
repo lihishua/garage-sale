@@ -51,12 +51,12 @@ export default function EditItem({ item, onClose, onSaved, knownTags }: {
     title: item.title,
     desc: item.description,
     price: item.price > 0 ? String(item.price) : "",
-    bundle: item.bundle_price != null ? String(item.bundle_price) : "",
     size: item.measurements ?? "",
     tags: item.tags,
   });
   // seeded from the item itself: price 0 is what למסירה means
   const [free, setFree] = useState(item.price === 0);
+  const [priceFor, setPriceFor] = useState<"each" | "all">(item.price_for ?? "each");
   const [err, setErr] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const [said, setSaid] = useState("");  // whatever the server last complained about
@@ -97,19 +97,18 @@ export default function EditItem({ item, onClose, onSaved, knownTags }: {
       units = (fresh ?? []) as typeof item.units;
     }
 
-    // an empty or zeroed field means "no bundle price" — `check (bundle_price
-    // > 0)` rejects a literal 0, so it has to become null rather than a number
-    const bundlePrice = !free && multi && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null;
 
     const { data: updated, error } = await supabase.from("items").update({
       title: f.title.trim(),
       description: f.desc.trim(),
       price: free ? 0 : Math.round(Number(f.price)),
-      bundle_price: bundlePrice,
+      price_for: many ? priceFor : "each",
+      // retired; cleared so an old lot's leftover number cannot resurface
+      bundle_price: null,
       tags: f.tags,
       measurements: isFurniture ? f.size.trim() : null,
     }).eq("id", item.id)
-      .select("id, seller_id, title, description, price, bundle_price, tags, measurements, created_at")
+      .select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at")
       .single();
 
     setBusy(false);
@@ -166,16 +165,31 @@ export default function EditItem({ item, onClose, onSaved, knownTags }: {
       </label>
 
       {!free && (
-        <Field label={multi ? t.pricePerUnit : t.price} value={f.price}
-          onChange={(v) => set("price", v.replace(/\D/g, ""))}
-          err={err.price} hint={multi ? t.pricePerUnitHint : undefined} ltr numeric />
+        <>
+          <Field label={t.price} value={f.price}
+            onChange={(v) => set("price", v.replace(/\D/g, ""))}
+            err={err.price} ltr numeric />
+          {many && (
+            <div className="gs-field">
+              <span className="gs-label">{t.priceForLabel}</span>
+              <div className="gs-seg" role="radiogroup" aria-label={t.priceForLabel}>
+                <label className={"gs-seg-opt" + (priceFor === "each" ? " on" : "")}>
+                  <input type="radio" name="gs-pricefor" checked={priceFor === "each"}
+                    disabled={busy} onChange={() => setPriceFor("each")} />
+                  {t.priceForEach}
+                </label>
+                <label className={"gs-seg-opt" + (priceFor === "all" ? " on" : "")}>
+                  <input type="radio" name="gs-pricefor" checked={priceFor === "all"}
+                    disabled={busy} onChange={() => setPriceFor("all")} />
+                  {t.priceForAll}
+                </label>
+              </div>
+              <span className="gs-hint">{t.priceForHint}</span>
+            </div>
+          )}
+        </>
       )}
 
-      {/* only a lot can be sold all at once — for one crib, `price` is the price */}
-      {!free && multi && (
-        <Field label={t.bundlePrice} value={f.bundle} onChange={(v) => set("bundle", v.replace(/\D/g, ""))}
-          hint={t.bundlePriceHint} ltr numeric />
-      )}
 
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}
         err={err.desc} placeholder={t.descPh} area />

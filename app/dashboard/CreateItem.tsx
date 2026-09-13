@@ -22,8 +22,10 @@ import { Sheet, Field, TagPicker } from "@/components/ui";
  * that is right for every crib, every set, and wrong only for a genuine lot,
  * which she will notice because she counted the books herself.
  *
- * A bundle price belongs only to the lot. "₪100 for all" is meaningless for a
- * single crib, and offering it there is what made the earlier design confusing.
+ * A lot has one price and a switch saying what it covers — each photo, or
+ * the whole pile. It used to have two prices, per-unit and all-for, and two
+ * numbers for one pile of books was the confusing part. The final number is
+ * settled on WhatsApp regardless; the description carries the rest.
  */
 export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
   photos: StagedPhoto[];
@@ -44,7 +46,9 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
   const t = STR.he;
   const supabase = supabaseBrowser();
 
-  const [f, setF] = useState({ title: "", price: "", desc: "", size: "", bundle: "", tags: [] as string[] });
+  const [f, setF] = useState({ title: "", price: "", desc: "", size: "", tags: [] as string[] });
+  // what the one price covers on a lot: each photo, or the whole pile
+  const [priceFor, setPriceFor] = useState<"each" | "all">("each");
   const [mode, setMode] = useState<"one" | "many">("one");
   // למסירה. Stored as price 0, so there is nothing else to keep in step.
   const [free, setFree] = useState(false);
@@ -86,14 +90,11 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
       title: f.title.trim(),
       description: f.desc.trim(),
       price: free ? 0 : Math.round(Number(f.price)),
-      // only a lot has an all-for price, and `check (bundle_price > 0)` rejects
-      // 0, so an empty or zeroed field must become null rather than a number
-      // "all of it for nothing" is not an offer anyone makes: a free lot is
-      // simply free per unit, so giving away drops the bundle price too
-      bundle_price: !free && many && Number(f.bundle) > 0 ? Math.round(Number(f.bundle)) : null,
+      // a single thing's price is for that thing; only a lot has the question
+      price_for: many ? priceFor : "each",
       tags: f.tags,
       measurements: isFurniture ? f.size.trim() : null,
-    }).select("id, seller_id, title, description, price, bundle_price, tags, measurements, created_at").single();
+    }).select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at").single();
 
     if (itemErr || !item) {
       // nothing was written; the photos are untouched and still in the pool
@@ -247,14 +248,30 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
 
       {!free && (
         <>
-          <Field label={many ? t.pricePerUnit : t.price} value={f.price}
+          <Field label={t.price} value={f.price}
             onChange={(v) => set("price", v.replace(/\D/g, ""))}
-            err={err.price} hint={many ? t.pricePerUnitHint : undefined} ltr numeric />
+            err={err.price} ltr numeric />
 
-          {/* only a lot can be sold all at once. For one crib, `price` is the price. */}
+          {/* One number, and what it covers. A lot used to ask for two prices,
+              per unit and all-for, and two numbers for one pile of books was
+              the confusing part. The description is where the rest goes. */}
           {many && (
-            <Field label={t.bundlePrice} value={f.bundle} onChange={(v) => set("bundle", v.replace(/\D/g, ""))}
-              hint={t.bundlePriceHint} ltr numeric />
+            <div className="gs-field">
+              <span className="gs-label">{t.priceForLabel}</span>
+              <div className="gs-seg" role="radiogroup" aria-label={t.priceForLabel}>
+                <label className={"gs-seg-opt" + (priceFor === "each" ? " on" : "")}>
+                  <input type="radio" name="gs-pricefor" checked={priceFor === "each"}
+                    disabled={busy || done} onChange={() => setPriceFor("each")} />
+                  {t.priceForEach}
+                </label>
+                <label className={"gs-seg-opt" + (priceFor === "all" ? " on" : "")}>
+                  <input type="radio" name="gs-pricefor" checked={priceFor === "all"}
+                    disabled={busy || done} onChange={() => setPriceFor("all")} />
+                  {t.priceForAll}
+                </label>
+              </div>
+              <span className="gs-hint">{t.priceForHint}</span>
+            </div>
           )}
         </>
       )}

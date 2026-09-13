@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
-import { TAGS, availableUnits, showBundlePrice, type Item, type Sale, type Unit } from "@/lib/types";
+import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
 import { Heart, Chip, Sheet, Field, Toast, PrivacyNote } from "@/components/ui";
 
 /**
@@ -45,19 +45,6 @@ const slidesOf = (i: Item): Slide[] =>
     ...(u.photos ?? []).map((p) => ({ unit: u, path: p.photo_path, thumb: p.thumb_path })),
   ]);
 
-/**
- * How many photos a מארז's collage shows — see `.gs-collage` in globals.css
- * for the layout each count gets. The rule is that the grid is always
- * completely full: take the largest tile count the photos can fill without
- * leaving a hole, from 2, 3, 4 and 9. Two photos are two full-height halves,
- * three are one tall beside two stacked, four to eight are a plain 2×2, nine
- * or more a 3×3 — so a count that would leave holes (five in a 3×3) shows
- * fewer photos instead. Nothing is lost by that: what is still free is written
- * under the card in words, never counted off the tiles.
- *
- * Only ever called with n > 1, because a single item or set keeps its cover.
- */
-const collageTiles = (n: number) => (n >= 9 ? 9 : n >= 4 ? 4 : n);
 
 export default function SaleClient({ sale, items: initial }: { sale: Sale; items: Item[] }) {
   const [lang] = useState<Lang>("he");
@@ -140,6 +127,16 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       : u.status === "reserved" ? "held" as const
         : claimed.has(u.id) ? "gone" as const : "free" as const;
 
+  /**
+   * A lot priced "for the whole pile" is one thing to buy, whatever its photo
+   * count. Its heart takes every free unit at once, the units inside have no
+   * hearts of their own, and it costs its price once — not once per photo.
+   */
+  const whole = (i: Item) => i.units.length > 1 && i.price_for === "all";
+
+  /** what n units of an item cost: per unit, or the pile's one price */
+  const costOf = (i: Item, n: number) => (whole(i) ? (n > 0 ? i.price : 0) : i.price * n);
+
   /** what is still there to claim: available per the server, and not taken since */
   const freeUnits = (i: Item) => availableUnits(i).filter((u) => !claimed.has(u.id));
 
@@ -208,7 +205,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // `price` is per unit, so the total counts photos, not cards. The bundle
   // price deliberately does not enter here: it is the seller's offer to make
   // in the chat, and reserve_units has no notion of it.
-  const wishTotal = wishGroups.reduce((s, g) => s + g.item.price * g.units.length, 0);
+  const wishTotal = wishGroups.reduce((s, g) => s + costOf(g.item, g.units.length), 0);
 
   const open = openId ? items.find((i) => i.id === openId) ?? null : null;
   const slides = useMemo(() => (open ? slidesOf(open) : []), [open]);
@@ -237,6 +234,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // inside the sheet: this photo's unit alone
   const toggleUnit = (u: Unit) => {
     if (standing(u) !== "free") return;
+    // a per-pile lot is taken whole or not at all; its photos are not the unit
+    const owner = items.find((i) => i.units.some((x) => x.id === u.id));
+    if (owner && whole(owner)) { toggleCard(owner); return; }
     setWish((w) => (w.includes(u.id) ? w.filter((x) => x !== u.id) : [...w, u.id]));
   };
 
@@ -343,9 +343,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       held.set(i.id, g);
     }));
     const lines = [...held.values()]
-      .map(({ item, n }) => `• ${item.title}${n > 1 ? ` ×${n}` : ""} — ${priceOf(item.price * n, lang)}`)
+      .map(({ item, n }) => `• ${item.title}${n > 1 && !whole(item) ? ` ×${n}` : ""} — ${priceOf(costOf(item, n), lang)}`)
       .join("\n");
-    const total = [...held.values()].reduce((s, g) => s + g.item.price * g.n, 0);
+    const total = [...held.values()].reduce((s, g) => s + costOf(g.item, g.n), 0);
     const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}\n\n${t.total}: ${money(total)}\n\n${buyer.name.trim()} — ${buyer.phone.trim()}`;
 
     setSent({ msg, phone: data.seller_phone ?? null, dropped: unavailable.length });
@@ -390,13 +390,6 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
 
-  /**
-   * "all of it for ₪100" stops being true the moment one unit goes, which
-   * `showBundlePrice` already handles for sold and held ones — this closes it
-   * for a unit taken out from under the buyer mid-visit, whose status here is
-   * still the stale "available".
-   */
-  const bundleOn = (i: Item) => showBundlePrice(i) && freeUnits(i).length === i.units.length;
 
   /** what a claimed unit says on its band — the server's word where there is one */
   const unitBand = (u: Unit) =>
@@ -510,7 +503,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                           <span className="gs-price">
                             {priceOf(it.price, lang)}
                             {/* a single crib has nothing to be "per unit" of */}
-                            {many && <span className="gs-detail-per"> {t.perUnit}</span>}
+                            {many && <span className="gs-detail-per"> {whole(it) ? t.forAll : t.perUnit}</span>}
                           </span>
                           {many && free > 0 && (
                             <span className="gs-tags">{t.unitsLeft(free)}</span>
@@ -523,9 +516,6 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                           <p className="gs-card-tags">
                             {it.tags.map((x) => tagLabel(x)).join(" · ")}
                           </p>
-                        )}
-                        {bundleOn(it) && (
-                          <p className="gs-card-bundle">{money(it.bundle_price!)} {t.forAll}</p>
                         )}
                       </div>
                     </article>
@@ -591,7 +581,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             </div>
             {standing(cur.unit) !== "free" ? (
               <span className="gs-band">{unitBand(cur.unit)}</span>
-            ) : open.units.length > 1 && (
+            ) : open.units.length > 1 && !whole(open) && (
               <button className="gs-heart" onClick={() => toggleUnit(cur.unit)}
                 aria-pressed={wishSet.has(cur.unit.id)}
                 aria-label={wishSet.has(cur.unit.id) ? t.onList : t.addToList}>
@@ -616,14 +606,13 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
           <p className="gs-detail-price">
             {priceOf(open.price, lang)}
-            {open.units.length > 1 && <span className="gs-detail-per"> {t.perUnit}</span>}
+            {open.units.length > 1 && <span className="gs-detail-per"> {whole(open) ? t.forAll : t.perUnit}</span>}
           </p>
           {/* "נשארו 0" is not a thing anyone says — a מארז with nothing left
               says so instead, the same guard the card uses */}
           {open.units.length > 1 && (
             <p className="gs-detail-per">
               {freeUnits(open).length > 0 ? t.unitsLeft(freeUnits(open).length) : bandFor(open)}
-              {bundleOn(open) && ` · ${money(open.bundle_price!)} ${t.forAll}`}
             </p>
           )}
           <p className="gs-detail-desc">{open.description}</p>
@@ -645,7 +634,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               gets one, because there is only one thing here to want. Nothing
               at all when nothing is left to claim — the note above has
               already said why. */}
-          {open.units.length > 1 ? (
+          {open.units.length > 1 && !whole(open) ? (
             freeUnits(open).length > 0 && (
               <>
                 <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => decideAll(open)}>
@@ -656,6 +645,14 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                   {t.wantMarked}
                 </button>
               </>
+            )
+          ) : whole(open) ? (
+            // a per-pile lot: one thing to want, in either direction, like a set
+            freeUnits(open).length > 0 && (
+              <button className={"gs-btn gs-btn-wide " + (cardOn(open) ? "gs-btn-cream" : "gs-btn-orange")}
+                onClick={() => { toggleCard(open); setOpenId(null); }}>
+                {cardOn(open) ? t.dropAll : t.wantAll}
+              </button>
             )
           ) : standing(cur.unit) === "free" && (
             <button className={"gs-btn gs-btn-wide " + (wishSet.has(cur.unit.id) ? "gs-btn-cream" : "gs-btn-orange")}
@@ -677,7 +674,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                     <span className="gs-list-name">
                       {g.item.title}{g.units.length > 1 && ` ×${g.units.length}`}
                     </span>
-                    <span className="gs-price">{priceOf(g.item.price * g.units.length, lang)}</span>
+                    <span className="gs-price">{priceOf(costOf(g.item, g.units.length), lang)}</span>
                     <button className="gs-x" onClick={() => dropCard(g.item)} aria-label={t.close}>×</button>
                   </li>
                 ))}

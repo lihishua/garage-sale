@@ -28,8 +28,8 @@ export default async function Dashboard() {
   const { data: rows } = await supabase
     .from("items")
     .select(
-      "id, seller_id, title, description, price, bundle_price, tags, measurements, created_at," +
-      " units:item_units(id, item_id, photo_path, thumb_path, position, status," +
+      "id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at," +
+      " units:item_units(id, item_id, photo_path, thumb_path, position, status, sold_price," +
       " photos:unit_photos(id, unit_id, photo_path, thumb_path, position))"
     )
     .eq("seller_id", user.id)

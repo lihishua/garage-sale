@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import {
-  availableUnits, holdersByUnit, unitPaths, TAGS,
+  availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
 import { StatChip, Toast, PrivacyNote, Sheet } from "@/components/ui";
@@ -62,7 +62,20 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const free = units.filter(({ u }) => u.status === "available");
   const held = units.filter(({ u }) => u.status === "reserved");
   const sold = units.filter(({ u }) => u.status === "sold");
-  const earned = sold.reduce((s, { i }) => s + i.price, 0);
+  // What actually came in. sold_price is what she wrote down when marking the
+  // unit paid; a unit sold before that existed, or with the field left alone,
+  // falls back to what the listing asked. A per-pile lot's price is for the
+  // whole lot, so its list price counts once, not once per unit.
+  const earned = items.reduce((sum, i) => {
+    const soldUnits = i.units.filter((u) => u.status === "sold");
+    if (!soldUnits.length) return sum;
+    const written = soldUnits.reduce((a, u) => a + (u.sold_price ?? 0), 0);
+    const unwritten = soldUnits.filter((u) => u.sold_price == null).length;
+    const fallback = i.price_for === "all" && i.units.length > 1
+      ? (unwritten > 0 ? i.price : 0)
+      : unwritten * i.price;
+    return sum + written + fallback;
+  }, 0);
 
   /**
    * Everything she can tag with: the built-ins, then every tag her board
@@ -135,15 +148,68 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     setSaleUrl(`${window.location.origin}/${profile.slug}`);
   }, [profile.slug]);
 
-  async function setUnitStatus(unitId: string, status: ItemStatus) {
-    const { error } = await supabase.from("item_units").update({ status }).eq("id", unitId);
+  /**
+   * Marking a unit sold writes down what it went for, because the list price
+   * is an opening number and the WhatsApp conversation is where the real one
+   * lands. Back to stock clears it: the unit is for sale again at the asking
+   * price, and the old sale did not happen.
+   */
+  async function setUnitStatus(unitId: string, status: ItemStatus, paid?: number) {
+    const patch = status === "sold"
+      ? { status, sold_price: paid ?? null }
+      : { status, sold_price: null };
+    const { error } = await supabase.from("item_units").update(patch).eq("id", unitId);
     if (error) return say(error.message);
     setItems((prev) => prev.map((i) => ({
       ...i,
-      units: i.units.map((u) => (u.id === unitId ? { ...u, status } : u)),
+      units: i.units.map((u) => (u.id === unitId ? { ...u, ...patch } : u)),
     })));
     say(status === "sold" ? t.statSold : t.backToStock);
   }
+
+  /**
+   * The price beside each "paid" button. Keyed by unit and pre-filled with
+   * the asking price the moment the sheet opens, so pressing paid without
+   * touching it records the list price — and a haggle is one edit first.
+   */
+  const [paidDraft, setPaidDraft] = useState<Record<string, string>>({});
+  const askingFor = (i: Item) => (i.price_for === "all" && i.units.length > 1 ? i.price : i.price);
+  const draftFor = (i: Item, u: Unit) => paidDraft[u.id] ?? String(u.sold_price ?? askingFor(i));
+  const paidOf = (i: Item, u: Unit) => {
+    const n = Number(draftFor(i, u));
+    return Number.isFinite(n) && n >= 0 ? Math.round(n) : askingFor(i);
+  };
+
+  /**
+   * The price box and the paid button, side by side: edit the number if the
+   * WhatsApp conversation landed somewhere else, then press. Untouched, it
+   * records the asking price. `after` runs once the status is written — a
+   * single item closes its preview, a lot's rows stay for the next one.
+   */
+  const paidRow = (i: Item, u: Unit, after?: () => void) => (
+    <div className="gs-actions gs-paid" style={{ marginTop: 0 }}>
+      {u.status !== "sold" && (
+        <>
+          <span className="gs-paid-box">
+            <span className="gs-paid-cur">₪</span>
+            <input className="gs-input gs-paid-in" value={draftFor(i, u)} dir="ltr"
+              inputMode="numeric" pattern="[0-9]*" aria-label={t.paidPrice}
+              onChange={(e) => setPaidDraft((d) => ({ ...d, [u.id]: e.target.value.replace(/\D/g, "") }))} />
+          </span>
+          <button className="gs-btn gs-btn-green gs-btn-sm"
+            onClick={async () => { await setUnitStatus(u.id, "sold", paidOf(i, u)); after?.(); }}>
+            {t.markSold}
+          </button>
+        </>
+      )}
+      {u.status !== "available" && (
+        <button className="gs-btn gs-btn-cream gs-btn-sm"
+          onClick={async () => { await setUnitStatus(u.id, "available"); after?.(); }}>
+          {t.backToStock}
+        </button>
+      )}
+    </div>
+  );
 
   /**
    * Taking a buyer off the board. Everything her request still holds goes back
@@ -234,9 +300,6 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   };
 
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
-  const openSoldCount = openItem ? openItem.units.filter((u) => u.status === "sold").length : 0;
-  const openBundleBroken = !!openItem && openItem.bundle_price != null && openItem.units.length > 1
-    && openSoldCount > 0 && openSoldCount < openItem.units.length;
 
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
@@ -385,7 +448,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               className={"gs-tile" + (gone ? " taken" : "")}
               onClick={() => setOpenId(it.id)}>
               <span className="gs-tile-photo">
-                {cover && <img src={photoUrl(cover.thumb_path)} alt="" loading="lazy" />}
+                {/* a lot is a collage, as on the buyer's card, so the tile
+                    says "several things" before its name is read */}
+                {it.units.length > 1 ? (
+                  <span className={`gs-collage gs-collage-${collageTiles(it.units.length)}`}>
+                    {it.units.slice(0, collageTiles(it.units.length)).map((u) => (
+                      <img key={u.id} src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
+                    ))}
+                  </span>
+                ) : cover && <img src={photoUrl(cover.thumb_path)} alt="" loading="lazy" />}
                 {soldCount > 0 && soldCount === it.units.length && (
                   <span className="gs-tile-sold" title={t.statSold} aria-label={t.statSold}>
                     <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
@@ -488,17 +559,13 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               {openItem.units.map((u) => (
                 <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
                   <img className="gs-mini" src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
-                  <span className="gs-list-name">{unitLabel(u)}</span>
-                  <div className="gs-actions" style={{ marginTop: 0 }}>
-                    {u.status !== "sold" && (
-                      <button className="gs-btn gs-btn-green gs-btn-sm"
-                        onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
+                  <span className="gs-list-name">
+                    {unitLabel(u)}
+                    {u.status === "sold" && u.sold_price != null && (
+                      <span className="gs-list-paid"> · {money(u.sold_price)}</span>
                     )}
-                    {u.status !== "available" && (
-                      <button className="gs-btn gs-btn-cream gs-btn-sm"
-                        onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
-                    )}
-                  </div>
+                  </span>
+                  {paidRow(openItem, u)}
                 </li>
               ))}
             </ul>
@@ -512,29 +579,13 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                   once it is paid, so the tap that marks it also closes the
                   preview — she is back at the grid with the check on the tile.
                   A lot stays open, because its next unit is right there. */}
-              <div className="gs-actions">
-                {openItem.units[0].status !== "sold" && (
-                  <button className="gs-btn gs-btn-green gs-btn-sm"
-                    onClick={async () => { await setUnitStatus(openItem.units[0].id, "sold"); setOpenId(null); }}>
-                    {t.markSold}
-                  </button>
-                )}
-                {openItem.units[0].status !== "available" && (
-                  <button className="gs-btn gs-btn-cream gs-btn-sm"
-                    onClick={async () => { await setUnitStatus(openItem.units[0].id, "available"); setOpenId(null); }}>
-                    {t.backToStock}
-                  </button>
-                )}
-              </div>
+              {openItem.units[0].status === "sold" && openItem.units[0].sold_price != null && (
+                <p className="gs-waiting">{t.paidPrice}: {money(openItem.units[0].sold_price)}</p>
+              )}
+              {paidRow(openItem, openItem.units[0], () => setOpenId(null))}
             </>
           )}
 
-          {/* the "all for" price only shows to buyers while every unit is
-              still available — once one sells it goes quiet with no signal
-              to her, unless something says so here */}
-          {openBundleBroken && (
-            <p className="gs-note">{t.bundleNudge(openSoldCount, openItem.units.length)}</p>
-          )}
 
           <div className="gs-sheet-foot">
             <button className="gs-btn-ghost" onClick={() => { setEditing(openItem); setOpenId(null); }}>

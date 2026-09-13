@@ -21,6 +21,8 @@ export type Unit = {
   thumb_path: string;
   position: number;
   status: ItemStatus;
+  /** what it went for, if the seller wrote it down when marking it sold */
+  sold_price?: number | null;
   /**
    * Safe on a public page: `unit_photos` holds image paths and nothing else,
    * exactly like `item_units` itself. No buyer details live here — they are
@@ -53,6 +55,9 @@ export type Item = {
   title: string;
   description: string;
   price: number;
+  /** what `price` covers: each unit, or the whole lot */
+  price_for: "each" | "all";
+  /** retired — see the migration. Read nowhere; kept so old rows type. */
   bundle_price: number | null;
   tags: string[];
   measurements: string | null;
@@ -101,8 +106,20 @@ export const holdersByUnit = (requests: RequestRow[]): Map<string, Holder> => {
 export const availableUnits = (i: Item) => i.units.filter(u => u.status === "available");
 
 // the bundle price is only true while nothing has gone
-export const showBundlePrice = (i: Item) =>
-  i.bundle_price != null && i.units.length > 1 && i.units.every(u => u.status === "available");
 
 export const TAGS = ["furniture", "books", "clothes", "kids", "home", "kitchen", "music"] as const;
 export type Tag = (typeof TAGS)[number];
+
+/**
+ * How many photos a מארז's collage shows — see `.gs-collage` in globals.css
+ * for the layout each count gets. The rule is that the grid is always
+ * completely full: take the largest tile count the photos can fill without
+ * leaving a hole, from 2, 3, 4 and 9. Two photos are two full-height halves,
+ * three are one tall beside two stacked, four to eight are a plain 2×2, nine
+ * or more a 3×3 — so a count that would leave holes (five in a 3×3) shows
+ * fewer photos instead. Nothing is lost by that: what is still free is written
+ * under the card in words, never counted off the tiles.
+ *
+ * Only ever called with n > 1, because a single item or set keeps its cover.
+ */
+export const collageTiles = (n: number) => (n >= 9 ? 9 : n >= 4 ? 4 : n);
