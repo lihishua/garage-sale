@@ -26,7 +26,7 @@ export const STR = {
     // what the whole thing is, for a preview with no particular sale behind it
     tagline: "מכירת חצר בקישור אחד",
     // passing the app itself on — the seller telling a friend, not a buyer
-    shareApp: "לספר לחברים על האפליקציה",
+    shareApp: "שתף את האפליקציה",
     shareAppText: "מצאתי דרך קלה לעשות מכירת חצר: מעלים תמונות, מקבלים קישור, והשכנים מסמנים מה הם רוצים. תנסו:",
     shareAppCopied: "הקישור לאפליקציה הועתק.",
     // the WhatsApp/link preview for one seller's sale page
