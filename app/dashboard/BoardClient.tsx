@@ -507,13 +507,14 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               {openItem.units[0].status !== "available" && (
                 <p className="gs-waiting">{unitLabel(openItem.units[0])}</p>
               )}
+              {/* the same size as a lot's per-unit buttons: one action, one look */}
               <div className="gs-actions">
                 {openItem.units[0].status !== "sold" && (
-                  <button className="gs-btn gs-btn-green"
+                  <button className="gs-btn gs-btn-green gs-btn-sm"
                     onClick={() => setUnitStatus(openItem.units[0].id, "sold")}>{t.markSold}</button>
                 )}
                 {openItem.units[0].status !== "available" && (
-                  <button className="gs-btn gs-btn-cream"
+                  <button className="gs-btn gs-btn-cream gs-btn-sm"
                     onClick={() => setUnitStatus(openItem.units[0].id, "available")}>{t.backToStock}</button>
                 )}
               </div>
