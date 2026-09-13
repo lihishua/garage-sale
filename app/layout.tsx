@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: "Garage Sale",
   description: "מכירת חצר בקישור אחד",
   manifest: "/manifest.json",
+  // iOS otherwise turns any run of digits it thinks is a phone number into a
+  // blue tappable link — a price of ₪35 next to a count of 4 is not a number
+  // to dial. The real phone numbers on the board are wa.me links already.
+  formatDetection: { telephone: false },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "16x16 32x32 48x48" },

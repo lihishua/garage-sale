@@ -8,7 +8,7 @@ import {
   availableUnits, holdersByUnit, unitPaths, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
-import { StatChip, Toast, PrivacyNote } from "@/components/ui";
+import { StatChip, Toast, PrivacyNote, Sheet } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
@@ -37,6 +37,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const [making, setMaking] = useState<StagedPhoto[] | null>(null);
   // the item currently open in the edit sheet, frozen for the duration of the form
   const [editing, setEditing] = useState<Item | null>(null);
+  // the tile she tapped, by id rather than by value, so marking a unit sold
+  // inside the sheet is reflected in the sheet without closing it
+  const [openId, setOpenId] = useState<string | null>(null);
   // Photos that are in a listing yet still in the pool, because the create
   // succeeded and clearing the pool afterwards did not. Session-only, and that
   // is honest: on a reload the rows really are still staged, so the pool
@@ -226,6 +229,11 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     say(t.shareAppCopied);
   };
 
+  const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
+  const openSoldCount = openItem ? openItem.units.filter((u) => u.status === "sold").length : 0;
+  const openBundleBroken = !!openItem && openItem.bundle_price != null && openItem.units.length > 1
+    && openSoldCount > 0 && openSoldCount < openItem.units.length;
+
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
 
@@ -362,99 +370,40 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           const cover = it.units[0];
           const gone = it.units.length > 0 && it.units.every((u) => u.status !== "available");
           const soldCount = it.units.filter((u) => u.status === "sold").length;
-          // the "all for" price only shows to buyers while every unit is still
-          // available (showBundlePrice, lib/types.ts) — once one sells it goes
-          // quiet with no signal to her, unless something says so here
-          const bundleBroken = it.bundle_price != null && it.units.length > 1
-            && soldCount > 0 && soldCount < it.units.length;
-          // extra views beyond one photo per unit (a crib shot from five
-          // angles) — worth a mention; redundant with unitsLeft otherwise.
-          // Summing across every unit is only correct because CreateItem
-          // attaches unit_photos on the single-unit ("one thing") path
-          // alone — a UI-level invariant, not a database constraint. If a
-          // future change ever lets a multi-unit lot carry extra views too,
-          // this quietly turns into a whole-lot photo total instead of
-          // "this crib has N views" and needs a second look.
-          const extraPhotos = it.units.reduce((s, u) => s + (u.photos?.length ?? 0), 0);
-          const totalPhotos = it.units.length + extraPhotos;
+          // A tile, and nothing else: photo, name, price, one badge. Every
+          // action lives in the sheet it opens, so every tile is the same
+          // height and the grid reads as a grid. Sold is a small green check
+          // in the corner — the thing she glances for, and the only state
+          // worth a mark; a partly-sold lot shows its count, available shows
+          // nothing at all.
           return (
-            <article key={it.id} className={"gs-card" + (gone ? " taken" : "")}>
-              <div className="gs-photo">
-                {cover && <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />}
-              </div>
-              <div className="gs-card-body">
-                <h3 className="gs-card-title">{it.title}</h3>
-                <div className="gs-card-row">
-                  <span className="gs-price">{priceOf(it.price)}</span>
-                  <span className="gs-tags">
-                    {t.unitsLeft(availableUnits(it).length)}
-                    {extraPhotos > 0 && ` · ${t.photoCount(totalPhotos)}`}
+            <button key={it.id} type="button"
+              className={"gs-tile" + (gone ? " taken" : "")}
+              onClick={() => setOpenId(it.id)}>
+              <span className="gs-tile-photo">
+                {cover && <img src={photoUrl(cover.thumb_path)} alt="" loading="lazy" />}
+                {soldCount > 0 && soldCount === it.units.length && (
+                  <span className="gs-tile-sold" title={t.statSold} aria-label={t.statSold}>
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor"
+                        strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
                   </span>
-                </div>
-
-                {/* the same line the buyer's card carries, so she can see what
-                    a listing is filed under without opening it — a tag she
-                    invented has no TAG_LABEL entry and is simply its own name */}
-                {it.tags.length > 0 && (
-                  <p className="gs-card-tags">
-                    {it.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}
-                  </p>
                 )}
-
-                {/* A lot (>1 unit) gets one row per photo — each a separate
-                    claimable thing, so marking one sold is obviously about
-                    that photo alone. A single listing has exactly one thing
-                    to sell, so it gets one set of actions right on the card
-                    instead of a one-row "list" that would only imply there
-                    could be more. */}
-                {it.units.length > 1 ? (
-                  <ul className="gs-list">
-                    {it.units.map((u) => (
-                      <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
-                        <img className="gs-mini" src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
-                        <span className="gs-list-name">{unitLabel(u)}</span>
-                        <div className="gs-actions" style={{ marginTop: 0 }}>
-                          {u.status !== "sold" && (
-                            <button className="gs-btn gs-btn-green gs-btn-sm"
-                              onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
-                          )}
-                          {u.status !== "available" && (
-                            <button className="gs-btn gs-btn-cream gs-btn-sm"
-                              onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                ) : it.units[0] && (
-                  <>
-                    {it.units[0].status !== "available" && (
-                      <p className="gs-waiting">{unitLabel(it.units[0])}</p>
-                    )}
-                    <div className="gs-actions">
-                      {it.units[0].status !== "sold" && (
-                        <button className="gs-btn gs-btn-green gs-btn-sm"
-                          onClick={() => setUnitStatus(it.units[0].id, "sold")}>{t.markSold}</button>
-                      )}
-                      {it.units[0].status !== "available" && (
-                        <button className="gs-btn gs-btn-cream gs-btn-sm"
-                          onClick={() => setUnitStatus(it.units[0].id, "available")}>{t.backToStock}</button>
-                      )}
-                    </div>
-                  </>
+                {soldCount > 0 && soldCount < it.units.length && (
+                  <span className="gs-tile-part">{soldCount}/{it.units.length}</span>
                 )}
-
-                {/* the nudge itself stays text-only — its destination is the
-                    edit button just below, which opens the same form that
-                    fixes the price */}
-                {bundleBroken && <p className="gs-note">{t.bundleNudge(soldCount, it.units.length)}</p>}
-
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button className="gs-btn-ghost" onClick={() => setEditing(it)}>{t.editItem}</button>
-                  <button className="gs-btn-ghost" onClick={() => remove(it)}>{t.deleteItem}</button>
-                </div>
-              </div>
-            </article>
+              </span>
+              <span className="gs-tile-body">
+                <span className="gs-tile-title">{it.title}</span>
+                <span className="gs-tile-row">
+                  <span className="gs-price">{priceOf(it.price)}</span>
+                  {it.units.length > 1 && (
+                    <span className="gs-tile-meta">{t.unitsLeft(availableUnits(it).length)}</span>
+                  )}
+                </span>
+              </span>
+            </button>
           );
         })}
       </div>
@@ -511,6 +460,79 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         <button className="gs-btn gs-btn-cream" onClick={shareApp}>{t.shareApp}</button>
       </div>
       <PrivacyNote />
+
+      {/* Tapping a tile opens this. It is the old card, whole — the unit list,
+          the paid buttons, the nudge, edit, delete — in a place that can be as
+          tall as it needs to be without dragging the grid with it. */}
+      {openItem && (
+        <Sheet title={openItem.title} hand onClose={() => setOpenId(null)}>
+          <div className="gs-detail-photo">
+            <img src={photoUrl(openItem.units[0]?.thumb_path ?? "")} alt="" />
+          </div>
+          <p className="gs-detail-price">{priceOf(openItem.price)}</p>
+          {openItem.tags.length > 0 && (
+            <p className="gs-detail-tags">{openItem.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}</p>
+          )}
+          {openItem.description && <p className="gs-detail-desc">{openItem.description}</p>}
+
+          {/* A lot gets one row per photo — each a separate claimable thing,
+              so marking one sold is obviously about that photo alone. A
+              single listing has exactly one thing to sell and gets one set
+              of buttons. */}
+          {openItem.units.length > 1 ? (
+            <ul className="gs-list">
+              {openItem.units.map((u) => (
+                <li key={u.id} className="gs-list-row" style={{ flexWrap: "wrap" }}>
+                  <img className="gs-mini" src={photoUrl(u.thumb_path)} alt="" loading="lazy" />
+                  <span className="gs-list-name">{unitLabel(u)}</span>
+                  <div className="gs-actions" style={{ marginTop: 0 }}>
+                    {u.status !== "sold" && (
+                      <button className="gs-btn gs-btn-green gs-btn-sm"
+                        onClick={() => setUnitStatus(u.id, "sold")}>{t.markSold}</button>
+                    )}
+                    {u.status !== "available" && (
+                      <button className="gs-btn gs-btn-cream gs-btn-sm"
+                        onClick={() => setUnitStatus(u.id, "available")}>{t.backToStock}</button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : openItem.units[0] && (
+            <>
+              {openItem.units[0].status !== "available" && (
+                <p className="gs-waiting">{unitLabel(openItem.units[0])}</p>
+              )}
+              <div className="gs-actions">
+                {openItem.units[0].status !== "sold" && (
+                  <button className="gs-btn gs-btn-green"
+                    onClick={() => setUnitStatus(openItem.units[0].id, "sold")}>{t.markSold}</button>
+                )}
+                {openItem.units[0].status !== "available" && (
+                  <button className="gs-btn gs-btn-cream"
+                    onClick={() => setUnitStatus(openItem.units[0].id, "available")}>{t.backToStock}</button>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* the "all for" price only shows to buyers while every unit is
+              still available — once one sells it goes quiet with no signal
+              to her, unless something says so here */}
+          {openBundleBroken && (
+            <p className="gs-note">{t.bundleNudge(openSoldCount, openItem.units.length)}</p>
+          )}
+
+          <div className="gs-sheet-foot">
+            <button className="gs-btn-ghost" onClick={() => { setEditing(openItem); setOpenId(null); }}>
+              {t.editItem}
+            </button>
+            <button className="gs-btn-ghost gs-danger" onClick={() => { remove(openItem); setOpenId(null); }}>
+              {t.deleteItem}
+            </button>
+          </div>
+        </Sheet>
+      )}
 
       {toast && <Toast text={toast} />}
     </main>
