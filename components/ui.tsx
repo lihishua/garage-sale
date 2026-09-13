@@ -173,6 +173,11 @@ export function PrivacyNote({ lang = "he" }: { lang?: Lang }) {
   return (
     <p className="gs-privacy-note">
       {t.privacyNote} <a href="/privacy">{t.privacyLink}</a>
+      {/* copyright is automatic and free; it needs no registration to be
+          true, unlike a ™ — and it covers the code and the drawings, which
+          is what someone would actually copy. The year is the year it was
+          first published, and stays put; it is not a "last updated" stamp. */}
+      <span className="gs-copyright" dir="ltr">© 2026 Garage Sale</span>
     </p>
   );
 }
