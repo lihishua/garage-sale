@@ -264,26 +264,22 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-earned b{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange)}
 .gs-earned span{font-size:15px;opacity:.6}
 
-.gs-stats{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:26px}
-.gs-stat{position:relative;display:inline-block;font-family:var(--body);background:none;border:0;
-  padding:0;cursor:pointer;transition:transform .1s}
-.gs-stat-face{position:relative;display:inline-flex;align-items:baseline;gap:6px;
-  border:1.5px solid var(--ink);border-radius:9px;padding:5px 12px}
-.gs-stat::before{content:"";position:absolute;inset:0;border-radius:9px;border:1.5px solid var(--ink);
-  transform:translate(4px,4px);background-color:var(--ink);
-  background-image:
-    radial-gradient(circle at 3px 3px,var(--pink) 1.6px,transparent 1.8px),
-    radial-gradient(circle at 7px 6px,var(--lime) 1.5px,transparent 1.7px),
-    radial-gradient(circle at 5px 9px,var(--sky) 1.6px,transparent 1.8px),
-    radial-gradient(circle at 9px 4px,var(--mustard) 1.4px,transparent 1.6px);
-  background-size:12px 12px,15px 13px,11px 16px,13px 11px;transition:opacity .1s}
-.gs-stat:hover{transform:translate(2px,2px)}
-.gs-stat.on{transform:translate(4px,4px)}
-.gs-stat.on::before{opacity:0}
+/* The filter chips. They used to be stickers — a coloured face over a
+   confetti shadow, one colour per state — which put the sold chip in the
+   same green as the "paid" button below it and made the row the loudest
+   thing on the board. A filter is a control, not a poster: one quiet style,
+   the pressed one filled with ink, and the colour budget left to the cards. */
+.gs-stats{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:26px}
+.gs-stat{font-family:var(--body);background:#fff;border:1px solid var(--ink);border-radius:20px;
+  padding:6px 15px;cursor:pointer;transition:background .12s,color .12s}
+.gs-stat-face{display:inline-flex;align-items:baseline;gap:6px}
+.gs-stat:hover{background:var(--cream)}
+.gs-stat.on{background:var(--ink);color:#fff}
 .gs-stat-flat{cursor:default}
-.gs-stat-flat:hover{transform:none}
-.gs-stat-face b{font-family:var(--display);font-weight:var(--dw);font-size:21px;line-height:1}
-.gs-stat-face > span{font-size:14px;opacity:.7}
+.gs-stat-flat:hover{background:#fff}
+.gs-stat-face b{font-family:var(--hand);font-weight:300;font-size:17px;line-height:1}
+.gs-stat-face > span{font-size:15px;opacity:.75}
+.gs-stat.on .gs-stat-face > span{opacity:.85}
 .gs-h2{font-family:var(--display);font-weight:var(--dw);font-size:20px;margin:28px 0 12px}
 .gs-reqs{display:grid;gap:12px}
 .gs-req{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;padding:13px}

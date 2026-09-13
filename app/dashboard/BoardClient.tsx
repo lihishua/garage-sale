@@ -315,13 +315,13 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           {/* the way back. Tapping a lit chip already returned here, but
               nothing on screen said so, so the first tap looked like a
               one-way door. */}
-          <StatChip n={units.length} label={t.all} color="#EE5A2A" on={f === "all"}
+          <StatChip n={units.length} label={t.all} on={f === "all"}
             onClick={() => setF("all")} />
           <StatChip n={free.length} label={t.statFree} on={f === "available"}
             onClick={() => setF((c) => (c === "available" ? "all" : "available"))} />
-          <StatChip n={held.length} label={t.statHeld} color="#F7BC45" on={f === "reserved"}
+          <StatChip n={held.length} label={t.statHeld} on={f === "reserved"}
             onClick={() => setF((c) => (c === "reserved" ? "all" : "reserved"))} />
-          <StatChip n={sold.length} label={t.statSold} color="#9ACB3B" on={f === "sold"}
+          <StatChip n={sold.length} label={t.statSold} on={f === "sold"}
             onClick={() => setF((c) => (c === "sold" ? "all" : "sold"))} />
         </div>
 

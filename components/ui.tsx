@@ -21,9 +21,9 @@ export function Chip({ on, onClick, children }: { on?: boolean; onClick?: () => 
   );
 }
 
-export function StatChip({ n, label, color = "#FFFFFF", on, onClick }:
-  { n: React.ReactNode; label: string; color?: string; on?: boolean; onClick?: () => void }) {
-  const face = <span className="gs-stat-face" style={{ background: color }}><b>{n}</b><span>{label}</span></span>;
+export function StatChip({ n, label, on, onClick }:
+  { n: React.ReactNode; label: string; on?: boolean; onClick?: () => void }) {
+  const face = <span className="gs-stat-face"><b>{n}</b><span>{label}</span></span>;
   if (!onClick) return <div className="gs-stat gs-stat-flat">{face}</div>;
   return (
     <button type="button" className={"gs-stat" + (on ? " on" : "")} onClick={onClick} aria-pressed={!!on}>
