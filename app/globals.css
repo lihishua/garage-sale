@@ -164,9 +164,21 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
 .gs-sheet-title{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0;line-height:1.25}
 .gs-sheet-title.hand{font-family:var(--hand);font-weight:300;font-size:19px;line-height:1.4}
-.gs-x{background:none;border:0;font-size:24px;line-height:1;cursor:pointer;color:var(--ink);opacity:.6}
-.gs-x:hover{opacity:1}
-.gs-x:disabled{opacity:.25;cursor:default}
+/* a proper target: bordered circle, 36px, sitting in the corner of the head.
+   The bare × character before it was 24px of thin glyph and read as a smudge. */
+.gs-x{flex:none;width:36px;height:36px;display:grid;place-items:center;padding:0;
+  background:#fff;border:1px solid var(--ink);border-radius:50%;cursor:pointer;color:var(--ink);
+  transition:background .12s}
+.gs-x:hover{background:var(--cream)}
+.gs-x:disabled{opacity:.3;cursor:default}
+
+/* the preview: centred on the screen rather than pinned to the top, and
+   narrower — it is a look at one thing, not a form to fill */
+.gs-scrim-mid{align-items:center}
+.gs-sheet-compact{max-width:380px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto}
+.gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
+.gs-sheet-compact .gs-sheet-head{margin-bottom:10px}
+.gs-sheet-compact .gs-detail-desc{font-size:17px;margin:6px 0}
 .gs-detail-photo{border:1px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange);margin:0}

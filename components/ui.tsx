@@ -39,15 +39,25 @@ export function StatChip({ n, label, on, onClick }:
 // `hand` marks a title that is an item's own name rather than a label for the
 // sheet ("רשימת המשאלות", "מי מבקש?") — a name is set in the hand font, like
 // the name on the card it was opened from.
-export function Sheet({ title, hand, onClose, busy, children }:
-  { title: string; hand?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
+// `compact` is the preview size: a card floating over the page, centred,
+// rather than a panel that takes the width. For a look at one thing.
+export function Sheet({ title, hand, compact, onClose, busy, children }:
+  { title: string; hand?: boolean; compact?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;
   return (
-    <div className="gs-scrim" onClick={close}>
-      <div className="gs-sheet" role="dialog" aria-label={title} onClick={(e) => e.stopPropagation()}>
+    <div className={"gs-scrim" + (compact ? " gs-scrim-mid" : "")} onClick={close}>
+      <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "")} role="dialog" aria-label={title}
+        onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
           <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
-          <button className="gs-x" onClick={close} disabled={busy} aria-label="×">×</button>
+          {/* a drawn ×, not the character: the glyph varies by font and was
+              barely there in the hand. This one is a fixed 36px target. */}
+          <button className="gs-x" onClick={close} disabled={busy} aria-label="×">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor"
+                strokeWidth="2.2" strokeLinecap="round" />
+            </svg>
+          </button>
         </div>
         {children}
       </div>

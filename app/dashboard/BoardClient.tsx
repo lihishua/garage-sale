@@ -77,8 +77,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }, [items]);
 
   const list = useMemo(() => {
-    // a unit-less card would otherwise be unreachable, including to delete
-    if (f === "all") return items.filter((i) => !i.units.length || i.units.some((u) => u.status !== "sold"));
+    // הכל means all of it, sold included. It used to hide fully-sold items,
+    // which read as "everything" until the last unit of something was marked
+    // paid — at which point the item dropped out of the list, the open sheet
+    // lost the item it was showing, and vanished mid-tap. There is a נמכר
+    // chip for the sold slice; there is no reason for הכל to be "all but".
+    if (f === "all") return items;
     return items.filter((i) => i.units.some((u) => u.status === f));
   }, [f, items]);
 
@@ -465,7 +469,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           the paid buttons, the nudge, edit, delete — in a place that can be as
           tall as it needs to be without dragging the grid with it. */}
       {openItem && (
-        <Sheet title={openItem.title} hand onClose={() => setOpenId(null)}>
+        <Sheet title={openItem.title} hand compact onClose={() => setOpenId(null)}>
           <div className="gs-detail-photo">
             <img src={photoUrl(openItem.units[0]?.thumb_path ?? "")} alt="" />
           </div>
