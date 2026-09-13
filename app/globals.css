@@ -237,13 +237,19 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   padding:13px;white-space:pre-wrap;font-size:17px;line-height:1.5;margin-bottom:14px}
 
 /* seller board */
-/* The two halves of the board: a bordered, tinted card for "things she does"
-   so it reads as one unit even glanced at on a phone, then plain page flow
-   below it for "what is happening" — the contrast itself is the seam. */
-.gs-section{margin-bottom:30px}
-.gs-section-add{background:var(--cream);border:1px solid var(--ink);border-radius:14px;
-  padding:18px 16px 8px}
+/* Every section of the board is a bordered, tinted card, so each reads as one
+   unit even glanced at on a phone and the page is three things rather than a
+   scroll. The gap between them is the seam. */
+.gs-section{background:var(--cream);border:1px solid var(--ink);border-radius:14px;
+  padding:18px 16px;margin-bottom:22px}
+/* the first section ends on a full-width button, which carries its own
+   bottom weight */
+.gs-section-add{padding-bottom:8px}
 .gs-section-h{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0}
+/* white things on a cream card: the requests, the link bar and the item
+   cards already are; the empty-state line and the grid just need to sit in */
+.gs-section .gs-empty{background:#fff;border:1px dashed var(--line);border-radius:10px}
+.gs-section .gs-grid{margin-bottom:2px}
 .gs-board-head{display:flex;justify-content:space-between;align-items:center;gap:14px;
   flex-wrap:wrap;margin-bottom:18px}
 .gs-board-title{font-family:var(--display);font-weight:var(--dw);font-size:clamp(30px,6vw,44px);margin:0;line-height:1.15}

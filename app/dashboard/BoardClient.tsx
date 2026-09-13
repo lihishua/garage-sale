@@ -224,8 +224,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       </div>
 
       {/* Section one: everything about getting stock onto the board — her
-          words. Tinted and bordered so it reads as one card even at a glance
-          on a phone, distinct from the plain flow of section two below it. */}
+          words. The other two sections are what is happening to that stock. */}
       <section className="gs-section gs-section-add">
         <div className="gs-linkbar">
           <b className="gs-linkbar-h">{t.myLink}</b>
@@ -249,9 +248,6 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
       </section>
 
-      {/* Section two: what is happening — what is left, what is sold, and the
-          wish lists that have come in. Plain page flow; the contrast with the
-          card above it is the seam. */}
       {/* The lists that came in are the part she acts on, so they come
           before the shelf-check below. It also puts the stat chips next to
           the grid they filter: with the requests in between, the filter and
