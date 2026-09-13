@@ -104,7 +104,9 @@ export const STR = {
     allItems: "כל הפריטים",
     markSold: "קיבלתי תשלום",
     backToStock: "חזרה למלאי",
-    waiting: "מחכה למישהו",
+    // a unit nobody has asked for yet — the same word as the פנוי chip, so the
+    // board calls one state by one name. "מחכה למישהו" read as a fault.
+    waiting: "פנוי",
     heldFor: (n: string) => `שמור ל${n}`,
     messageX: (n: string) => `הודעה ל${n}`,
     removeReq: "הסרת הבקשה",
@@ -313,7 +315,7 @@ export const STR = {
     allItems: "All items",
     markSold: "Money changed hands",
     backToStock: "Back to stock",
-    waiting: "waiting for someone",
+    waiting: "up for grabs",
     heldFor: (n: string) => `held for ${n}`,
     messageX: (n: string) => `Message ${n}`,
     removeReq: "Remove",
