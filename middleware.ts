@@ -30,9 +30,11 @@ export async function middleware(request: NextRequest) {
   return response;
 }
 
-// every match costs one getUser() round trip, so static assets are skipped
+// Every match costs one getUser() round trip before the page can start, so
+// this runs only where a session actually changes what happens: the board,
+// which it guards, and the two routes that create or consume a session. The
+// public sale page is deliberately not here — a buyer has no account, and it
+// was paying for an auth check whose answer it never used.
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|.*\\.(?:svg|png|jpg|jpeg|webp|ico|webmanifest)$).*)",
-  ],
+  matcher: ["/dashboard/:path*", "/login", "/auth/:path*", "/"],
 };

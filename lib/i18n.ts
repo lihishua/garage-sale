@@ -25,6 +25,10 @@ export const STR = {
     // buyer
     // what the whole thing is, for a preview with no particular sale behind it
     tagline: "מכירת חצר בקישור אחד",
+    // passing the app itself on — the seller telling a friend, not a buyer
+    shareApp: "לספר לחברים על האפליקציה",
+    shareAppText: "מצאתי דרך קלה לעשות מכירת חצר: מעלים תמונות, מקבלים קישור, והשכנים מסמנים מה הם רוצים. תנסו:",
+    shareAppCopied: "הקישור לאפליקציה הועתק.",
     // the WhatsApp/link preview for one seller's sale page
     shareBlurb: (name: string) => `מכירת החצר (ללא חצר) של ${name}`,
     wishList: "רשימת המשאלות",
@@ -254,6 +258,9 @@ export const STR = {
     toTop: "Back to top",
     loading: "One moment…",
     tagline: "A garage sale in a single link",
+    shareApp: "Tell a friend about the app",
+    shareAppText: "Found an easy way to run a garage sale: upload photos, get a link, the neighbours tick what they want. Try it:",
+    shareAppCopied: "App link copied.",
     shareBlurb: (name: string) => `${name}'s garage sale — no garage required`,
     wishList: "My wish list",
     wishEmpty: "Empty so far. Tap the heart on anything you want.",

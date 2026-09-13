@@ -208,6 +208,24 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     if (gone.error) say(t.photoNotDeleted);
   }
 
+  /**
+   * Passing the app on. This is the seller recommending the tool to a friend
+   * who might sell too — a different act from sharing her sale link, which is
+   * for buyers. On a phone it opens the native share sheet, so it lands in
+   * whatever she uses; where there is none it copies the message, which is
+   * the next best thing and says so.
+   */
+  const shareApp = async () => {
+    const url = window.location.origin;
+    const text = `${t.shareAppText} ${url}`;
+    if (navigator.share) {
+      try { await navigator.share({ title: "Garage Sale", text, url }); } catch { /* dismissed */ }
+      return;
+    }
+    navigator.clipboard?.writeText(text);
+    say(t.shareAppCopied);
+  };
+
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
 
@@ -486,6 +504,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           }}
         />
       )}
+
+      {/* the board's last word, not its first: a seller who has scrolled
+          through her own sale is the one who will pass the tool on */}
+      <div className="gs-share-app">
+        <button className="gs-btn gs-btn-cream" onClick={shareApp}>{t.shareApp}</button>
+      </div>
 
       {toast && <Toast text={toast} />}
     </main>

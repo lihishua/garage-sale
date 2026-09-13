@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
 import type { Item, Sale, Unit, UnitPhoto } from "@/lib/types";
@@ -18,9 +19,19 @@ type Row = Omit<Item, "units"> & { units: (Unit & { photos: UnitPhoto[] })[] };
  * rather than left to be derived, because it is what the preview actually
  * reads, and a chat app gets one shot at it.
  */
+/**
+ * One lookup of the sale per request. generateMetadata and the page both need
+ * it and Next runs them separately, so without cache() the same row was
+ * fetched twice, in series, before a single item was asked for.
+ */
+const loadSale = cache(async (slug: string) => {
+  const { data } = await supabaseServer()
+    .from("public_sales").select("id, display_name, slug").eq("slug", slug).single<Sale>();
+  return data;
+});
+
 export async function generateMetadata({ params }: { params: { slug: string } }) {
-  const supabase = supabaseServer();
-  const { data } = await supabase.from("public_sales").select("display_name").eq("slug", params.slug).single();
+  const data = await loadSale(params.slug);
   const t = STR.he;
   const title = "Garage Sale";
   const description = data ? t.shareBlurb(data.display_name) : t.tagline;
@@ -33,13 +44,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 export default async function SalePage({ params }: { params: { slug: string } }) {
   const supabase = supabaseServer();
-
-  const { data: sale } = await supabase
-    .from("public_sales")
-    .select("id, display_name, slug")
-    .eq("slug", params.slug)
-    .single<Sale>();
-
+  const sale = await loadSale(params.slug);
   if (!sale) notFound();
 
   // An item is a card; each of its photos is an `item_units` row with a status
