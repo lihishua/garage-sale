@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase-server";
+import { PrivacyNote } from "@/components/ui";
 
 export default async function Home() {
   const supabase = supabaseServer();
@@ -24,6 +25,7 @@ export default async function Home() {
       <Link href="/login?mode=signup">
         <button className="gs-btn gs-btn-orange gs-btn-big">לפתוח מכירת חצר משלי</button>
       </Link>
+      <PrivacyNote />
     </main>
   );
 }

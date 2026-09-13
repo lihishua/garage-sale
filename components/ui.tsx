@@ -167,6 +167,16 @@ export function TagPicker({ known, chosen, onChange, lang = "he" }: {
   );
 }
 
+/** the one-line privacy note that closes every page, with the page behind it */
+export function PrivacyNote({ lang = "he" }: { lang?: Lang }) {
+  const t = STR[lang];
+  return (
+    <p className="gs-privacy-note">
+      {t.privacyNote} <a href="/privacy">{t.privacyLink}</a>
+    </p>
+  );
+}
+
 export function Toast({ text }: { text: string }) {
   return <div className="gs-toast">{text}</div>;
 }

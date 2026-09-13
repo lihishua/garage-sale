@@ -8,7 +8,7 @@ import {
   availableUnits, holdersByUnit, unitPaths, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
-import { StatChip, Toast } from "@/components/ui";
+import { StatChip, Toast, PrivacyNote } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
@@ -510,6 +510,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       <div className="gs-share-app">
         <button className="gs-btn gs-btn-cream" onClick={shareApp}>{t.shareApp}</button>
       </div>
+      <PrivacyNote />
 
       {toast && <Toast text={toast} />}
     </main>

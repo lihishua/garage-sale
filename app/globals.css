@@ -363,6 +363,19 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-tabs .gs-btn{flex:1;padding:9px 8px;font-size:16px;line-height:1.2}
 .gs-landing{max-width:640px;margin:0 auto;padding:48px 20px;text-align:center}
 .gs-landing p{font-size:20px;line-height:1.55;opacity:.8}
+
+/* the privacy line: small, quiet, at the very end of every page */
+.gs-privacy-note{font-size:14px;opacity:.55;margin:26px 0 0;line-height:1.5}
+.gs-privacy-note a{color:inherit;text-decoration:underline}
+.gs-privacy-note a:hover{opacity:1}
+/* the page behind it reads as prose, start-aligned */
+.gs-privacy{text-align:start}
+.gs-privacy .gs-logo{margin-bottom:22px}
+.gs-privacy h1{margin-bottom:18px}
+.gs-privacy section{margin-bottom:22px}
+.gs-privacy h2{font-size:19px;margin:0 0 6px}
+.gs-privacy section p{font-size:17px;line-height:1.6;margin:0 0 8px;opacity:.85}
+.gs-privacy .gs-fine{margin-top:26px}
 /* the steps sit close together so six lines read as one thought; the closing
    aside gets air above it, because it is not one of the steps */
 .gs-steps p{margin:0 0 5px}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { TAGS, availableUnits, showBundlePrice, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast } from "@/components/ui";
+import { Heart, Chip, Sheet, Field, Toast, PrivacyNote } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -539,6 +539,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         <footer className="gs-footer">
           <img className="gs-arrow" src="/arrow.webp" alt="" aria-hidden="true" />
           <Link href="/login?mode=signup"><button className="gs-btn gs-btn-orange gs-btn-big">{t.startMine}</button></Link>
+          <PrivacyNote lang={lang} />
         </footer>
       </main>
 
