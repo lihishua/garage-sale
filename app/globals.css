@@ -228,6 +228,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the giveaway toggle stands on its own rather than inside a numbered pair,
    so it carries the gap a Field would have carried */
 .gs-choice-free{margin-bottom:14px}
+/* a choice that cannot be made right now: still readable, plainly inert */
+.gs-choice.locked{opacity:.5;cursor:not-allowed}
+.gs-hint-lock{margin:-8px 0 16px}
 /* inventing a tag: the box and its button on one line, under the chips they
    add to */
 .gs-tagadd{display:flex;gap:8px;align-items:stretch;margin:8px 0 16px}

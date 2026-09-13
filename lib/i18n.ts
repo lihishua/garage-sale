@@ -204,6 +204,8 @@ export const STR = {
     saving: "שומר…",
     itemUpdated: "השינויים נשמרו.",
     errUpdate: "לא הצלחנו לשמור את השינויים. נסו שוב.",
+    // reshaping a listing is refused once a buyer holds any part of it
+    kindLocked: "אי אפשר לשנות את הסוג: מישהו כבר ביקש או קנה חלק מהפריט.",
     bundleNudge: (sold: number, total: number) =>
       sold === 1
         ? `נמכרה אחת מתוך ${total} במארז הזה. אולי כדאי לעדכן את המחיר?`
@@ -411,6 +413,7 @@ export const STR = {
     saving: "Saving…",
     itemUpdated: "Changes saved.",
     errUpdate: "We couldn't save the changes. Try again.",
+    kindLocked: "The kind can't change: someone has already asked for or bought part of it.",
     bundleNudge: (sold: number, total: number) => `${sold} of ${total} sold from this lot. Maybe update the price?`,
     deletePhoto: "Delete photo",
     photoCount: (n: number) => `${n} photo${n > 1 ? "s" : ""}`,
