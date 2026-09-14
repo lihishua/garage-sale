@@ -103,7 +103,7 @@ docs/superpowers/    specs and implementation plans
 
 ## The icon
 
-`garage-sale-icon.png` in the project root is the source of truth (2000×2000). Everything
+`garage-sale-icon.png` in the project root is the source of truth (1024×1024). Everything
 in `public/` is derived from it and wired up in `app/layout.tsx` and `public/manifest.json`:
 
 | file | where it shows |
