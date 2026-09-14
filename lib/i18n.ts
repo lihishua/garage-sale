@@ -46,7 +46,7 @@ export const STR = {
     privBack: "חזרה",
     // passing the app itself on — the seller telling a friend, not a buyer
     shareApp: "שתף את האפליקציה",
-    shareAppText: "מכירת חצר ללא חצר. מצלמים את כל מה שרוצים להיפטר ממנו בבית, שולחים לינק למכירה לחברים/משפחה/שכנים ומי שבא, ומקבלים הודעה בווטסאפ של מי רוצה מה.",
+    shareAppText: "מכירת חצר ללא חצר.\nמצלמים את כל מה שרוצים להיפטר ממנו בבית, שולחים לינק למכירה, ומקבלים הודעה בווטסאפ של מי רוצה מה.",
     shareAppCopied: "הקישור לאפליקציה הועתק.",
     // the WhatsApp/link preview for one seller's sale page
     shareBlurb: (name: string) => `מכירת החצר (ללא חצר) של ${name}`,
