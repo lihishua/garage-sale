@@ -11,6 +11,7 @@ create table if not exists profiles (
   display_name text not null,
   phone        text not null,          -- never exposed publicly, see public_sales
   slug         text not null unique,
+  tags         text[] not null default '{}',  -- her own tags, beyond the built-in ones
   created_at   timestamptz not null default now()
 );
 

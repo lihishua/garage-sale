@@ -27,7 +27,7 @@ import { Sheet, Field, TagPicker } from "@/components/ui";
  * numbers for one pile of books was the confusing part. The final number is
  * settled on WhatsApp regardless; the description carries the rest.
  */
-export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
+export default function CreateItem({ photos, onClose, onCreated, knownTags, onTagMade, onTagDropped }: {
   photos: StagedPhoto[];
   onClose: () => void;
   /**
@@ -42,6 +42,9 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
   onCreated: (item: Item, listedPhotoIds: string[], poolCleared: boolean) => void;
   /** the built-in tags plus every one her board already uses */
   knownTags: string[];
+  /** a tag she just made up, and one she took back — see BoardClient */
+  onTagMade: (tag: string) => void;
+  onTagDropped: (tag: string) => void;
 }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
@@ -214,44 +217,43 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
       {multi && (
         <>
           <span className="gs-label">{t.oneOrMany(photos.length)}</span>
-          {/* an <ol> so the browser places "1." / "2." on the correct side in
-              RTL; a literal "1." before Hebrew text lands on the wrong end */}
-          <ol className="gs-choices">
-            <li>
-              <label className={"gs-choice" + (mode === "one" ? " on" : "")}>
-                <input type="radio" name="gs-kind" checked={mode === "one"}
-                  disabled={busy || done} onChange={() => setMode("one")} />
-                <span>{t.oneThing}</span>
-              </label>
-            </li>
-            <li>
-              <label className={"gs-choice" + (mode === "many" ? " on" : "")}>
-                <input type="radio" name="gs-kind" checked={mode === "many"}
-                  disabled={busy || done} onChange={() => setMode("many")} />
-                <span>{t.manyThings(photos.length)}</span>
-              </label>
-            </li>
-          </ol>
+          <div className="gs-choices" role="radiogroup" aria-label={t.oneOrMany(photos.length)}>
+            <button type="button" role="radio" aria-checked={mode === "one"}
+              className={"gs-choice" + (mode === "one" ? " on" : "")}
+              disabled={busy || done} onClick={() => setMode("one")}>
+              {t.oneThing}
+            </button>
+            <button type="button" role="radio" aria-checked={mode === "many"}
+              className={"gs-choice" + (mode === "many" ? " on" : "")}
+              disabled={busy || done} onClick={() => setMode("many")}>
+              {t.manyThings(photos.length)}
+            </button>
+          </div>
         </>
       )}
 
       {/* the example, and the price label, follow the choice made above */}
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
         err={err.title} placeholder={many ? t.whatPhMany : t.whatPhOne} />
-      {/* ticked, there is no price to ask for — so the fields go rather than
-          sit there greyed, and nothing has to be cleared before saving */}
-      <label className={"gs-choice gs-choice-free" + (free ? " on" : "")}>
-        <input type="checkbox" checked={free} disabled={busy || done}
-          onChange={(e) => setFree(e.target.checked)} />
-        <span>{t.freeToggle}</span>
-      </label>
+      {/* the price and "free" side by side: a price is a short number, and
+          the button is the other answer to the same question. Free empties
+          and greys the box rather than removing it, so the row holds still. */}
+      <div className="gs-field">
+        <span className="gs-label">{t.price}</span>
+        <div className="gs-pricerow">
+          <input className={"gs-input" + (err.price ? " bad" : "")} value={free ? "" : f.price}
+            dir="ltr" inputMode="numeric" pattern="[0-9]*" disabled={free || busy || done}
+            onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} />
+          <button type="button" className={"gs-chip" + (free ? " on" : "")} aria-pressed={free}
+            disabled={busy || done} onClick={() => { if (!free) set("price", ""); setFree(!free); }}>
+            {t.freeToggle}
+          </button>
+        </div>
+        {err.price && <span className="gs-err">{err.price}</span>}
+      </div>
 
       {!free && (
         <>
-          <Field label={t.price} value={f.price}
-            onChange={(v) => set("price", v.replace(/\D/g, ""))}
-            err={err.price} ltr numeric />
-
           {/* One number, and what it covers. A lot used to ask for two prices,
               per unit and all-for, and two numbers for one pile of books was
               the confusing part. The description is where the rest goes. */}
@@ -279,7 +281,8 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags }: {
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}
         err={err.desc} placeholder={t.descPh} area />
 
-      <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)} />
+      <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)}
+        onMade={onTagMade} onDropped={onTagDropped} />
 
       {isFurniture && (
         <Field label={t.measurements} value={f.size} onChange={(v) => set("size", v)}

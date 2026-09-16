@@ -241,18 +241,21 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-drop.bad{border-color:var(--pink)}
 .gs-drop-note{font-size:15px;opacity:.55;text-align:center}
 .gs-drop img{max-height:150px;border-radius:6px;border:1px solid var(--ink)}
-/* the binary question: one thing, or several? an <ol> so the browser puts
-   "1." / "2." on the correct side under rtl */
-.gs-choices{list-style:decimal;margin:0 0 16px;padding-inline-start:22px;font-weight:700;font-size:18px}
-.gs-choices li{margin-bottom:8px}
-.gs-choice{display:flex;gap:9px;align-items:flex-start;background:#fff;
+/* the binary question: one thing, or several? two plain boxes, the chosen
+   one filled — no numbers, no radio dot; the box is the whole control */
+.gs-choices{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}
+.gs-choice{display:block;width:100%;text-align:start;background:#fff;color:var(--ink);
   border:1px solid var(--line);border-radius:9px;padding:11px 12px;cursor:pointer;
-  font-size:18px;line-height:1.4}
+  font:inherit;font-weight:700;font-size:18px;line-height:1.4;font-family:var(--body)}
 .gs-choice.on{border-color:var(--ink);background:var(--cream)}
-.gs-choice input{flex:none;margin:2px 0 0;accent-color:var(--ink)}
-/* the giveaway toggle stands on its own rather than inside a numbered pair,
-   so it carries the gap a Field would have carried */
-.gs-choice-free{margin-bottom:14px}
+
+/* the price beside "free": a short number needs a short box, and the button
+   is the other answer to the same question */
+.gs-pricerow{display:flex;gap:10px;align-items:center}
+.gs-pricerow .gs-input{flex:0 1 150px;min-width:0}
+.gs-pricerow .gs-input:disabled{opacity:.4}
+.gs-pricerow .gs-chip{flex:none}
+.gs-chip:disabled{opacity:.5;cursor:default}
 
 /* the two-way switch under a lot's price: what the number covers */
 .gs-seg{display:flex;border:1px solid var(--ink);border-radius:9px;overflow:hidden;background:#fff}
@@ -274,11 +277,16 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* a choice that cannot be made right now: still readable, plainly inert */
 .gs-choice.locked{opacity:.5;cursor:not-allowed}
 .gs-hint-lock{margin:-8px 0 16px}
-/* inventing a tag: the box and its button on one line, under the chips they
-   add to */
-.gs-tagadd{display:flex;gap:8px;align-items:stretch;margin:8px 0 16px}
-.gs-tagadd .gs-input{flex:1;min-width:0}
-.gs-tagadd .gs-btn{flex:none}
+/* inventing a tag: a chip-shaped box at the end of the chips it adds to, and
+   her own chips carry a small × on the top corner to take one back */
+.gs-chip-new{font-weight:400;max-width:100%}
+.gs-chip-new::placeholder{color:var(--ink);opacity:.45}
+.gs-chip-new:focus{outline:none;background:var(--cream)}
+.gs-chip-own{position:relative;display:inline-flex}
+.gs-chip-own .gs-chip{padding-inline-end:18px}
+.gs-chip-x{position:absolute;top:-7px;inset-inline-end:-6px;width:18px;height:18px;
+  display:flex;align-items:center;justify-content:center;border-radius:50%;
+  background:#fff;color:var(--ink);border:1px solid var(--ink);padding:0;cursor:pointer}
 .gs-wa{background:#E4F3D3;border:1px solid var(--line);border-radius:10px;border-end-end-radius:2px;
   padding:13px;white-space:pre-wrap;font-size:17px;line-height:1.5;margin-bottom:14px}
 

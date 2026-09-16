@@ -21,12 +21,14 @@ import { Sheet, Field, TagPicker } from "@/components/ui";
  * A bundle price belongs only to a lot (see CreateItem) — a single crib
  * never gets one, whatever she types, because the field isn't even shown.
  */
-export default function EditItem({ item, onClose, onSaved, knownTags }: {
+export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade, onTagDropped }: {
   item: Item;
   onClose: () => void;
   onSaved: (item: Item) => void;
   /** the built-in tags plus every one her board already uses */
   knownTags: string[];
+  onTagMade: (tag: string) => void;
+  onTagDropped: (tag: string) => void;
 }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
@@ -136,39 +138,40 @@ export default function EditItem({ item, onClose, onSaved, knownTags }: {
       {photoCount > 1 && (
         <>
           <span className="gs-label">{t.oneOrMany(photoCount)}</span>
-          <ol className="gs-choices">
-            <li>
-              <label className={"gs-choice" + (!many ? " on" : "") + (claimed ? " locked" : "")}>
-                <input type="radio" name="gs-kind" checked={!many}
-                  disabled={busy || claimed} onChange={() => setMany(false)} />
-                <span>{t.oneThing}</span>
-              </label>
-            </li>
-            <li>
-              <label className={"gs-choice" + (many ? " on" : "") + (claimed ? " locked" : "")}>
-                <input type="radio" name="gs-kind" checked={many}
-                  disabled={busy || claimed} onChange={() => setMany(true)} />
-                <span>{t.manyThings(photoCount)}</span>
-              </label>
-            </li>
-          </ol>
+          <div className="gs-choices" role="radiogroup" aria-label={t.oneOrMany(photoCount)}>
+            <button type="button" role="radio" aria-checked={!many}
+              className={"gs-choice" + (!many ? " on" : "") + (claimed ? " locked" : "")}
+              disabled={busy || claimed} onClick={() => setMany(false)}>
+              {t.oneThing}
+            </button>
+            <button type="button" role="radio" aria-checked={many}
+              className={"gs-choice" + (many ? " on" : "") + (claimed ? " locked" : "")}
+              disabled={busy || claimed} onClick={() => setMany(true)}>
+              {t.manyThings(photoCount)}
+            </button>
+          </div>
           {claimed && <p className="gs-hint gs-hint-lock">{t.kindLocked}</p>}
         </>
       )}
 
       <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
         err={err.title} placeholder={multi ? t.whatPhMany : t.whatPhOne} />
-      <label className={"gs-choice gs-choice-free" + (free ? " on" : "")}>
-        <input type="checkbox" checked={free} disabled={busy}
-          onChange={(e) => setFree(e.target.checked)} />
-        <span>{t.freeToggle}</span>
-      </label>
+      <div className="gs-field">
+        <span className="gs-label">{t.price}</span>
+        <div className="gs-pricerow">
+          <input className={"gs-input" + (err.price ? " bad" : "")} value={free ? "" : f.price}
+            dir="ltr" inputMode="numeric" pattern="[0-9]*" disabled={free || busy}
+            onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} />
+          <button type="button" className={"gs-chip" + (free ? " on" : "")} aria-pressed={free}
+            disabled={busy} onClick={() => { if (!free) set("price", ""); setFree(!free); }}>
+            {t.freeToggle}
+          </button>
+        </div>
+        {err.price && <span className="gs-err">{err.price}</span>}
+      </div>
 
       {!free && (
         <>
-          <Field label={t.price} value={f.price}
-            onChange={(v) => set("price", v.replace(/\D/g, ""))}
-            err={err.price} ltr numeric />
           {many && (
             <div className="gs-field">
               <span className="gs-label">{t.priceForLabel}</span>
@@ -194,7 +197,8 @@ export default function EditItem({ item, onClose, onSaved, knownTags }: {
       <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}
         err={err.desc} placeholder={t.descPh} area />
 
-      <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)} />
+      <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)}
+        onMade={onTagMade} onDropped={onTagDropped} />
 
       {isFurniture && (
         <Field label={t.measurements} value={f.size} onChange={(v) => set("size", v)}

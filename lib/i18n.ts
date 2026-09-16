@@ -46,7 +46,7 @@ export const STR = {
     privBack: "חזרה",
     // passing the app itself on — the seller telling a friend, not a buyer
     shareApp: "שתף את האפליקציה",
-    shareAppText: "מכירת חצר ללא חצר.\nמצלמים את כל מה שרוצים להיפטר ממנו בבית, שולחים לינק למכירה, ומקבלים הודעה בווטסאפ של מי רוצה מה.",
+    shareAppText: "מכירת חצר ללא חצר.\nמצלמים את כל מה שרוצים להיפטר ממנו בבית, שולחים לינק למכירה, ומקבלים לווטסאפ מי רוצה מה.",
     shareAppCopied: "הקישור לאפליקציה הועתק.",
     // the WhatsApp/link preview for one seller's sale page
     shareBlurb: (name: string) => `מכירת החצר (ללא חצר) של ${name}`,
@@ -117,7 +117,7 @@ export const STR = {
     sectionStatusH: "מצב המכירה",
     // what a buyer sees where a price would be, and what the seller ticks
     free: "למסירה",
-    freeToggle: "למסירה — בחינם, בלי מחיר",
+    freeToggle: "חינם",
     statFree: "פנוי",
     statHeld: "מישהו ביקש",
     statSold: "נמכר",
@@ -155,7 +155,7 @@ export const STR = {
     // the example matches what she is actually making
     whatPhOne: "שולחן ילדים",
     whatPhMany: "מארז ספרים",
-    tagAdd: "הוספה",
+    tagRemove: "הסרת התגית",
     tagAddPh: "תגית משלכם — למשל גינה",
     price: "מחיר (₪)",
     // the one number on a lot, and the switch that says what it covers
@@ -212,8 +212,8 @@ export const STR = {
     // the one question the app cannot answer for her: six photos of six things,
     // or six views of one? her own wording, verbatim.
     oneOrMany: (n: number) => `בחרת ${n} תמונות. הן מייצגות:`,
-    oneThing: "פריט אחד מכמה זוויות / סט פריטים שנמכרים ביחד (כמו שולחן וכיסאות).",
-    manyThings: (n: number) => `מארז של ${n} פריטים דומים (כמו ספרים, צעצועים…).`,
+    oneThing: "פריט אחד",
+    manyThings: (n: number) => `מארז של ${n} פריטים (כמו ספרים)`,
     pricePerUnitHint: "המחיר של פריט אחד מתוך המארז.",
     bundlePrice: "מחיר לכל המארז (₪)",
     bundlePriceHint: "מחיר מיוחד למי שלוקח את כל המארז. רשות.",
@@ -356,7 +356,7 @@ export const STR = {
     boardTitle: "My board",
     sectionStatusH: "How the sale's going",
     free: "Free to a good home",
-    freeToggle: "Giving it away — free, no price",
+    freeToggle: "Free",
     statFree: "up for grabs",
     statHeld: "someone's asked",
     statSold: "sold",
@@ -390,7 +390,7 @@ export const STR = {
     whatIsIt: "Item name",
     whatPhOne: "Children's table",
     whatPhMany: "A box of books",
-    tagAdd: "Add",
+    tagRemove: "Remove tag",
     tagAddPh: "Your own tag — say, garden",
     price: "Price (₪)",
     priceForLabel: "The price is",
@@ -443,8 +443,8 @@ export const STR = {
     createItem: "Create item",
     createItemFrom: (n: number) => `Create an item from ${n} photo${n > 1 ? "s" : ""}`,
     oneOrMany: (n: number) => `You picked ${n} photos. They are:`,
-    oneThing: "One thing from several angles / a set sold together (a table and chairs, say).",
-    manyThings: (n: number) => `A lot of ${n} similar things (books, toys…).`,
+    oneThing: "One item",
+    manyThings: (n: number) => `A lot of ${n} items (books, say)`,
     pricePerUnitHint: "The price of one thing from the lot.",
     bundlePrice: "Price for the whole box (₪)",
     bundlePriceHint: "A special price for someone who takes the whole lot. Optional.",

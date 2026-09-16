@@ -14,7 +14,7 @@ import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
 import EditItem from "./EditItem";
 
-type Profile = { display_name: string; phone: string; slug: string };
+type Profile = { id: string; display_name: string; phone: string; slug: string; tags: string[] };
 
 export default function BoardClient({ profile, items: initial, requests, holderRequests, staged }:
   {
@@ -78,16 +78,38 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }, 0);
 
   /**
-   * Everything she can tag with: the built-ins, then every tag her board
-   * already carries. Custom tags have no table of their own — they live in the
-   * items that use them — so this union *is* the list, and it stays right
-   * without anything having to maintain it.
+   * Her own tags: the words she made up, kept on the profile so they outlive
+   * the listing they were made on (see the own-tags migration). Written the
+   * moment one is made, since a form that closes without posting must not
+   * lose a word she typed.
+   */
+  const [ownTags, setOwnTags] = useState<string[]>(profile.tags ?? []);
+
+  async function makeTag(tag: string) {
+    if (ownTags.includes(tag) || TAGS.includes(tag as never)) return;
+    const next = [...ownTags, tag];
+    setOwnTags(next);
+    // best effort: the chip is already there, and the item's own tags array
+    // carries the word regardless, so a failed write costs only its memory
+    await supabase.from("profiles").update({ tags: next }).eq("id", profile.id);
+  }
+
+  async function dropTag(tag: string) {
+    const next = ownTags.filter((x) => x !== tag);
+    setOwnTags(next);
+    await supabase.from("profiles").update({ tags: next }).eq("id", profile.id);
+  }
+
+  /**
+   * Everything she can tag with: the built-ins, her own, then every tag her
+   * board already carries — a tag she dropped stays offered while some item
+   * still wears it, because that item is the honest reason it is there.
    */
   const knownTags = useMemo(() => {
-    const mine = new Set<string>();
+    const mine = new Set<string>(ownTags);
     items.forEach((i) => i.tags.forEach((x) => mine.add(x)));
     return [...TAGS, ...[...mine].filter((x) => !TAGS.includes(x as never))];
-  }, [items]);
+  }, [items, ownTags]);
 
   const list = useMemo(() => {
     // הכל means all of it, sold included. It used to hide fully-sold items,
@@ -498,7 +520,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {making && (
         <CreateItem
           photos={making}
-          knownTags={knownTags}
+          knownTags={knownTags} onTagMade={makeTag} onTagDropped={dropTag}
           onClose={() => setMaking(null)}
           // `used` is only the photos that genuinely landed in the listing, so
           // anything the save could not attach stays in the pool — both the
@@ -520,7 +542,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {editing && (
         <EditItem
           item={editing}
-          knownTags={knownTags}
+          knownTags={knownTags} onTagMade={makeTag} onTagDropped={dropTag}
           onClose={() => setEditing(null)}
           onSaved={(item) => {
             setItems((prev) => prev.map((i) => (i.id === item.id ? item : i)));

@@ -11,7 +11,7 @@ export default async function Dashboard() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
-    .from("profiles").select("display_name, phone, slug").eq("id", user.id).single();
+    .from("profiles").select("id, display_name, phone, slug, tags").eq("id", user.id).single();
 
   // signed up but the profile row never landed — send them back to finish
   if (!profile) redirect("/login");

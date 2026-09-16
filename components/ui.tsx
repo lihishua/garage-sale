@@ -2,6 +2,7 @@
 import React from "react";
 import { DIALS, flag } from "@/lib/countries";
 import { STR, TAG_LABEL, type Lang } from "@/lib/i18n";
+import { TAGS } from "@/lib/types";
 
 export function Heart({ on }: { on: boolean }) {
   return (
@@ -126,17 +127,21 @@ export function PhoneField({ label, dial, onDial, value, onChange, err, hint, la
 }
 
 /**
- * The tags to pick from, and a box to invent another.
+ * The tags to pick from, and a chip to invent another.
  *
- * A tag she makes up is not stored anywhere of its own: it lives in the items
- * that carry it, so the set on offer is simply every tag her board already
- * uses, plus the built-in ones. That means no second table to keep in step,
- * reuse on the next item comes free, and a tag stops being offered once
- * nothing is tagged with it any more — which is the behaviour you would have
- * to write by hand with a table.
+ * `known` is everything on offer: the built-ins, her own words, and whatever
+ * her items already carry — the board assembles it. This picker only says
+ * what she did: `onMade` when a new word appears, `onDropped` when she takes
+ * one away with its ×. Where those words are kept is the board's business.
+ *
+ * The box for a new tag is shaped like the chips it joins, and sits at the end
+ * of them: type, tap anywhere else (or Enter), and the text becomes a chip of
+ * its own, chosen, with a fresh empty box after it. Her own tags toggle like
+ * the built-in ones and carry a small × besides, to take one away for good.
  */
-export function TagPicker({ known, chosen, onChange, lang = "he" }: {
-  known: string[]; chosen: string[]; onChange: (tags: string[]) => void; lang?: Lang;
+export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "he" }: {
+  known: string[]; chosen: string[]; onChange: (tags: string[]) => void;
+  onMade: (tag: string) => void; onDropped: (tag: string) => void; lang?: Lang;
 }) {
   const t = STR[lang];
   const [draft, setDraft] = React.useState("");
@@ -152,6 +157,7 @@ export function TagPicker({ known, chosen, onChange, lang = "he" }: {
     // match what is already there rather than making a near-twin of it
     const existing = shown.find((k) => k.toLowerCase() === tag.toLowerCase());
     const use = existing ?? tag;
+    if (!existing) onMade(use);
     if (!chosen.includes(use)) onChange([...chosen, use]);
     setDraft("");
   };
@@ -160,18 +166,30 @@ export function TagPicker({ known, chosen, onChange, lang = "he" }: {
     <>
       <span className="gs-label">{t.tagsLabel}</span>
       <div className="gs-filters gs-filters-tight">
-        {shown.map((x) => (
+        {shown.map((x) => TAGS.includes(x as never) ? (
           <Chip key={x} on={chosen.includes(x)} onClick={() => toggle(x)}>
             {TAG_LABEL[x]?.[lang] ?? x}
           </Chip>
+        ) : (
+          // her own: toggles like the rest, and the × takes the tag away
+          <span key={x} className="gs-chip-own">
+            <Chip on={chosen.includes(x)} onClick={() => toggle(x)}>{x}</Chip>
+            <button type="button" className="gs-chip-x" aria-label={t.tagRemove}
+              onClick={() => { onDropped(x); onChange(chosen.filter((y) => y !== x)); }}>
+              <svg viewBox="0 0 24 24" width="9" height="9" aria-hidden="true">
+                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor"
+                  strokeWidth="3" strokeLinecap="round" />
+              </svg>
+            </button>
+          </span>
         ))}
-      </div>
-      <div className="gs-tagadd">
-        <input className="gs-input" value={draft} placeholder={t.tagAddPh}
+        {/* sized to its placeholder, so it reads as one more chip and not a
+            form field; the placeholder is the whole explanation */}
+        <input className="gs-chip gs-chip-new" value={draft} placeholder={t.tagAddPh}
+          size={t.tagAddPh.length}
           onChange={(e) => setDraft(e.target.value)}
+          onBlur={add}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
-        <button type="button" className="gs-btn gs-btn-sm" onClick={add}
-          disabled={!draft.trim()}>{t.tagAdd}</button>
       </div>
     </>
   );
