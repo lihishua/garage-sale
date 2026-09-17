@@ -538,7 +538,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
         <footer className="gs-footer">
           <img className="gs-arrow" src="/arrow.webp" alt="" aria-hidden="true" />
-          <Link href="/login?mode=signup"><button className="gs-btn gs-btn-orange gs-btn-big">{t.startMine}</button></Link>
+          <Link href="/login?mode=signup"><button className="gs-btn gs-btn-mustard gs-btn-big">{t.startMine}</button></Link>
           <PrivacyNote lang={lang} />
         </footer>
       </main>

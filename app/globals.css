@@ -135,6 +135,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-btn-orange{background:var(--orange);color:#fff;border-color:var(--orange)}
 
 .gs-btn-cream{background:var(--cream)}
+.gs-btn-mustard{background:var(--mustard)}
 .gs-btn-green{background:var(--lime)}
 .gs-btn-wide{width:100%;margin-top:8px}
 /* a lot's two answers, side by side and smaller: they are one decision */
@@ -153,7 +154,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   cursor:pointer;box-shadow:0 2px 8px rgba(27,24,21,.16);transition:transform .12s}
 .gs-fab:hover{transform:scale(1.08)}
 .gs-fab-count{position:absolute;top:-7px;inset-inline-end:-7px;min-width:21px;height:21px;
-  display:grid;place-items:center;background:var(--pink);color:#fff;border:1px solid var(--paper);
+  display:grid;place-items:center;background:var(--orange);color:#fff;border:1px solid var(--paper);
   border-radius:50%;font-size:14px;font-weight:700}
 .gs-top{position:fixed;bottom:18px;inset-inline-end:16px;z-index:35;width:40px;height:40px;
   display:grid;place-items:center;background:var(--ink);border:0;border-radius:50%;cursor:pointer;

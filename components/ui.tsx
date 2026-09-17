@@ -10,7 +10,7 @@ export function Heart({ on }: { on: boolean }) {
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
       <path
         d="M12 20.5S3.5 14.8 3.5 9.2A4.7 4.7 0 0 1 12 6.4a4.7 4.7 0 0 1 8.5 2.8c0 5.6-8.5 11.3-8.5 11.3z"
-        fill={on ? "#E0336B" : "#FFFFFF"} stroke="#1B1815" strokeWidth="1.5" strokeLinejoin="round" />
+        fill={on ? "#EE5A2A" : "#FFFFFF"} stroke="#1B1815" strokeWidth="1.5" strokeLinejoin="round" />
     </svg>
   );
 }
