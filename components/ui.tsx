@@ -245,6 +245,32 @@ export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "
   );
 }
 
+/**
+ * The app's own "are you sure?", in place of the browser's: a question in
+ * the middle of the screen, centred, and two buttons under it. `confirm`
+ * resolves to her answer; `dialog` is the box, rendered wherever the toast
+ * is. Tapping the scrim is "no".
+ */
+export function useConfirm(lang: Lang = "he") {
+  const t = STR[lang];
+  const [ask, setAsk] = React.useState<{ text: string; resolve: (ok: boolean) => void } | null>(null);
+  const confirm = React.useCallback(
+    (text: string) => new Promise<boolean>((resolve) => setAsk({ text, resolve })), []);
+  const answer = (ok: boolean) => { ask?.resolve(ok); setAsk(null); };
+  const dialog = ask && (
+    <div className="gs-scrim gs-scrim-mid gs-scrim-top" onClick={() => answer(false)}>
+      <div className="gs-confirm" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
+        <p>{ask.text}</p>
+        <div className="gs-confirm-btns">
+          <button className="gs-btn gs-btn-orange" onClick={() => answer(true)} autoFocus>{t.ok}</button>
+          <button className="gs-btn gs-btn-cream" onClick={() => answer(false)}>{t.cancel}</button>
+        </div>
+      </div>
+    </div>
+  );
+  return { confirm, dialog };
+}
+
 /** the one-line privacy note that closes every page, with the page behind it */
 export function PrivacyNote({ lang = "he" }: { lang?: Lang }) {
   const t = STR[lang];

@@ -202,6 +202,13 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the preview: centred on the screen rather than pinned to the top, and
    narrower — it is a look at one thing, not a form to fill */
 .gs-scrim-mid{align-items:center}
+/* the question box: over everything but the toast, text and buttons centred */
+.gs-scrim-top{z-index:70}
+.gs-confirm{background:var(--paper);border:1px solid var(--ink);border-radius:14px;padding:22px 20px 18px;
+  max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(27,24,21,.25)}
+.gs-confirm p{margin:0 0 16px;font-size:18px;line-height:1.5}
+.gs-confirm-btns{display:flex;gap:8px;justify-content:center}
+.gs-confirm-btns .gs-btn{flex:1;max-width:150px}
 .gs-sheet-compact{max-width:380px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto}
 .gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
 .gs-sheet-compact .gs-sheet-head{margin-bottom:10px}

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton } from "@/components/ui";
+import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, useConfirm } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -49,6 +49,7 @@ const slidesOf = (i: Item): Slide[] =>
 export default function SaleClient({ sale, items: initial }: { sale: Sale; items: Item[] }) {
   const [lang] = useState<Lang>("he");
   const t = STR[lang];
+  const { confirm: ask, dialog: confirmDialog } = useConfirm(lang);
 
   const [items, setItems] = useState(initial);
   const [wish, setWish] = useState<string[]>([]);
@@ -361,7 +362,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
    */
   async function withdraw() {
     if (!pending || busy) return;
-    if (!confirm(t.withdrawConfirm)) return;
+    if (!(await ask(t.withdrawConfirm))) return;
     setBusy(true);
     const supabase = supabaseBrowser();
     const { data, error } = await supabase.rpc("release_request", { p_request_id: pending });
@@ -732,6 +733,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         </Sheet>
       )}
 
+      {confirmDialog}
       {toast && <Toast text={toast} />}
     </>
   );

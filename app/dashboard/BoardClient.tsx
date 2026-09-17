@@ -8,7 +8,7 @@ import {
   availableUnits, holdersByUnit, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
-import { StatChip, Toast, PrivacyNote, Sheet } from "@/components/ui";
+import { StatChip, Toast, PrivacyNote, Sheet, useConfirm } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
@@ -52,6 +52,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const [dropped, setDropped] = useState<string[]>([]);
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 2600); };
+  const { confirm: ask, dialog: confirmDialog } = useConfirm();
 
   // a card has no status of its own any more: every count is over its units,
   // and `price` is per unit, so earnings sum one photo at a time
@@ -249,7 +250,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   );
 
   async function releaseRequest(r: RequestRow) {
-    if (!confirm(t.confirmRemoveReq(r.buyer_name.split(" ")[0]))) return;
+    if (!(await ask(t.confirmRemoveReq(r.buyer_name.split(" ")[0])))) return;
     const { data, error } = await supabase.rpc("release_request", { p_request_id: r.id });
     if (error || !data?.ok) return say(t.reqRemoveErr);
 
@@ -274,7 +275,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
    * photos owned by nothing at all.
    */
   async function remove(item: Item) {
-    if (!confirm(t.confirmDelete)) return;
+    if (!(await ask(t.confirmDelete))) return;
 
     // every photo the listing owns — each unit's own, and its extra views
     const rows = item.units.flatMap((u) => [
@@ -299,7 +300,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }
 
   async function removePhoto(photo: StagedPhoto) {
-    if (!confirm(t.confirmDeletePhoto)) return;
+    if (!(await ask(t.confirmDeletePhoto))) return;
     const { error } = await supabase.from("staged_photos").delete().eq("id", photo.id);
     if (error) return say(error.message);
 
@@ -643,6 +644,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         </Sheet>
       )}
 
+      {confirmDialog}
       {toast && <Toast text={toast} />}
     </main>
   );

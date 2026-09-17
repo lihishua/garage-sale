@@ -15,6 +15,8 @@ export const STR = {
     dir: "rtl" as const,
     // shared
     close: "סגירה",
+    ok: "אישור",
+    cancel: "ביטול",
     all: "הכל",
     sort: "מיון",
     sortNew: "החדש ביותר",
@@ -278,6 +280,8 @@ export const STR = {
   en: {
     dir: "ltr" as const,
     close: "Close",
+    ok: "OK",
+    cancel: "Cancel",
     all: "everything",
     sort: "Sort",
     sortNew: "Newest first",
