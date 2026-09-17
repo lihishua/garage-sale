@@ -189,7 +189,7 @@ export default function LoginForm() {
             err={err.name} placeholder={t.yourNamePh} />
           <PhoneField label={t.phoneSeller} dial={dial} onDial={setDial}
             value={f.phone} onChange={(v) => set("phone", v)}
-            err={err.phone} hint={t.phoneSellerHint} />
+            err={err.phone} />
           <Field label={t.address} value={f.slug}
             onChange={(v) => set("slug", v.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
             err={err.slug} hint={t.addressHint(f.slug)} placeholder="dana" ltr />
