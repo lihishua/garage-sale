@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import {
-  availableUnits, holdersByUnit, collageTiles, TAGS,
+  availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
 import { StatChip, Toast, PrivacyNote, Sheet, useConfirm } from "@/components/ui";
@@ -266,16 +266,20 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }
 
   /**
-   * Delete a listing; its photos go back to the pool. Deleting is undoing —
-   * she listed the wrong photos, or the wrong way — and the photos are the
-   * expensive part, so they are kept, staged again, ready to list over.
+   * Delete a listing; its photos go back to the pool. Deleting is usually
+   * undoing — she listed the wrong photos, or the wrong way — and the
+   * photos are the expensive part, so they are kept, staged again, ready to
+   * list over. The question's third button is for when they are not
+   * wanted either: then the item goes and the files with it.
    *
    * Pool rows first, item second: if the item delete then fails, the rows
    * are taken back and nothing changed. The other order could leave the
    * photos owned by nothing at all.
    */
   async function remove(item: Item) {
-    if (!(await ask(t.confirmDelete))) return;
+    const answer = await ask(t.confirmDelete, t.deleteWithPhotos);
+    if (!answer) return;
+    if (answer === "more") return removeWithPhotos(item);
 
     // every photo the listing owns — each unit's own, and its extra views
     const rows = item.units.flatMap((u) => [
@@ -297,6 +301,26 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     setItems((prev) => prev.filter((i) => i.id !== item.id));
     setPool((p) => [...p, ...((staged ?? []) as StagedPhoto[])]);
     say(t.itemDeleted);
+  }
+
+  /** the item and its files, for good */
+  async function removeWithPhotos(item: Item) {
+    const { error } = await supabase.from("items").delete().eq("id", item.id);
+    if (error) return say(error.message);
+
+    // Row first on purpose: better an orphan blob than a listing pointing at a
+    // photo that is gone. The cost is that once the row is deleted these paths
+    // exist nowhere else, so a failure here strands them for good — say so
+    // instead of dropping it. They need the same reconciliation sweep the
+    // upload orphans do (see SETUP.md).
+    //
+    // Every path the listing owns, not just the cover of each unit: the
+    // unit_photos rows cascade away with the item, but their blobs do not, so
+    // a crib with five angles would strand eight files without unitPaths.
+    const paths = item.units.flatMap(unitPaths);
+    const gone = paths.length ? await supabase.storage.from("photos").remove(paths) : null;
+    setItems((prev) => prev.filter((i) => i.id !== item.id));
+    say(gone?.error ? t.photosNotDeleted : t.itemAndPhotosDeleted);
   }
 
   async function removePhoto(photo: StagedPhoto) {

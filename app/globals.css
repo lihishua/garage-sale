@@ -209,6 +209,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-confirm p{margin:0 0 16px;font-size:18px;line-height:1.5}
 .gs-confirm-btns{display:flex;gap:8px;justify-content:center}
 .gs-confirm-btns .gs-btn{flex:1;max-width:150px}
+.gs-confirm-more{display:block;margin:14px auto 0;font-size:15px}
 .gs-sheet-compact{max-width:380px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto}
 .gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
 .gs-sheet-compact .gs-sheet-head{margin-bottom:10px}

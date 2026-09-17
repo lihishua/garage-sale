@@ -247,16 +247,22 @@ export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "
 
 /**
  * The app's own "are you sure?", in place of the browser's: a question in
- * the middle of the screen, centred, and two buttons under it. `confirm`
+ * the middle of the screen, centred, and the buttons under it. `confirm`
  * resolves to her answer; `dialog` is the box, rendered wherever the toast
  * is. Tapping the scrim is "no".
+ *
+ * A question can carry a third way out — `more`, a labelled button under
+ * the two — for the one case with a stronger answer than yes ("and delete
+ * the photos too"). Picking it resolves to "more".
  */
+export type Answer = boolean | "more";
+
 export function useConfirm(lang: Lang = "he") {
   const t = STR[lang];
-  const [ask, setAsk] = React.useState<{ text: string; resolve: (ok: boolean) => void } | null>(null);
+  const [ask, setAsk] = React.useState<{ text: string; more?: string; resolve: (a: Answer) => void } | null>(null);
   const confirm = React.useCallback(
-    (text: string) => new Promise<boolean>((resolve) => setAsk({ text, resolve })), []);
-  const answer = (ok: boolean) => { ask?.resolve(ok); setAsk(null); };
+    (text: string, more?: string) => new Promise<Answer>((resolve) => setAsk({ text, more, resolve })), []);
+  const answer = (a: Answer) => { ask?.resolve(a); setAsk(null); };
   const dialog = ask && (
     <div className="gs-scrim gs-scrim-mid gs-scrim-top" onClick={() => answer(false)}>
       <div className="gs-confirm" role="alertdialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
@@ -265,6 +271,9 @@ export function useConfirm(lang: Lang = "he") {
           <button className="gs-btn gs-btn-orange" onClick={() => answer(true)} autoFocus>{t.ok}</button>
           <button className="gs-btn gs-btn-cream" onClick={() => answer(false)}>{t.cancel}</button>
         </div>
+        {ask.more && (
+          <button className="gs-btn-ghost gs-danger gs-confirm-more" onClick={() => answer("more")}>{ask.more}</button>
+        )}
       </div>
     </div>
   );
