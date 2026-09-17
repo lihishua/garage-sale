@@ -208,12 +208,13 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
   return (
     <Sheet title={t.createItem} onClose={onClose} busy={busy}>
       {/* which photo leads the listing is not guessable from a grid, and it is
-          the one thing about this strip she needs to know */}
+          the one thing about this strip she needs to know — when there is a
+          strip. One photo is the cover by itself and needs no badge. */}
       <div className="gs-pool gs-pool-sm">
         {photos.map((p, i) => (
           <div key={p.id} className="gs-pick">
             <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
-            {i === 0 && <span className="gs-pick-tag">{t.cover}</span>}
+            {i === 0 && multi && <span className="gs-pick-tag">{t.cover}</span>}
           </div>
         ))}
       </div>
