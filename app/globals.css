@@ -2,7 +2,7 @@
 
 :root{
   --ink:#1B1815; --paper:#FCFBF7; --cream:#F2EBD9; --line:#D8D2C4;
-  --orange:#EE5A2A; --mustard:#F7BC45; --pink:#E0336B; --lime:#9ACB3B; --sky:#5C9FCC; --grape:#9179C2;
+  --orange:#EE5A2A; --mustard:#F7BC45; --butter:#FBE3A4; --pink:#E0336B; --lime:#9ACB3B; --sky:#5C9FCC; --grape:#9179C2;
   /* Amatic carries the whole interface; Playpen is reserved for the two things
      a buyer actually reads off a card — what it is, and what it costs. Amatic
      runs small and narrow for its size, so every size below is set for it and
@@ -269,9 +269,23 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-namerow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
 .gs-namerow .gs-input{min-width:0}
 .gs-namerow .gs-input:first-child{flex:1}
-.gs-price-in{flex:0 0 84px;text-align:center;padding-inline:6px}
-.gs-price-in:disabled{opacity:.4}
-.gs-namerow .gs-chip{flex:none}
+/* price or free: one pill, two halves, the picked half in butter yellow.
+   The price is the default pick; "free" is the other answer. */
+.gs-priceor{flex:0 0 172px;display:flex;align-items:stretch;height:47px;background:#fff;
+  border:1px solid var(--ink);border-radius:9px;overflow:hidden}
+.gs-priceor.bad{border-color:var(--pink)}
+.gs-priceor-price{flex:1;min-width:0;display:flex;align-items:center;gap:3px;padding:0 8px;
+  direction:ltr;cursor:text;background:var(--butter);transition:background .12s,opacity .12s}
+.gs-priceor-price input{width:100%;min-width:0;border:0;background:none;outline:none;padding:0;
+  font:inherit;font-size:19px;font-family:var(--body);text-align:center;color:var(--ink)}
+.gs-priceor-price input::placeholder{color:var(--ink);opacity:.45}
+.gs-priceor-cur{font-family:var(--hand);font-weight:300;font-size:16px;opacity:.6}
+.gs-priceor-free{flex:none;padding:0 13px;border:0;border-inline-start:1px solid var(--ink);
+  background:#fff;color:var(--ink);font:inherit;font-size:16px;font-family:var(--body);cursor:pointer;
+  transition:background .12s}
+.gs-priceor.free .gs-priceor-price{background:#fff;opacity:.4}
+.gs-priceor.free .gs-priceor-free{background:var(--butter)}
+.gs-priceor-free:disabled,.gs-priceor-price input:disabled{cursor:default}
 .gs-err-row{margin:-6px 0 10px}
 .gs-desc{display:block;margin-bottom:10px}
 .gs-seg-sm{margin:-2px 0 10px}

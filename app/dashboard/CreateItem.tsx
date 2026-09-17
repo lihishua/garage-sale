@@ -239,22 +239,29 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
         </>
       )}
 
-      {/* One row: the name, the price, and "free" — the boxes say what goes
-          in them, so no labels over them; the sheet has to fit a phone screen
-          without scrolling when there is one photo. Free empties and greys
-          the price box rather than removing it, so the row holds still. */}
+      {/* One row: the name, then the price-or-free pill — the boxes say what
+          goes in them, so no labels over them; the sheet has to fit a phone
+          screen without scrolling when there is one photo. */}
       <div className="gs-namerow">
         <input className={"gs-input" + (err.title ? " bad" : "")} value={f.title}
           placeholder={t.whatIsIt} aria-label={t.whatIsIt} disabled={busy || done}
           onChange={(e) => set("title", e.target.value)} />
-        <input className={"gs-input gs-price-in" + (err.price ? " bad" : "")} value={free ? "" : f.price}
-          placeholder={t.price} aria-label={t.price} dir="ltr" inputMode="numeric" pattern="[0-9]*"
-          disabled={free || busy || done}
-          onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} />
-        <button type="button" className={"gs-chip" + (free ? " on" : "")} aria-pressed={free}
-          disabled={busy || done} onClick={() => { if (!free) set("price", ""); setFree(!free); }}>
-          {t.freeToggle}
-        </button>
+        {/* price or free: two halves of one pill, the picked one in yellow.
+            Typing a number is picking the price, so it un-picks "free" by
+            itself; picking "free" empties the number. */}
+        <div className={"gs-priceor" + (free ? " free" : "") + (err.price ? " bad" : "")}>
+          <label className="gs-priceor-price">
+            <span className="gs-priceor-cur" aria-hidden="true">₪</span>
+            <input value={free ? "" : f.price} placeholder={t.price} aria-label={t.price}
+              inputMode="numeric" pattern="[0-9]*" disabled={busy || done}
+              onFocus={() => setFree(false)}
+              onChange={(e) => { setFree(false); set("price", e.target.value.replace(/\D/g, "")); }} />
+          </label>
+          <button type="button" className="gs-priceor-free" aria-pressed={free}
+            disabled={busy || done} onClick={() => { set("price", ""); setFree(true); }}>
+            {t.freeToggle}
+          </button>
+        </div>
       </div>
       {err.title && <span className="gs-err gs-err-row">{err.title}</span>}
       {err.price && <span className="gs-err gs-err-row">{err.price}</span>}

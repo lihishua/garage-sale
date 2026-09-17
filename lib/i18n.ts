@@ -155,7 +155,7 @@ export const STR = {
     // the example matches what she is actually making
     tagRemove: "הסרת התגית",
     tagAddPh: "תגית משלכם — למשל גינה",
-    price: "מחיר ₪",
+    price: "מחיר",
     // the one number on a lot, and the switch that says what it covers
     priceForLabel: "המחיר הוא",
     priceForEach: "לכל פריט",
@@ -390,7 +390,7 @@ export const STR = {
     whatIsIt: "Item name",
     tagRemove: "Remove tag",
     tagAddPh: "Your own tag — say, garden",
-    price: "Price ₪",
+    price: "Price",
     priceForLabel: "The price is",
     priceForEach: "each item",
     priceForAll: "the whole lot",
