@@ -41,6 +41,18 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 @media (hover:hover){.gs-chip:hover{background:var(--cream)}}
 .gs-chip.on{background:var(--ink);color:#fff}
 .gs-chip-n{opacity:.5;font-size:15px;margin-inline-start:2px}
+/* a switch: a pill with a knob that slides to the "on" side, and its label */
+.gs-switch{display:flex;width:max-content;align-items:center;gap:9px;margin:-2px auto 14px;cursor:pointer;
+  font-size:17px;user-select:none}
+.gs-switch input{position:absolute;opacity:0;width:0;height:0}
+.gs-switch-knob{flex:none;width:42px;height:24px;border:1px solid var(--ink);border-radius:12px;
+  background:#fff;position:relative;transition:background .15s}
+.gs-switch-knob::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;
+  border-radius:50%;background:var(--ink);transition:transform .15s,background .15s}
+.gs-switch input:checked + .gs-switch-knob{background:var(--ink)}
+.gs-switch input:checked + .gs-switch-knob::after{background:#fff;transform:translateX(-18px)}
+[dir="ltr"] .gs-switch input:checked + .gs-switch-knob::after{transform:translateX(18px)}
+.gs-switch input:focus-visible + .gs-switch-knob{outline:2px solid var(--orange);outline-offset:2px}
 .gs-chip.on .gs-chip-n{opacity:.65}
 
 .gs-sortbar{display:flex;justify-content:flex-end;margin-bottom:22px}
@@ -99,6 +111,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-price{font-family:var(--hand);font-weight:300;font-size:16px;color:var(--orange)}
 .gs-tags{font-size:13px;letter-spacing:.05em;opacity:.45}
 .gs-card-tags{font-size:13px;font-weight:400;letter-spacing:.04em;opacity:.5;margin:5px 0 0}
+.gs-card-size{font-family:var(--hand);font-weight:300;font-size:14px;opacity:.7;margin:4px 0 0;text-align:end}
 .gs-waiting{font-size:14px;opacity:.45;margin:8px 0 0}
 .gs-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
@@ -249,12 +262,20 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   font:inherit;font-weight:700;font-size:18px;line-height:1.4;font-family:var(--body)}
 .gs-choice.on{border-color:var(--ink);background:var(--cream)}
 
-/* the price beside "free": a short number needs a short box, and the button
-   is the other answer to the same question */
-.gs-pricerow{display:flex;gap:10px;align-items:center}
-.gs-pricerow .gs-input{flex:0 1 150px;min-width:0}
-.gs-pricerow .gs-input:disabled{opacity:.4}
-.gs-pricerow .gs-chip{flex:none}
+/* the item sheet's first row: name, a short price box, and "free". No
+   labels — the boxes carry their own — so a one-photo item fits a phone
+   screen without scrolling. */
+.gs-namerow{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.gs-namerow .gs-input{min-width:0}
+.gs-namerow .gs-input:first-child{flex:1}
+.gs-price-in{flex:0 0 84px;text-align:center;padding-inline:6px}
+.gs-price-in:disabled{opacity:.4}
+.gs-namerow .gs-chip{flex:none}
+.gs-err-row{margin:-6px 0 10px}
+.gs-desc{display:block;margin-bottom:10px}
+.gs-seg-sm{margin:-2px 0 10px}
+.gs-seg-sm .gs-seg-opt{padding:6px 8px;font-size:15px}
+.gs-sheet .gs-filters-tight{margin:0 0 10px}
 .gs-chip:disabled{opacity:.5;cursor:default}
 
 /* furniture: three short numbers in a row, each box naming its own */

@@ -102,7 +102,7 @@ export function Field({ label, value, onChange, placeholder, err, hint, type = "
 }
 
 /**
- * A piece of furniture's three numbers, side by side: width, length, depth.
+ * A piece of furniture's three numbers, side by side: width, height, depth.
  * Each box names itself; the unit is understood. `firstRef` is for the form
  * to put the cursor back here when she chooses to fix them.
  */
@@ -118,8 +118,7 @@ export function SizeFields({ value, onChange, err, firstRef, lang = "he" }: {
     onChange(next);
   };
   return (
-    <div className="gs-field">
-      <span className="gs-label">{t.measurements}</span>
+    <div className="gs-field" aria-label={t.measurements}>
       <div className="gs-size">
         {names.map((name, i) => (
           <input key={name} ref={i === 0 ? firstRef : undefined}
@@ -207,8 +206,7 @@ export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "
 
   return (
     <>
-      <span className="gs-label">{t.tagsLabel}</span>
-      <div className="gs-filters gs-filters-tight">
+      <div className="gs-filters gs-filters-tight" aria-label={t.tagsLabel}>
         {shown.map((x) => TAGS.includes(x as never) ? (
           <Chip key={x} on={chosen.includes(x)} onClick={() => toggle(x)}>
             {TAG_LABEL[x]?.[lang] ?? x}

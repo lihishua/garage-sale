@@ -439,10 +439,14 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                   {tagLabel(tag)} <span className="gs-chip-n">{counts[tag]}</span>
                 </Chip>
               ))}
-              {/* sits with the tag chips because it filters the same grid, but
-                  it is a toggle, not one of the choices */}
-              <Chip on={onlyFree} onClick={() => setOnlyFree((v) => !v)}>{t.onlyAvailable}</Chip>
             </div>
+            {/* filters the same grid as the chips, but it is a setting, not one
+                of the choices — so a switch, on its own line under them */}
+            <label className="gs-switch">
+              <input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
+              <span className="gs-switch-knob" aria-hidden="true" />
+              <span>{t.onlyAvailable}</span>
+            </label>
 
             <div className="gs-sortbar">
               <label className="gs-sort">
@@ -509,6 +513,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                             <span className="gs-tags">{t.unitsLeft(free)}</span>
                           )}
                         </div>
+                        {/* furniture: the numbers a buyer measures her room
+                            against, on the card, before she taps anything */}
+                        {it.measurements && (
+                          <p className="gs-card-size" dir="ltr">{it.measurements}</p>
+                        )}
                         {/* on its own line rather than sharing one with the
                             count: a lot showed the count *instead of* its tags,
                             so a tagged lot never showed a tag at all */}

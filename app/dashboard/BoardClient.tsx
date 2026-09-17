@@ -567,6 +567,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <img src={photoUrl(openItem.units[0]?.thumb_path ?? "")} alt="" />
           </div>
           <p className="gs-detail-price">{priceOf(openItem.price)}</p>
+          {openItem.measurements && (
+            <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir="ltr">{openItem.measurements}</span></p>
+          )}
           {openItem.tags.length > 0 && (
             <p className="gs-detail-tags">{openItem.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}</p>
           )}

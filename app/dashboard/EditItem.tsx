@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { type Item } from "@/lib/types";
-import { Sheet, Field, TagPicker, SizeFields } from "@/components/ui";
+import { Sheet, TagPicker, SizeFields } from "@/components/ui";
 import { formatSize, parseSize, sizeFilled, type Size } from "@/lib/size";
 
 /**
@@ -160,48 +160,48 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
         </>
       )}
 
-      <Field label={t.whatIsIt} value={f.title} onChange={(v) => set("title", v)}
-        err={err.title} placeholder={multi ? t.whatPhMany : t.whatPhOne} />
-      <div className="gs-field">
-        <span className="gs-label">{t.price}</span>
-        <div className="gs-pricerow">
-          <input className={"gs-input" + (err.price ? " bad" : "")} value={free ? "" : f.price}
-            dir="ltr" inputMode="numeric" pattern="[0-9]*" disabled={free || busy}
-            onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} />
-          <button type="button" className={"gs-chip" + (free ? " on" : "")} aria-pressed={free}
-            disabled={busy} onClick={() => { if (!free) set("price", ""); setFree(!free); }}>
-            {t.freeToggle}
-          </button>
-        </div>
-        {err.price && <span className="gs-err">{err.price}</span>}
+      {/* One row: the name, the price, and "free" — the boxes say what goes
+          in them, so no labels over them; the sheet has to fit a phone screen
+          without scrolling when there is one photo. Free empties and greys
+          the price box rather than removing it, so the row holds still. */}
+      <div className="gs-namerow">
+        <input className={"gs-input" + (err.title ? " bad" : "")} value={f.title}
+          placeholder={t.whatIsIt} aria-label={t.whatIsIt} disabled={busy}
+          onChange={(e) => set("title", e.target.value)} />
+        <input className={"gs-input gs-price-in" + (err.price ? " bad" : "")} value={free ? "" : f.price}
+          placeholder={t.price} aria-label={t.price} dir="ltr" inputMode="numeric" pattern="[0-9]*"
+          disabled={free || busy}
+          onChange={(e) => set("price", e.target.value.replace(/\D/g, ""))} />
+        <button type="button" className={"gs-chip" + (free ? " on" : "")} aria-pressed={free}
+          disabled={busy} onClick={() => { if (!free) set("price", ""); setFree(!free); }}>
+          {t.freeToggle}
+        </button>
       </div>
+      {err.title && <span className="gs-err gs-err-row">{err.title}</span>}
+      {err.price && <span className="gs-err gs-err-row">{err.price}</span>}
 
-      {!free && (
-        <>
-          {many && (
-            <div className="gs-field">
-              <span className="gs-label">{t.priceForLabel}</span>
-              <div className="gs-seg" role="radiogroup" aria-label={t.priceForLabel}>
-                <label className={"gs-seg-opt" + (priceFor === "each" ? " on" : "")}>
-                  <input type="radio" name="gs-pricefor" checked={priceFor === "each"}
-                    disabled={busy} onChange={() => setPriceFor("each")} />
-                  {t.priceForEach}
-                </label>
-                <label className={"gs-seg-opt" + (priceFor === "all" ? " on" : "")}>
-                  <input type="radio" name="gs-pricefor" checked={priceFor === "all"}
-                    disabled={busy} onChange={() => setPriceFor("all")} />
-                  {t.priceForAll}
-                </label>
-              </div>
-              <span className="gs-hint">{t.priceForHint}</span>
-            </div>
-          )}
-        </>
+      {/* a lot's one number, and what it covers: each photo, or the pile.
+          A small switch under the price, no label — the two options are
+          the whole explanation. The final number is settled on WhatsApp. */}
+      {many && !free && (
+        <div className="gs-seg gs-seg-sm" role="radiogroup" aria-label={t.priceForLabel}>
+          <label className={"gs-seg-opt" + (priceFor === "each" ? " on" : "")}>
+            <input type="radio" name="gs-pricefor" checked={priceFor === "each"}
+              disabled={busy} onChange={() => setPriceFor("each")} />
+            {t.priceForEach}
+          </label>
+          <label className={"gs-seg-opt" + (priceFor === "all" ? " on" : "")}>
+            <input type="radio" name="gs-pricefor" checked={priceFor === "all"}
+              disabled={busy} onChange={() => setPriceFor("all")} />
+            {t.priceForAll}
+          </label>
+        </div>
       )}
 
-
-      <Field label={t.description} value={f.desc} onChange={(v) => set("desc", v)}
-        err={err.desc} placeholder={t.descPh} area />
+      <textarea className={"gs-input gs-desc" + (err.desc ? " bad" : "")} rows={2} value={f.desc}
+        placeholder={t.description} aria-label={t.description} disabled={busy}
+        onChange={(e) => set("desc", e.target.value)} />
+      {err.desc && <span className="gs-err gs-err-row">{err.desc}</span>}
 
       <TagPicker known={knownTags} chosen={f.tags} onChange={(tags) => set("tags", tags)}
         onMade={onTagMade} onDropped={onTagDropped} />

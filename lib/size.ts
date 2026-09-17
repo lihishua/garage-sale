@@ -1,5 +1,5 @@
 /**
- * A piece of furniture's measurements: width, length, depth, as typed.
+ * A piece of furniture's measurements: width, height, depth, as typed.
  *
  * Stored in `items.measurements` as text — `80×120×45 ס"מ` — because that
  * is what the sale page prints, and a buyer reads it, nothing computes on
