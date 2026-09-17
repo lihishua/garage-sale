@@ -176,9 +176,9 @@ export function PhoneField({ label, dial, onDial, value, onChange, err, hint, la
  * what she did: `onMade` when a new word appears, `onDropped` when she takes
  * one away with its ×. Where those words are kept is the board's business.
  *
- * The box for a new tag is shaped like the chips it joins, and sits at the end
- * of them: type, tap anywhere else (or Enter), and the text becomes a chip of
- * its own, chosen, with a fresh empty box after it. Her own tags toggle like
+ * A new tag starts as a "+" chip at the end of the row: tap it and it opens
+ * into a box the size of a chip; type, tap anywhere else (or Enter), and the
+ * text becomes a chip of its own, chosen, with the "+" back after it. Her own tags toggle like
  * the built-in ones and carry a small × besides, to take one away for good.
  */
 export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "he" }: {
@@ -187,6 +187,7 @@ export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "
 }) {
   const t = STR[lang];
   const [draft, setDraft] = React.useState("");
+  const [adding, setAdding] = React.useState(false);
   const shown = [...known, ...chosen.filter((c) => !known.includes(c))];
 
   const toggle = (x: string) =>
@@ -224,13 +225,21 @@ export function TagPicker({ known, chosen, onChange, onMade, onDropped, lang = "
             </button>
           </span>
         ))}
-        {/* sized to its placeholder, so it reads as one more chip and not a
-            form field; the placeholder is the whole explanation */}
-        <input className="gs-chip gs-chip-new" value={draft} placeholder={t.tagAddPh}
-          size={t.tagAddPh.length}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={add}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }} />
+        {/* a "+" chip until she taps it; then a box the size of a chip, with
+            the cursor in it. Tapping away with nothing typed folds it back. */}
+        {adding ? (
+          <input className="gs-chip gs-chip-new" value={draft} placeholder={t.tagAddPh}
+            size={12} autoFocus
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={() => { add(); setAdding(false); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") { e.preventDefault(); add(); setAdding(false); }
+              if (e.key === "Escape") { setDraft(""); setAdding(false); }
+            }} />
+        ) : (
+          <button type="button" className="gs-chip gs-chip-plus" aria-label={t.tagAddPh}
+            onClick={() => setAdding(true)}>+</button>
+        )}
       </div>
     </>
   );

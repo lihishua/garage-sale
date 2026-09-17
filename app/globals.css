@@ -283,7 +283,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   font:inherit;font-size:19px;font-family:var(--body);text-align:center;color:var(--ink)}
 .gs-priceor-price input::placeholder{color:var(--ink);opacity:.45}
 .gs-priceor-cur{font-family:var(--hand);font-weight:300;font-size:16px;opacity:.6}
-.gs-priceor-free{flex:none;padding:0 13px;border:0;border-inline-start:1px solid var(--ink);
+.gs-priceor-free{flex:0 0 60px;padding:0;border:0;border-inline-start:1px solid var(--ink);
   background:#fff;color:var(--ink);font:inherit;font-size:16px;font-family:var(--body);cursor:pointer;
   transition:background .12s}
 .gs-priceor.free .gs-priceor-price{background:#fff;opacity:.4}
@@ -291,10 +291,11 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-priceor-free:disabled,.gs-priceor-price input:disabled{cursor:default}
 .gs-err-row{margin:-6px 0 10px}
 .gs-desc{display:block;margin-bottom:10px}
-/* under the price pill alone, and as wide as it: the switch belongs to
-   that number, not to the row */
-.gs-seg-sm{width:172px;margin-block:-4px 10px;margin-inline:auto 0;border-radius:7px}
-.gs-seg-sm .gs-seg-opt{padding:3px 4px;font-size:13px}
+/* under the price half of the pill alone, and as wide as it: the switch
+   belongs to that number. 172 pill − 60 "free" − its 1px seam = 111; the
+   end margin skips the "free" half. */
+.gs-seg-sm{width:111px;margin-block:-4px 10px;margin-inline:auto 61px;border-radius:7px}
+.gs-seg-sm .gs-seg-opt{padding:3px 2px;font-size:12px}
 .gs-sheet .gs-filters-tight{margin:0 0 10px}
 .gs-chip:disabled{opacity:.5;cursor:default}
 
@@ -329,6 +330,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-hint-lock{margin:-8px 0 16px}
 /* inventing a tag: a chip-shaped box at the end of the chips it adds to, and
    her own chips carry a small × on the top corner to take one back */
+.gs-chip-plus{width:38px;padding-inline:0;font-size:20px;line-height:1;font-weight:400}
 .gs-chip-new{font-weight:400;max-width:100%}
 .gs-chip-new::placeholder{color:var(--ink);opacity:.45}
 .gs-chip-new:focus{outline:none;background:var(--cream)}
