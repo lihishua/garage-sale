@@ -246,7 +246,7 @@ export const STR = {
     signIn: "כניסה למכירה קיימת",
     signUp: "פתיחת מכירה חדשה",
     email: "אימייל",
-    sendLink: "שלחו לי קישור כניסה",
+    sendLink: "שלחו לי קוד כניסה",
     // the same button in the other tab: what it does, not how it does it
     openSale: "פתיחת מכירה",
     linkSentTitle: "הקוד בדרך אליכם",
@@ -468,7 +468,7 @@ export const STR = {
     signIn: "Sign in to my sale",
     signUp: "Start a new sale",
     email: "Email",
-    sendLink: "Email me a login link",
+    sendLink: "Email me a sign-in code",
     openSale: "Start the sale",
     linkSentTitle: "Your code is on its way",
     linkSentBody: (mail: string) => `We sent a sign-in code to ${mail}.`,
