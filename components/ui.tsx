@@ -34,6 +34,23 @@ export function StatChip({ n, label, on, onClick }:
 }
 
 /**
+ * The round × that closes a sheet or drops a row. A drawn ×, not the
+ * character: the glyph varies by font and was barely there in the hand —
+ * a thin scratch in the middle of a 36px circle. This one is drawn to size.
+ */
+export function XButton({ onClick, disabled, label }:
+  { onClick?: () => void; disabled?: boolean; label: string }) {
+  return (
+    <button className="gs-x" onClick={onClick} disabled={disabled} aria-label={label}>
+      <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor"
+          strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+/**
  * `busy` holds the sheet shut through work that must not be interrupted — and
  * says so: an × that silently does nothing reads as a broken button.
  */
@@ -51,14 +68,7 @@ export function Sheet({ title, hand, compact, onClose, busy, children }:
         onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
           <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
-          {/* a drawn ×, not the character: the glyph varies by font and was
-              barely there in the hand. This one is a fixed 36px target. */}
-          <button className="gs-x" onClick={close} disabled={busy} aria-label="×">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-              <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor"
-                strokeWidth="2.2" strokeLinecap="round" />
-            </svg>
-          </button>
+          <XButton onClick={close} disabled={busy} label="×" />
         </div>
         {children}
       </div>

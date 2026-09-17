@@ -174,8 +174,8 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
 .gs-sheet-title{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0;line-height:1.25}
 .gs-sheet-title.hand{font-family:var(--hand);font-weight:300;font-size:19px;line-height:1.4}
-/* a proper target: bordered circle, 36px, sitting in the corner of the head.
-   The bare × character before it was 24px of thin glyph and read as a smudge. */
+/* a proper target: bordered circle, 36px — the sheet's close, and the × on a
+   wish-list row. The mark inside is drawn (see XButton), never the character. */
 .gs-x{flex:none;width:36px;height:36px;display:grid;place-items:center;padding:0;
   background:#fff;border:1px solid var(--ink);border-radius:50%;cursor:pointer;color:var(--ink);
   transition:background .12s}

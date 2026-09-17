@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast, PrivacyNote } from "@/components/ui";
+import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -675,7 +675,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                       {g.item.title}{g.units.length > 1 && ` ×${g.units.length}`}
                     </span>
                     <span className="gs-price">{priceOf(costOf(g.item, g.units.length), lang)}</span>
-                    <button className="gs-x" onClick={() => dropCard(g.item)} aria-label={t.close}>×</button>
+                    <XButton onClick={() => dropCard(g.item)} label={t.close} />
                   </li>
                 ))}
               </ul>
