@@ -645,15 +645,15 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               already said why. */}
           {open.units.length > 1 && !whole(open) ? (
             freeUnits(open).length > 0 && (
-              <>
-                <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => decideAll(open)}>
+              <div className="gs-lot-actions">
+                <button className="gs-btn gs-btn-orange" onClick={() => decideAll(open)}>
                   {t.wantEverything}
                 </button>
-                <button className="gs-btn gs-btn-cream gs-btn-wide" onClick={decideMarked}
+                <button className="gs-btn gs-btn-cream" onClick={decideMarked}
                   disabled={markedIn(open) === 0}>
                   {t.wantMarked}
                 </button>
-              </>
+              </div>
             )
           ) : whole(open) ? (
             // a per-pile lot: one thing to want, in either direction, like a set
