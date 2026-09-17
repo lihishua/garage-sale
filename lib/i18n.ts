@@ -271,7 +271,7 @@ export const STR = {
     yourNameSeller: "השם שלך",
     yourNamePh: "דנה",
     phoneSeller: "טלפון לוואטסאפ",
-    address: "שם המכירה שיופיע בקישור",
+    address: "שם המכירה שיופיע בקישור (אנגלית בלבד)",
     // the example follows what she types, so the hint is the link itself
     addressHint: (slug: string) => `כך ייראה הקישור שתשלחו: garagesaleonline.app/${slug || "dana"}`,
     haveAccount: "כבר יש לי מכירה",
