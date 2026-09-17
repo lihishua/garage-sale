@@ -49,7 +49,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   background:#fff;position:relative;transition:background .15s}
 .gs-switch-knob::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:16px;height:16px;
   border-radius:50%;background:var(--ink);transition:transform .15s,background .15s}
-.gs-switch input:checked + .gs-switch-knob{background:var(--ink)}
+/* on, it takes the logo's orange: a setting that is doing something */
+.gs-switch input:checked + .gs-switch-knob{background:var(--orange);border-color:var(--orange)}
 .gs-switch input:checked + .gs-switch-knob::after{background:#fff;transform:translateX(-18px)}
 [dir="ltr"] .gs-switch input:checked + .gs-switch-knob::after{transform:translateX(18px)}
 .gs-switch input:focus-visible + .gs-switch-knob{outline:2px solid var(--orange);outline-offset:2px}
