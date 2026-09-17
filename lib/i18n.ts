@@ -143,7 +143,7 @@ export const STR = {
     copy: "העתקה",
     signOut: "יציאה",
     deleteItem: "מחיקה",
-    confirmDelete: "למחוק את הפריט לצמיתות?",
+    confirmDelete: "למחוק את הפריט? התמונות שלו יחזרו לגלריה.",
     confirmDeletePhoto: "למחוק את התמונה לצמיתות?",
     // add item
     addTitle: "הוספת פריט",
@@ -196,7 +196,7 @@ export const STR = {
       n === 1
         ? "תמונה אחת נשארה תקועה באחסון בלי שהיא מחוברת לכלום."
         : `${n} תמונות נשארו תקועות באחסון בלי שהן מחוברות לכלום.`,
-    photosNotDeleted: "הפריט נמחק, אבל התמונות שלו נשארו באחסון.",
+    itemDeleted: "הפריט נמחק והתמונות חזרו לגלריה.",
     photoNotDeleted: "התמונה הוסרה מהתמונות שמחכות, אבל הקובץ שלה נשאר באחסון.",
     photosNotAttached: (n: number) =>
       n === 1
@@ -380,7 +380,7 @@ export const STR = {
     copy: "Copy",
     signOut: "Sign out",
     deleteItem: "Delete",
-    confirmDelete: "Delete this item for good?",
+    confirmDelete: "Delete this item? Its photos go back to the gallery.",
     confirmDeletePhoto: "Delete this photo for good?",
     addTitle: "Add something",
     photo: "Tap to add a photo",
@@ -428,7 +428,7 @@ export const STR = {
       n === 1
         ? "1 photo is stuck in storage, attached to nothing."
         : `${n} photos are stuck in storage, attached to nothing.`,
-    photosNotDeleted: "The item was deleted, but its photos are still in storage.",
+    itemDeleted: "Item deleted; its photos are back in the gallery.",
     photoNotDeleted: "The photo was removed from the waiting photos, but its file is still in storage.",
     photosNotAttached: (n: number) =>
       n === 1

@@ -215,8 +215,12 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* One slide per unit-photo. The heart sits on the slide because it claims that
    slide's unit — five angles of one crib share one, twenty books have twenty.
    A claimed unit is shown, greyed, and cannot be hearted. */
-.gs-slide{position:relative;margin-bottom:14px}
+/* a look, not a poster: the photo is a thumbnail's big sibling, centred,
+   so the whole preview fits a phone screen. The heart rides on its corner
+   because the slide is exactly the photo's size. */
+.gs-slide{position:relative;width:180px;max-width:100%;margin:0 auto 10px}
 .gs-slide .gs-detail-photo{margin-bottom:0}
+.gs-slide .gs-detail-photo img{max-height:230px;object-fit:cover}
 .gs-slide.gone .gs-detail-photo img{filter:grayscale(1);opacity:.55}
 .gs-detail-desc{font-size:19px;line-height:1.5;margin:8px 0;white-space:pre-wrap}
 .gs-detail-size{font-size:18px;background:var(--cream);border-radius:8px;padding:8px 12px;margin:10px 0}
@@ -454,7 +458,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the photo pool. thumbs are big enough to tell a crib from a chair on a
    phone, and the badge carries the pick order — 1 is the cover. */
 .gs-pool{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px;margin-bottom:10px}
-.gs-pool-sm{grid-template-columns:repeat(auto-fill,minmax(58px,1fr));margin-bottom:16px}
+.gs-pool-sm{grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:6px;margin-bottom:12px}
 .gs-pool img{width:100%;aspect-ratio:1;object-fit:cover;display:block;
   border:1px solid var(--ink);border-radius:8px}
 .gs-pick{position:relative;display:block;padding:0;line-height:0;background:none;border:0;cursor:pointer}
@@ -484,6 +488,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   padding:0;display:grid;place-items:center;background:#fff;border:1px solid var(--ink);
   border-radius:50%;cursor:pointer;font-size:18px;line-height:1;font-weight:700;color:var(--ink)}
 @media (hover:hover){.gs-pick-del:hover{background:var(--pink);color:#fff;border-color:var(--pink)}}
+/* on a board tile: the other top corner, since the sold check has this one */
+.gs-tile-wrap{position:relative}
+.gs-tile-del{inset-inline-end:auto;inset-inline-start:6px}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
   background:var(--ink);color:#fff;font-weight:400;font-size:18px;padding:11px 20px;

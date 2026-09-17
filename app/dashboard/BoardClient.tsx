@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import {
-  availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
+  availableUnits, holdersByUnit, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
 import { StatChip, Toast, PrivacyNote, Sheet } from "@/components/ui";
@@ -264,24 +264,38 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     router.refresh();
   }
 
+  /**
+   * Delete a listing; its photos go back to the pool. Deleting is undoing —
+   * she listed the wrong photos, or the wrong way — and the photos are the
+   * expensive part, so they are kept, staged again, ready to list over.
+   *
+   * Pool rows first, item second: if the item delete then fails, the rows
+   * are taken back and nothing changed. The other order could leave the
+   * photos owned by nothing at all.
+   */
   async function remove(item: Item) {
     if (!confirm(t.confirmDelete)) return;
-    const { error } = await supabase.from("items").delete().eq("id", item.id);
-    if (error) return say(error.message);
 
-    // Row first on purpose: better an orphan blob than a listing pointing at a
-    // photo that is gone. The cost is that once the row is deleted these paths
-    // exist nowhere else, so a failure here strands them for good — say so
-    // instead of dropping it. They need the same reconciliation sweep the
-    // upload orphans do (see SETUP.md).
-    //
-    // Every path the listing owns, not just the cover of each unit: the
-    // unit_photos rows cascade away with the item, but their blobs do not, so
-    // a crib with five angles would strand eight files without unitPaths.
-    const paths = item.units.flatMap(unitPaths);
-    const gone = paths.length ? await supabase.storage.from("photos").remove(paths) : null;
+    // every photo the listing owns — each unit's own, and its extra views
+    const rows = item.units.flatMap((u) => [
+      { photo_path: u.photo_path, thumb_path: u.thumb_path },
+      ...(u.photos ?? []).map((p) => ({ photo_path: p.photo_path, thumb_path: p.thumb_path })),
+    ]).map((r) => ({ ...r, seller_id: profile.id }));
+
+    const { data: staged, error: stageErr } = rows.length
+      ? await supabase.from("staged_photos").insert(rows).select("id, photo_path, thumb_path, created_at")
+      : { data: [] as StagedPhoto[], error: null };
+    if (stageErr) return say(stageErr.message);
+
+    const { error } = await supabase.from("items").delete().eq("id", item.id);
+    if (error) {
+      await supabase.from("staged_photos").delete().in("id", (staged ?? []).map((s) => s.id));
+      return say(error.message);
+    }
+
     setItems((prev) => prev.filter((i) => i.id !== item.id));
-    if (gone?.error) say(t.photosNotDeleted);
+    setPool((p) => [...p, ...((staged ?? []) as StagedPhoto[])]);
+    say(t.itemDeleted);
   }
 
   async function removePhoto(photo: StagedPhoto) {
@@ -466,7 +480,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           // worth a mark; a partly-sold lot shows its count, available shows
           // nothing at all.
           return (
-            <button key={it.id} type="button"
+            <div key={it.id} className="gs-tile-wrap">
+            <button type="button"
               className={"gs-tile" + (gone ? " taken" : "")}
               onClick={() => setOpenId(it.id)}>
               <span className="gs-tile-photo">
@@ -501,6 +516,11 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                 </span>
               </span>
             </button>
+              {/* the same × as on a pool photo: the listing goes, the photos
+                  come back to the pool */}
+              <button type="button" className="gs-pick-del gs-tile-del" title={t.deleteItem}
+                aria-label={t.deleteItem} onClick={() => remove(it)}>×</button>
+            </div>
           );
         })}
       </div>
