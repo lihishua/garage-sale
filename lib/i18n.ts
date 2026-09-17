@@ -273,7 +273,8 @@ export const STR = {
     phoneSeller: "טלפון לוואטסאפ",
     phoneSellerHint: "לכאן יגיעו רשימות המשאלות. הקידומת נדרשת כי הקישור לוואטסאפ נבנה מהמספר הבינלאומי המלא.",
     address: "שם המכירה שיופיע בקישור",
-    addressHint: "כך ייראה הקישור שתשלחו: garagesaleonline.app/dana",
+    // the example follows what she types, so the hint is the link itself
+    addressHint: (slug: string) => `כך ייראה הקישור שתשלחו: garagesaleonline.app/${slug || "dana"}`,
     haveAccount: "כבר יש לי מכירה",
     noAccount: "עדיין אין לי מכירה",
     errEmail: "אימייל לא תקין.",
@@ -496,7 +497,7 @@ export const STR = {
     phoneSeller: "WhatsApp number",
     phoneSellerHint: "Wish lists land here. The country code is needed because the WhatsApp link is built from the full international number.",
     address: "The name your link will use",
-    addressHint: "This is the link you'll send: garagesaleonline.app/dana",
+    addressHint: (slug: string) => `This is the link you'll send: garagesaleonline.app/${slug || "dana"}`,
     haveAccount: "I already have a sale",
     noAccount: "I don't have a sale yet",
     errEmail: "That email doesn't look right.",

@@ -192,7 +192,7 @@ export default function LoginForm() {
             err={err.phone} hint={t.phoneSellerHint} />
           <Field label={t.address} value={f.slug}
             onChange={(v) => set("slug", v.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-            err={err.slug} hint={t.addressHint} placeholder="dana" ltr />
+            err={err.slug} hint={t.addressHint(f.slug)} placeholder="dana" ltr />
         </>
       )}
 
