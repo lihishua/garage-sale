@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { type Item, type StagedPhoto, type Unit } from "@/lib/types";
-import { Sheet, Field, TagPicker } from "@/components/ui";
+import { Sheet, Field, TagPicker, SizeFields } from "@/components/ui";
+import { EMPTY_SIZE, formatSize, sizeFilled, type Size } from "@/lib/size";
 
 /**
  * Turn the photos she picked in the pool into a listing.
@@ -49,7 +50,7 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
   const t = STR.he;
   const supabase = supabaseBrowser();
 
-  const [f, setF] = useState({ title: "", price: "", desc: "", size: "", tags: [] as string[] });
+  const [f, setF] = useState({ title: "", price: "", desc: "", size: EMPTY_SIZE as Size, tags: [] as string[] });
   // what the one price covers on a lot: each photo, or the whole pile
   const [priceFor, setPriceFor] = useState<"each" | "all">("each");
   const [mode, setMode] = useState<"one" | "many">("one");
@@ -60,6 +61,9 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
   const [said, setSaid] = useState("");        // whatever the server last complained about
   const [notes, setNotes] = useState<string[]>([]);  // what the save left behind
   const [done, setDone] = useState(false);     // the item exists; never create a second one
+  // one or two measurements of three: asked about, not refused
+  const [askSize, setAskSize] = useState(false);
+  const sizeRef = useRef<HTMLInputElement>(null);
 
   const multi = photos.length > 1;
   const many = multi && mode === "many";       // "one" is the only option when there is one photo
@@ -67,7 +71,8 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
 
   const set = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
 
-  async function submit() {
+  /** `sure` is her answer to the measurements question, when it was asked */
+  async function submit(sure = false) {
     // guards the whole run, and set before the first await: getUser() is a
     // round trip on a phone, and a second tap in that window would create the
     // listing twice
@@ -79,8 +84,9 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
     if (!f.title.trim()) e.title = t.errTitle;
     if (!free && (!f.price || Number(f.price) <= 0)) e.price = t.errPrice;
 
-    if (isFurniture && !f.size.trim()) e.size = t.errSize;
+    if (isFurniture && sizeFilled(f.size) === 0) e.size = t.errSize;
     if (Object.keys(e).length) { setErr(e); return; }
+    if (isFurniture && sizeFilled(f.size) < 3 && !sure) { setErr({}); setAskSize(true); return; }
 
     setErr({}); setSaid(""); setNotes([]); setBusy(true);
 
@@ -96,7 +102,7 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
       // a single thing's price is for that thing; only a lot has the question
       price_for: many ? priceFor : "each",
       tags: f.tags,
-      measurements: isFurniture ? f.size.trim() : null,
+      measurements: isFurniture ? formatSize(f.size) : null,
     }).select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at").single();
 
     if (itemErr || !item) {
@@ -285,8 +291,8 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
         onMade={onTagMade} onDropped={onTagDropped} />
 
       {isFurniture && (
-        <Field label={t.measurements} value={f.size} onChange={(v) => set("size", v)}
-          err={err.size} placeholder={t.sizePh} hint={t.sizeHint} ltr />
+        <SizeFields value={f.size} err={err.size} firstRef={sizeRef}
+          onChange={(v) => { set("size", v); setAskSize(false); }} />
       )}
 
       {notes.map((n) => <span key={n} className="gs-err">{n}</span>)}
@@ -294,8 +300,16 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
 
       {done ? (
         <button className="gs-btn gs-btn-cream gs-btn-wide" onClick={onClose}>{t.close}</button>
+      ) : askSize ? (
+        <div className="gs-ask">
+          <p>{t.sizeAsk}</p>
+          <div className="gs-ask-btns">
+            <button className="gs-btn gs-btn-orange" onClick={() => { setAskSize(false); submit(true); }}>{t.sizeAskYes}</button>
+            <button className="gs-btn" onClick={() => { setAskSize(false); sizeRef.current?.focus(); }}>{t.sizeAskNo}</button>
+          </div>
+        </div>
       ) : (
-        <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={submit} disabled={busy}>
+        <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => submit()} disabled={busy}>
           {busy ? t.uploading : t.postIt}
         </button>
       )}

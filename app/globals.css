@@ -257,6 +257,15 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-pricerow .gs-chip{flex:none}
 .gs-chip:disabled{opacity:.5;cursor:default}
 
+/* furniture: three short numbers in a row, each box naming its own */
+.gs-size{display:flex;gap:8px}
+.gs-size-in{flex:1;min-width:0;text-align:center;padding-inline:6px}
+/* the measurements question, standing where the button was */
+.gs-ask{background:var(--cream);border-radius:10px;padding:12px 14px;margin-top:8px}
+.gs-ask p{margin:0 0 10px;font-weight:700}
+.gs-ask-btns{display:flex;gap:8px}
+.gs-ask-btns .gs-btn{flex:1}
+
 /* the two-way switch under a lot's price: what the number covers */
 .gs-seg{display:flex;border:1px solid var(--ink);border-radius:9px;overflow:hidden;background:#fff}
 .gs-seg-opt{flex:1;text-align:center;padding:9px 8px;font-size:17px;cursor:pointer;

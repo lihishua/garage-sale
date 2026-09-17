@@ -3,6 +3,7 @@ import React from "react";
 import { DIALS, flag } from "@/lib/countries";
 import { STR, TAG_LABEL, type Lang } from "@/lib/i18n";
 import { TAGS } from "@/lib/types";
+import { type Size } from "@/lib/size";
 
 export function Heart({ on }: { on: boolean }) {
   return (
@@ -97,6 +98,38 @@ export function Field({ label, value, onChange, placeholder, err, hint, type = "
       {hint && !err && <span className="gs-hint">{hint}</span>}
       {err && <span className="gs-err">{err}</span>}
     </label>
+  );
+}
+
+/**
+ * A piece of furniture's three numbers, side by side: width, length, depth.
+ * Each box names itself; the unit is understood. `firstRef` is for the form
+ * to put the cursor back here when she chooses to fix them.
+ */
+export function SizeFields({ value, onChange, err, firstRef, lang = "he" }: {
+  value: Size; onChange: (v: Size) => void; err?: string;
+  firstRef?: React.RefObject<HTMLInputElement>; lang?: Lang;
+}) {
+  const t = STR[lang];
+  const names = [t.sizeW, t.sizeL, t.sizeD];
+  const setAt = (i: number, v: string) => {
+    const next = [...value] as Size;
+    next[i] = v.replace(/\D/g, "").slice(0, 4);
+    onChange(next);
+  };
+  return (
+    <div className="gs-field">
+      <span className="gs-label">{t.measurements}</span>
+      <div className="gs-size">
+        {names.map((name, i) => (
+          <input key={name} ref={i === 0 ? firstRef : undefined}
+            className={"gs-input gs-size-in" + (err ? " bad" : "")} value={value[i]}
+            placeholder={name} aria-label={name} inputMode="numeric" pattern="[0-9]*"
+            onChange={(e) => setAt(i, e.target.value)} />
+        ))}
+      </div>
+      {err && <span className="gs-err">{err}</span>}
+    </div>
   );
 }
 

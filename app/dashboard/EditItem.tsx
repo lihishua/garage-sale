@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { type Item } from "@/lib/types";
-import { Sheet, Field, TagPicker } from "@/components/ui";
+import { Sheet, Field, TagPicker, SizeFields } from "@/components/ui";
+import { formatSize, parseSize, sizeFilled, type Size } from "@/lib/size";
 
 /**
  * Change what a listing says — and, while nobody has claimed any of it,
@@ -53,7 +54,7 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
     title: item.title,
     desc: item.description,
     price: item.price > 0 ? String(item.price) : "",
-    size: item.measurements ?? "",
+    size: parseSize(item.measurements) as Size,
     tags: item.tags,
   });
   // seeded from the item itself: price 0 is what למסירה means
@@ -67,15 +68,20 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
 
   const set = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
 
-  async function submit() {
+  const [askSize, setAskSize] = useState(false);
+  const sizeRef = useRef<HTMLInputElement>(null);
+
+  /** `sure` is her answer to the measurements question, when it was asked */
+  async function submit(sure = false) {
     if (busy) return;
 
     const e: Record<string, string> = {};
     if (!f.title.trim()) e.title = t.errTitle;
     if (!free && (!f.price || Number(f.price) <= 0)) e.price = t.errPrice;
 
-    if (isFurniture && !f.size.trim()) e.size = t.errSize;
+    if (isFurniture && sizeFilled(f.size) === 0) e.size = t.errSize;
     if (Object.keys(e).length) { setErr(e); return; }
+    if (isFurniture && sizeFilled(f.size) < 3 && !sure) { setErr({}); setAskSize(true); return; }
 
     setErr({}); setSaid(""); setBusy(true);
 
@@ -108,7 +114,7 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
       // retired; cleared so an old lot's leftover number cannot resurface
       bundle_price: null,
       tags: f.tags,
-      measurements: isFurniture ? f.size.trim() : null,
+      measurements: isFurniture ? formatSize(f.size) : null,
     }).eq("id", item.id)
       .select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at")
       .single();
@@ -201,15 +207,25 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
         onMade={onTagMade} onDropped={onTagDropped} />
 
       {isFurniture && (
-        <Field label={t.measurements} value={f.size} onChange={(v) => set("size", v)}
-          err={err.size} placeholder={t.sizePh} hint={t.sizeHint} ltr />
+        <SizeFields value={f.size} err={err.size} firstRef={sizeRef}
+          onChange={(v) => { set("size", v); setAskSize(false); }} />
       )}
 
       {said && <p className="gs-hint">{t.serverSaid} <span dir="ltr">{said}</span></p>}
 
-      <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={submit} disabled={busy}>
-        {busy ? t.saving : t.saveChanges}
-      </button>
+      {askSize ? (
+        <div className="gs-ask">
+          <p>{t.sizeAsk}</p>
+          <div className="gs-ask-btns">
+            <button className="gs-btn gs-btn-orange" onClick={() => { setAskSize(false); submit(true); }}>{t.sizeAskYes}</button>
+            <button className="gs-btn" onClick={() => { setAskSize(false); sizeRef.current?.focus(); }}>{t.sizeAskNo}</button>
+          </div>
+        </div>
+      ) : (
+        <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => submit()} disabled={busy}>
+          {busy ? t.saving : t.saveChanges}
+        </button>
+      )}
     </Sheet>
   );
 }
