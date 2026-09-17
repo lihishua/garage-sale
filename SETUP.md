@@ -19,8 +19,8 @@ Next.js 14 (App Router) + Supabase. Domain: **garagesaleonline.app**.
    bucket. Expect "Success. No rows returned".
 3. **Authentication → Providers → Email**: make sure it's enabled. There are no passwords
    here — signing in means a code emailed to the seller, which she types into the app.
-   The code's length is a project setting (**Email OTP Length**, 6-10); the form reads
-   whatever arrives rather than assuming a number.
+   Leave **Email OTP Length** at 6: the sign-in form is a six-digit box, and the email
+   template says "six digits".
 4. **Authentication → URL Configuration → Redirect URLs**: add
    `http://localhost:3000/**` and `https://garagesaleonline.app/**`.
    Without these, Supabase refuses to send anyone back to the site.

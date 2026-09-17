@@ -102,11 +102,8 @@ export default function LoginForm() {
    */
   async function verify() {
     if (busy || !sentTo) return;
-    // Supabase's email OTP length is a project setting, anywhere from 6 to 10
-    // digits. Pinning this to 6 rejected a valid code before it was ever sent
-    // for checking, so the length is the server's business, not this form's.
     const token = code.trim();
-    if (token.length < 6) { setErr({ code: t.errCode }); return; }
+    if (token.length !== 6) { setErr({ code: t.errCode }); return; }
     setErr({}); setBusy(true);
 
     const supabase = supabaseBrowser();
@@ -143,21 +140,25 @@ export default function LoginForm() {
 
   if (sentTo) {
     return (
-      <main className="gs-auth">
+      <main className="gs-auth gs-auth-code">
         <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
         <h1 className="gs-sheet-title">{t.linkSentTitle}</h1>
         <p className="gs-lead">{t.linkSentBody(sentTo)}</p>
         <p className="gs-note">{t.linkSentSpam}</p>
 
-        <Field label={t.codeLabel} value={code} err={err.code}
-          onChange={(v) => setCode(v.replace(/\D/g, "").slice(0, 10))}
-          placeholder="123456" ltr numeric />
+        {/* six digits, big and spaced out like the ones in the email — no
+            label, the box says what goes in it. Six is the project's OTP
+            length (SETUP.md step 3); the two must be changed together. */}
+        <input className={"gs-input gs-code" + (err.code ? " bad" : "")} value={code}
+          aria-label={t.codeLabel} placeholder="000000" dir="ltr"
+          inputMode="numeric" pattern="[0-9]*" maxLength={6} autoComplete="one-time-code"
+          onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} />
+        {err.code && <span className="gs-err">{err.code}</span>}
         <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={verify}
           disabled={busy || code.length < 6}>
           {busy ? t.loading : t.enterCode}
         </button>
 
-        <p className="gs-fine">{t.linkSentFine}</p>
         <button className="gs-btn gs-btn-wide" onClick={sendLink} disabled={busy}>
           {busy ? t.loading : t.resend}
         </button>

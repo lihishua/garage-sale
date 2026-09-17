@@ -441,6 +441,13 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* auth + landing */
 .gs-auth{max-width:420px;margin:0 auto;padding:40px 20px}
 .gs-auth .gs-logo{margin-bottom:26px}
+/* the code screen: one thing to do, so everything on it is centred */
+.gs-auth-code{text-align:center}
+.gs-auth-code .gs-note{border-inline-start:0;text-align:center}
+.gs-auth-code .gs-err{margin:-8px 0 12px}
+.gs-code{display:block;width:240px;max-width:100%;margin:18px auto 14px;text-align:center;
+  font-family:var(--hand);font-weight:300;font-size:34px;letter-spacing:.32em;padding:12px 0 12px .32em}
+.gs-code::placeholder{opacity:.25}
 .gs-tabs{display:flex;gap:8px;margin-bottom:20px}
 /* both tabs now name the thing they do, which is longer than "כניסה" was —
    tighter padding so the pair still fits one line on a phone */
