@@ -435,7 +435,8 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
   background:var(--ink);color:#fff;font-weight:400;font-size:18px;padding:11px 20px;
-  border-radius:26px;box-shadow:0 4px 16px rgba(27,24,21,.3)}
+  border-radius:26px;box-shadow:0 4px 16px rgba(27,24,21,.3);
+  text-align:center;max-width:calc(100vw - 32px);width:max-content}
 
 /* auth + landing */
 .gs-auth{max-width:420px;margin:0 auto;padding:40px 20px}

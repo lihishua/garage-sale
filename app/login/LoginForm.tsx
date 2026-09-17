@@ -25,6 +25,14 @@ export default function LoginForm() {
 
   const say = (m: string) => { setToast(m); setTimeout(() => setToast(null), 5000); };
 
+  // Supabase's own words, in hers. The one it says most is the send throttle
+  // ("For security purposes, you can only request this after 42 seconds"),
+  // which is a wait, not a failure, and is told as one with its number kept.
+  const sayAuthError = (m: string) => {
+    const wait = /after (\d+) seconds?/i.exec(m);
+    say(wait ? t.waitToResend(Number(wait[1])) : m);
+  };
+
   // the callback route sends failures back here rather than to a dead end
   useEffect(() => {
     const e = params.get("err");
@@ -55,8 +63,8 @@ export default function LoginForm() {
         email, options: { shouldCreateUser: false, emailRedirectTo },
       });
       setBusy(false);
-      if (error) return say(/not found|signups not allowed|invalid/i.test(error.message)
-        ? t.noSuchAccount : error.message);
+      if (error) return /not found|signups not allowed|invalid/i.test(error.message)
+        ? say(t.noSuchAccount) : sayAuthError(error.message);
       setSentTo(email);
       return;
     }
@@ -81,7 +89,7 @@ export default function LoginForm() {
       },
     });
     setBusy(false);
-    if (error) return say(error.message);
+    if (error) return sayAuthError(error.message);
     setSentTo(email);
   }
 
