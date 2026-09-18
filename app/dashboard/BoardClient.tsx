@@ -325,6 +325,10 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }
 
   const [turning, setTurning] = useState<string[]>([]);
+  // the turned thumbnail, straight from memory, shown the moment it exists:
+  // the upload behind it takes seconds on a phone and the eye should not
+  // have to wait for a CDN to serve back what the browser just drew
+  const [previews, setPreviews] = useState<Record<string, string>>({});
 
   /**
    * A quarter turn clockwise, saved: the photo is fetched back, turned,
@@ -341,6 +345,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       const res = await fetch(photoUrl(photo.photo_path));
       if (!res.ok) throw new Error(`fetch ${res.status}`);
       const out = await rotated(await res.blob());
+      setPreviews((m) => ({ ...m, [photo.id]: URL.createObjectURL(out.thumb) }));
 
       const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const fullPath = `${profile.id}/${stamp}.webp`;
@@ -363,8 +368,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       }
 
       setPool((p) => p.map((x) => (x.id === photo.id ? { ...x, photo_path: fullPath, thumb_path: thumbPath } : x)));
+      setTurning((s) => s.filter((id) => id !== photo.id));
+      // housekeeping, after the spinner stops: nothing waits on it
       await supabase.storage.from("photos").remove([photo.photo_path, photo.thumb_path]);
     } catch (e) {
+      // the preview was optimistic; the saved photo is still the old way up
+      setPreviews((m) => { const { [photo.id]: _, ...rest } = m; return rest; });
       say(t.rotateFailed);
     } finally {
       setTurning((s) => s.filter((id) => id !== photo.id));
@@ -452,7 +461,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           {pool.length > 0 && <p className="gs-earned"><b>{pool.length}</b></p>}
         </div>
         <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto}
-          onRotate={rotatePhoto} turning={turning} />
+          onRotate={rotatePhoto} turning={turning} previews={previews} />
 
         <button className="gs-btn gs-btn-cream gs-btn-wide"
           onClick={() => setUploading(true)}>{t.uploadPhotos}</button>

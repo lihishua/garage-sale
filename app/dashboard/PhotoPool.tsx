@@ -11,7 +11,7 @@ import type { StagedPhoto } from "@/lib/types";
  * order is load-bearing. The first photo picked becomes position 0, which is
  * the cover of the listing (or of its first unit).
  */
-export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate, turning }: {
+export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate, turning, previews }: {
   photos: StagedPhoto[];
   /**
    * Photos that are already part of a listing but are still sitting in the
@@ -33,6 +33,8 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
   onRotate: (photo: StagedPhoto) => void;
   /** ids of photos being turned right now: their buttons wait */
   turning: string[];
+  /** a just-turned thumbnail by photo id, from memory, ahead of the saved one */
+  previews: Record<string, string>;
 }) {
   const t = STR.he;
 
@@ -75,7 +77,7 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
               <button type="button" aria-pressed={at >= 0} disabled={used}
                 className={"gs-pick" + (at >= 0 ? " on" : "") + (used ? " used" : "")}
                 onClick={() => toggle(p.id)}>
-                <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
+                <img src={previews[p.id] ?? photoUrl(p.thumb_path)} alt="" loading="lazy" />
                 {at >= 0 && <span className="gs-pick-n">{at + 1}</span>}
                 {/* a durable mark, so she still knows after the message is gone */}
                 {used && <span className="gs-pick-tag">{t.alreadyListed}</span>}
