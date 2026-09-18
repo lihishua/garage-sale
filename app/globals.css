@@ -210,6 +210,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
 .gs-sheet-title{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0;line-height:1.25}
 .gs-sheet-title.hand{font-family:var(--hand);font-weight:300;font-size:19px;line-height:1.4}
+.gs-sheet-titles{min-width:0}
+/* the tags, right under the name they describe */
+.gs-sheet-sub{margin:2px 0 0;font-size:14px;letter-spacing:.06em;opacity:.45}
 /* a proper target: bordered circle, 36px — the sheet's close, and the × on a
    wish-list row. The mark inside is drawn (see XButton), never the character. */
 .gs-x{flex:none;width:36px;height:36px;display:grid;place-items:center;padding:0;
@@ -229,10 +232,14 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-confirm-btns{display:flex;gap:8px;justify-content:center}
 .gs-confirm-btns .gs-btn{flex:1;max-width:150px}
 .gs-confirm-more{display:block;margin:14px auto 0;font-size:15px}
-.gs-sheet-compact{max-width:380px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto}
+/* narrower than the form sheets, and everything under the photo centred
+   with it: it is a look at one thing, read down the middle */
+.gs-sheet-compact{max-width:340px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto;text-align:center}
 .gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
-.gs-sheet-compact .gs-sheet-head{margin-bottom:10px}
+.gs-sheet-compact .gs-sheet-head{margin-bottom:10px;text-align:start}
 .gs-sheet-compact .gs-detail-desc{font-size:17px;margin:6px 0}
+.gs-sheet-compact .gs-paid{justify-content:center}
+.gs-sheet-compact .gs-list-row{text-align:start}
 .gs-detail-photo{position:relative;border:1px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange);margin:0}

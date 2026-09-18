@@ -684,7 +684,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {zoom && <Lightbox src={zoom} alt={openItem?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
 
       {openItem && (
-        <Sheet title={openItem.title} hand compact onClose={() => setOpenId(null)}>
+        <Sheet title={openItem.title} hand compact onClose={() => setOpenId(null)}
+          sub={openItem.tags.length > 0 && openItem.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}>
           <div className="gs-detail-photo">
             <img src={photoUrl(openItem.units[0]?.thumb_path ?? "")} alt="" />
             {openItem.units[0] && (
@@ -694,9 +695,6 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           <p className="gs-detail-price">{priceOf(openItem.price)}</p>
           {openItem.measurements && (
             <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir={showSize(openItem.measurements).dir}>{showSize(openItem.measurements).text}</span></p>
-          )}
-          {openItem.tags.length > 0 && (
-            <p className="gs-detail-tags">{openItem.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}</p>
           )}
           {openItem.description && <p className="gs-detail-desc">{openItem.description}</p>}
 

@@ -93,15 +93,19 @@ export function Lightbox({ src, alt, onClose, closeLabel }:
   );
 }
 
-export function Sheet({ title, hand, compact, onClose, busy, children }:
-  { title: string; hand?: boolean; compact?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
+export function Sheet({ title, sub, hand, compact, onClose, busy, children }:
+  { title: string; /** a quiet line under the title — the item's tags */ sub?: React.ReactNode;
+    hand?: boolean; compact?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;
   return (
     <div className={"gs-scrim" + (compact ? " gs-scrim-mid" : "")} onClick={close}>
       <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "")} role="dialog" aria-label={title}
         onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
-          <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
+          <div className="gs-sheet-titles">
+            <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
+            {sub && <p className="gs-sheet-sub">{sub}</p>}
+          </div>
           <XButton onClick={close} disabled={busy} label="×" />
         </div>
         {children}
