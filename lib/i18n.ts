@@ -128,6 +128,7 @@ export const STR = {
     requestsEmpty: "עדיין כלום.",
     allItems: "כל הפריטים",
     markSold: "קיבלתי תשלום",
+    markGiven: "הפריט נמסר",
     backToStock: "חזרה למלאי",
     // a unit nobody has asked for yet — the same word as the פנוי chip, so the
     // board calls one state by one name. "מחכה למישהו" read as a fault.
@@ -373,6 +374,7 @@ export const STR = {
     requestsEmpty: "Nothing yet.",
     allItems: "All items",
     markSold: "Money changed hands",
+    markGiven: "Handed over",
     backToStock: "Back to stock",
     waiting: "up for grabs",
     heldFor: (n: string) => `held for ${n}`,

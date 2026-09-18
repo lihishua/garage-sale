@@ -213,19 +213,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
    * records the asking price. `after` runs once the status is written — a
    * single item closes its preview, a lot's rows stay for the next one.
    */
+  /* A free item has no sum to write down: no box, and the button says the
+     thing was handed over rather than paid for. */
   const paidRow = (i: Item, u: Unit, after?: () => void) => (
     <div className="gs-actions gs-paid" style={{ marginTop: 0 }}>
       {u.status !== "sold" && (
         <>
-          <span className="gs-paid-box">
-            <span className="gs-paid-cur">₪</span>
-            <input className="gs-input gs-paid-in" value={draftFor(i, u)} dir="ltr"
-              inputMode="numeric" pattern="[0-9]*" aria-label={t.paidPrice}
-              onChange={(e) => setPaidDraft((d) => ({ ...d, [u.id]: e.target.value.replace(/\D/g, "") }))} />
-          </span>
+          {i.price > 0 && (
+            <span className="gs-paid-box">
+              <span className="gs-paid-cur">₪</span>
+              <input className="gs-input gs-paid-in" value={draftFor(i, u)} dir="ltr"
+                inputMode="numeric" pattern="[0-9]*" aria-label={t.paidPrice}
+                onChange={(e) => setPaidDraft((d) => ({ ...d, [u.id]: e.target.value.replace(/\D/g, "") }))} />
+            </span>
+          )}
           <button className="gs-btn gs-btn-green gs-btn-sm"
-            onClick={async () => { await setUnitStatus(u.id, "sold", paidOf(i, u)); after?.(); }}>
-            {t.markSold}
+            onClick={async () => { await setUnitStatus(u.id, "sold", i.price > 0 ? paidOf(i, u) : 0); after?.(); }}>
+            {i.price > 0 ? t.markSold : t.markGiven}
           </button>
         </>
       )}
