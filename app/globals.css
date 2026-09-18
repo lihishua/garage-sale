@@ -15,7 +15,7 @@
 *{box-sizing:border-box}
 /* form controls do not inherit the page font — a browser gives them its own UI
    font unless told otherwise, which is how the ghost buttons ("יציאה",
-   "מחיקה", "עריכת פריט", "חזרה למכירה") and the sheet's × kept rendering in
+   "מחיקה", "עריכה", "חזרה למכירה") and the sheet's × kept rendering in
    the system face while everything around them changed. */
 button,input,textarea,select{font-family:inherit;color:inherit}
 /* iOS Safari also paints anything that looks like a phone number as a blue

@@ -171,7 +171,7 @@ export const STR = {
     errTitle: "תנו לזה שם.",
     errPrice: "שימו מספר.",
     errDesc: "כתבו באיזה מצב זה.",
-    errSize: "יש למלא מידות",
+    errSize: "יש למלא לפחות מידה אחת בהוספת תגית ״ריהוט״",
     sizeW: "רוחב", sizeL: "גובה", sizeD: "עומק",
     // one or two of the three: a question, not a wall
     sizeAsk: "עדיף לכתוב את כל המידות. להמשיך בכל זאת?",
@@ -228,7 +228,7 @@ export const STR = {
     soldBand: "נמכר",
     onlyAvailable: "רק מה שפנוי",
     allSold: "הכל נמכר",
-    editItem: "עריכת פריט",
+    editItem: "עריכה",
     saveChanges: "שמירת שינויים",
     saving: "שומר…",
     itemUpdated: "השינויים נשמרו.",
