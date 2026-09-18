@@ -114,7 +114,6 @@ export const STR = {
     backToSale: "חזרה למכירה",
     startMine: "לפתוח מכירת חצר משלי",
     // seller
-    boardTitle: "הלוח שלי",
     // two sections on the board: things she does, then what is happening
     sectionStatusH: "מצב המכירה",
     // what a buyer sees where a price would be, and what the seller ticks
@@ -140,7 +139,7 @@ export const STR = {
     reqRemoved: "הבקשה הוסרה, והפריטים חזרו למכירה.",
     reqRemoveErr: "לא הצלחנו להסיר את הבקשה.",
     waReply: (buyer: string, seller: string) => `היי ${buyer}! כאן ${seller} בעניין מכירת החצר. מתי נוח לכם לאסוף?`,
-    myLink: "הקישור למכירה שלי",
+    myLink: "קישור למכירה שלי",
     copied: "הקישור הועתק",
     copy: "העתקה",
     signOut: "יציאה",
@@ -183,7 +182,7 @@ export const STR = {
     itemAdded: "הפריט עלה ללוח",
     // photo pool & units
     uploadPhotos: "העלאת תמונות",
-    poolTitle: "גלריית תמונות",
+    poolTitle: "תמונות",
     poolWaiting: (n: number) => (n === 1 ? "תמונה אחת ממתינה" : `${n} תמונות ממתינות`),
     poolEmpty: "אין כרגע תמונות שמחכות. העלו כמה כדי להתחיל.",
     selectPhotos: "בחרו תמונות",
@@ -360,7 +359,6 @@ export const STR = {
     someGone: "Some items were taken while you were deciding and have been dropped from your list.",
     backToSale: "Back to the sale",
     startMine: "Start my own garage sale",
-    boardTitle: "My board",
     sectionStatusH: "How the sale's going",
     free: "Free to a good home",
     freeToggle: "Free",
@@ -420,7 +418,7 @@ export const STR = {
     uploading: "Uploading…",
     itemAdded: "It's on the board",
     uploadPhotos: "Upload photos",
-    poolTitle: "Photo gallery",
+    poolTitle: "Photos",
     poolWaiting: (n: number) => `${n} photo${n > 1 ? "s" : ""} waiting`,
     poolEmpty: "No photos waiting right now. Upload a few to get started.",
     selectPhotos: "Select photos",

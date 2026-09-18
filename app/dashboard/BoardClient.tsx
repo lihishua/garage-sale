@@ -367,35 +367,37 @@ export default function BoardClient({ profile, items: initial, requests, holderR
 
   return (
     <main className="gs-wrap">
-      {/* Signing out belongs to the page, not to the photos — it sits on the
-          title row, outside the tinted panel, where it cannot read as one of
-          the controls for adding stock. */}
+      {/* The page's head is the logo, small, with signing out beside it —
+          outside the tinted panels, where it cannot read as one of the
+          controls for adding stock. */}
       <div className="gs-board-head">
-        <h1 className="gs-board-title">{t.boardTitle}</h1>
+        <img className="gs-board-logo" src="/logo.webp" alt="Garage Sale" />
         <button className="gs-btn-ghost gs-signout" onClick={async () => {
           await supabase.auth.signOut(); router.push("/login");
         }}>{t.signOut}</button>
       </div>
 
-      {/* Section one: everything about getting stock onto the board — her
-          words. The other two sections are what is happening to that stock. */}
-      <section className="gs-section gs-section-add">
-        <div className="gs-linkbar">
-          <b className="gs-linkbar-h">{t.myLink}</b>
-          {/* the link and the button that copies it are one thing, on their own
-              line — the heading above names them rather than sharing a row */}
-          <div className="gs-linkbar-row">
-            <code>{saleUrl}</code>
-            <button className="gs-btn gs-btn-sm" onClick={() => {
-              navigator.clipboard?.writeText(saleUrl); say(t.copied);
-            }}>{t.copy}</button>
-          </div>
+      {/* her link, on its own between the head and the sections: it is the
+          one thing here that leaves the board */}
+      <div className="gs-linkbar">
+        <b className="gs-linkbar-h">{t.myLink}</b>
+        {/* the link and the button that copies it are one thing, on their own
+            line — the heading above names them rather than sharing a row */}
+        <div className="gs-linkbar-row">
+          <code>{saleUrl}</code>
+          <button className="gs-btn gs-btn-sm" onClick={() => {
+            navigator.clipboard?.writeText(saleUrl); say(t.copied);
+          }}>{t.copy}</button>
         </div>
+      </div>
 
+      {/* Section one: the photos, and the way to add to them. The other two
+          sections are what is happening to that stock. */}
+      <section className="gs-section gs-section-add">
         {/* the gallery first, then the way to add to it: the button sits under
             what it fills, so the eye lands on the photos rather than on a
             control for photos it has not seen yet */}
-        <h3 className="gs-h2">{t.poolTitle}</h3>
+        <h2 className="gs-section-h" style={{ marginBottom: 12 }}>{t.poolTitle}</h2>
         <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto} />
 
         <button className="gs-btn gs-btn-cream gs-btn-wide"
