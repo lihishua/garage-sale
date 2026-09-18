@@ -412,9 +412,11 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-stat.on{background:var(--ink);color:#fff}
 .gs-stat-flat{cursor:default}
 @media (hover:hover){.gs-stat-flat:hover{background:#fff}}
-.gs-stat-face b{font-family:var(--hand);font-weight:300;font-size:17px;line-height:1}
-.gs-stat-face > span{font-size:15px;opacity:.75}
-.gs-stat.on .gs-stat-face > span{opacity:.85}
+/* the word is the chip; the count is a note beside it, small and quiet,
+   as on the buyer's tag chips */
+.gs-stat-face b{font-family:var(--hand);font-weight:300;font-size:14px;line-height:1;opacity:.6}
+.gs-stat-face > span{font-size:17px}
+.gs-stat.on .gs-stat-face b{opacity:.75}
 .gs-h2{font-family:var(--display);font-weight:var(--dw);font-size:20px;margin:28px 0 12px}
 .gs-reqs{display:grid;gap:12px}
 .gs-req{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;padding:13px}
