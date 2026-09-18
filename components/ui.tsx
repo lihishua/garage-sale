@@ -60,6 +60,39 @@ export function XButton({ onClick, disabled, label }:
 // the name on the card it was opened from.
 // `compact` is the preview size: a card floating over the page, centred,
 // rather than a panel that takes the width. For a look at one thing.
+/** the magnifying glass on a photo's corner: opens it full size */
+export function ZoomButton({ onClick, label }: { onClick: () => void; label: string }) {
+  return (
+    <button type="button" className="gs-zoom" onClick={onClick} aria-label={label} title={label}>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+        <circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.2" />
+        <path d="M15.5 15.5L20 20M8 10.5h5M10.5 8v5" fill="none" stroke="currentColor"
+          strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    </button>
+  );
+}
+
+/**
+ * One photo, full size, over everything: fitted to the screen, on a dark
+ * ground, and gone on a tap anywhere or Escape. Nothing else — the sheet
+ * under it keeps the words; this is only for looking closer.
+ */
+export function Lightbox({ src, alt, onClose, closeLabel }:
+  { src: string; alt: string; onClose: () => void; closeLabel: string }) {
+  React.useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return (
+    <div className="gs-lightbox" role="dialog" aria-label={alt} onClick={onClose}>
+      <img src={src} alt={alt} />
+      <XButton onClick={onClose} label={closeLabel} />
+    </div>
+  );
+}
+
 export function Sheet({ title, hand, compact, onClose, busy, children }:
   { title: string; hand?: boolean; compact?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;

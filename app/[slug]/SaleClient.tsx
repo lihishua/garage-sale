@@ -6,7 +6,7 @@ import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, useConfirm } from "@/components/ui";
+import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, useConfirm } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -61,6 +61,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // the open card is held by id, not by value, so the sheet keeps up with a
   // status that changed under it after a send
   const [openId, setOpenId] = useState<string | null>(null);
+  /** the photo being looked at full size, or none */
+  const [zoom, setZoom] = useState<string | null>(null);
   const [slide, setSlide] = useState(0);
   const [panel, setPanel] = useState<null | "wish" | "checkout" | "sent">(null);
   const [buyer, setBuyer] = useState({ name: "", phone: "" });
@@ -579,6 +581,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         </button>
       )}
 
+      {zoom && <Lightbox src={zoom} alt={open?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
+
       {open && cur && (
         <Sheet title={open.title} hand onClose={() => setOpenId(null)}>
           {/* Hearts belong to a מארז alone. There each photo is a separate
@@ -591,6 +595,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             <div className="gs-detail-photo">
               <img src={photoUrl(cur.path)} alt={open.title} />
             </div>
+            {/* the photo here is cropped to a short box; the glass shows the
+                whole of it, full size */}
+            <ZoomButton onClick={() => setZoom(photoUrl(cur.path))} label={t.zoomIn} />
             {standing(cur.unit) !== "free" ? (
               <span className="gs-band">{unitBand(cur.unit)}</span>
             ) : open.units.length > 1 && !whole(open) && (

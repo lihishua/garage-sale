@@ -10,7 +10,7 @@ import {
   availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
-import { StatChip, Toast, PrivacyNote, Sheet, useConfirm } from "@/components/ui";
+import { StatChip, Toast, PrivacyNote, Sheet, ZoomButton, Lightbox, useConfirm } from "@/components/ui";
 import UploadPhotos from "./UploadPhotos";
 import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
@@ -42,6 +42,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   // the tile she tapped, by id rather than by value, so marking a unit sold
   // inside the sheet is reflected in the sheet without closing it
   const [openId, setOpenId] = useState<string | null>(null);
+  /** the photo being looked at full size, or none */
+  const [zoom, setZoom] = useState<string | null>(null);
   // Photos that are in a listing yet still in the pool, because the create
   // succeeded and clearing the pool afterwards did not. Session-only, and that
   // is honest: on a reload the rows really are still staged, so the pool
@@ -679,10 +681,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {/* Tapping a tile opens this. It is the old card, whole — the unit list,
           the paid buttons, the nudge, edit, delete — in a place that can be as
           tall as it needs to be without dragging the grid with it. */}
+      {zoom && <Lightbox src={zoom} alt={openItem?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
+
       {openItem && (
         <Sheet title={openItem.title} hand compact onClose={() => setOpenId(null)}>
           <div className="gs-detail-photo">
             <img src={photoUrl(openItem.units[0]?.thumb_path ?? "")} alt="" />
+            {openItem.units[0] && (
+              <ZoomButton onClick={() => setZoom(photoUrl(openItem.units[0].photo_path))} label={t.zoomIn} />
+            )}
           </div>
           <p className="gs-detail-price">{priceOf(openItem.price)}</p>
           {openItem.measurements && (

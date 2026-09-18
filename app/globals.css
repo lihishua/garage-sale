@@ -110,6 +110,20 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;transition:transform .12s}
 .gs-heart:hover{transform:scale(1.12)}
 .gs-heart:disabled{opacity:.35;cursor:not-allowed}
+/* the magnifying glass: the heart's circle, on the other top corner */
+.gs-zoom{position:absolute;top:8px;inset-inline-start:8px;background:#fff;border:1px solid var(--ink);
+  border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;
+  color:var(--ink);transition:transform .12s;padding:0}
+.gs-zoom:hover{transform:scale(1.12)}
+/* the photo full size: over every sheet, fitted to the screen, the × in
+   the top corner where the sheet's is */
+.gs-lightbox{position:fixed;inset:0;z-index:80;background:rgba(27,24,21,.92);display:flex;
+  align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
+/* capped by the screen itself, not the box: the box would size to the
+   photo and the cap would have nothing to measure against */
+.gs-lightbox img{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);width:auto;height:auto;
+  object-fit:contain;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.gs-lightbox .gs-x{position:absolute;top:14px;inset-inline-end:14px}
 .gs-card-body{padding:9px 11px 11px}
 .gs-card-title{font-family:var(--hand);font-weight:300;font-size:15px;margin:0 0 5px;line-height:1.35}
 .gs-card-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
@@ -219,7 +233,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
 .gs-sheet-compact .gs-sheet-head{margin-bottom:10px}
 .gs-sheet-compact .gs-detail-desc{font-size:17px;margin:6px 0}
-.gs-detail-photo{border:1px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
+.gs-detail-photo{position:relative;border:1px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange);margin:0}
 /* "ליחידה", "נשארו 17", "₪25 לכל המארז" — the quiet half of a price */
