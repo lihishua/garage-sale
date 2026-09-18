@@ -93,13 +93,16 @@ export function Lightbox({ src, alt, onClose, closeLabel }:
   );
 }
 
-export function Sheet({ title, sub, hand, compact, onClose, busy, children }:
+export function Sheet({ title, sub, hand, compact, look, onClose, busy, children }:
   { title: string; /** a quiet line under the title — the item's tags */ sub?: React.ReactNode;
-    hand?: boolean; compact?: boolean; onClose: () => void; busy?: boolean; children: React.ReactNode }) {
+    hand?: boolean; compact?: boolean;
+    /** a look at one thing, not a form: what is under the photo is centred */ look?: boolean;
+    onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;
   return (
     <div className={"gs-scrim" + (compact ? " gs-scrim-mid" : "")} onClick={close}>
-      <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "")} role="dialog" aria-label={title}
+      <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "") + (look ? " gs-sheet-look" : "")}
+        role="dialog" aria-label={title}
         onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
           <div className="gs-sheet-titles">

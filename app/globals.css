@@ -240,6 +240,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-sheet-compact .gs-detail-desc{font-size:17px;margin:6px 0}
 .gs-sheet-compact .gs-paid{justify-content:center}
 .gs-sheet-compact .gs-list-row{text-align:start}
+/* the buyer's look at an item: the same, read down the middle */
+.gs-sheet-look{text-align:center}
+.gs-sheet-look .gs-sheet-head{text-align:start}
 .gs-detail-photo{position:relative;border:1px solid var(--ink);border-radius:10px;overflow:hidden;margin-bottom:14px}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange);margin:0}
@@ -258,7 +261,6 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-slide.gone .gs-detail-photo img{filter:grayscale(1);opacity:.55}
 .gs-detail-desc{font-size:19px;line-height:1.5;margin:8px 0;white-space:pre-wrap}
 .gs-detail-size{font-size:18px;background:var(--cream);border-radius:8px;padding:8px 12px;margin:10px 0}
-.gs-detail-tags{font-size:14px;letter-spacing:.06em;opacity:.45}
 .gs-note{background:var(--cream);border-inline-start:2px solid var(--mustard);border-radius:6px;
   padding:10px 13px;font-size:18px}
 

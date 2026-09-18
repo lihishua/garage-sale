@@ -584,7 +584,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       {zoom && <Lightbox src={zoom} alt={open?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
 
       {open && cur && (
-        <Sheet title={open.title} hand onClose={() => setOpenId(null)}>
+        <Sheet title={open.title} hand look onClose={() => setOpenId(null)}
+          sub={open.tags.length > 0 && open.tags.map((x) => tagLabel(x)).join(" · ")}>
           {/* Hearts belong to a מארז alone. There each photo is a separate
               thing to want, so each carries its own claim on its own unit.
               A single item or set is one decision however many angles it was
@@ -638,8 +639,6 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           {open.measurements && (
             <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir={showSize(open.measurements).dir}>{showSize(open.measurements).text}</span></p>
           )}
-          <p className="gs-detail-tags">{open.tags.map((x) => tagLabel(x)).join(" · ")}</p>
-
           {/* about the photo on screen, whichever kind of card this is */}
           {standing(cur.unit) !== "free" && (
             <p className="gs-note">
