@@ -92,14 +92,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
    The ink gap is the seam, matching the 1px ink borders everywhere else. The
    img rules undo .gs-photo img's square aspect-ratio, which would otherwise
    force every tile square and burst the grid. */
-.gs-collage{display:grid;gap:1px;background:var(--ink);aspect-ratio:1/1}
+.gs-collage{display:grid;gap:1px;background:var(--ink);aspect-ratio:1/1;overflow:hidden}
 .gs-collage img{width:100%;height:100%;min-width:0;min-height:0;aspect-ratio:auto;
   object-fit:cover;display:block}
-.gs-collage-2{grid-template-columns:1fr 1fr;grid-template-rows:1fr}
-.gs-collage-3{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+/* minmax(0,1fr), not 1fr: a bare 1fr row is at least as tall as its photo,
+   and iOS Safari sizes the photo by its own height there, so the grid grew
+   past the square and painted over the tile's name and price */
+.gs-collage-2{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr)}
+.gs-collage-3{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
 .gs-collage-3 > :first-child{grid-row:span 2}
-.gs-collage-4{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
-.gs-collage-9{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}
+.gs-collage-4{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
+.gs-collage-9{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,minmax(0,1fr))}
 .gs-band{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-5deg);
   font-size:14px;background:var(--mustard);border:1px solid var(--ink);
   border-radius:4px;padding:3px 9px;white-space:nowrap}
@@ -453,7 +456,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-tile.taken{opacity:.6}
 .gs-tile-photo{position:relative;display:block;aspect-ratio:1;background:var(--cream)}
 .gs-tile-photo img{width:100%;height:100%;object-fit:cover;display:block}
-.gs-tile-photo .gs-collage{position:absolute;inset:0;aspect-ratio:auto}
+/* the collage sizes itself square, like the buyer's card — not stretched
+   over the box with inset:0, which iOS Safari let grow past it */
+.gs-tile-photo .gs-collage{width:100%}
 /* sold: a small green check in the corner. The one state that earns a mark,
    because it is the one she is scanning the grid for. */
 .gs-tile-sold{position:absolute;inset-block-start:7px;inset-inline-end:7px;width:24px;height:24px;
