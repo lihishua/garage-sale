@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
+import { showSize } from "@/lib/size";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
 import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, useConfirm } from "@/components/ui";
 
@@ -517,7 +518,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                         {/* furniture: the numbers a buyer measures her room
                             against, on the card, before she taps anything */}
                         {it.measurements && (
-                          <p className="gs-card-size" dir="ltr">{it.measurements}</p>
+                          <p className="gs-card-size" dir={showSize(it.measurements).dir}>{showSize(it.measurements).text}</p>
                         )}
                         {/* on its own line rather than sharing one with the
                             count: a lot showed the count *instead of* its tags,
@@ -627,7 +628,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           )}
           <p className="gs-detail-desc">{open.description}</p>
           {open.measurements && (
-            <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir="ltr">{open.measurements}</span></p>
+            <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir={showSize(open.measurements).dir}>{showSize(open.measurements).text}</span></p>
           )}
           <p className="gs-detail-tags">{open.tags.map((x) => tagLabel(x)).join(" · ")}</p>
 

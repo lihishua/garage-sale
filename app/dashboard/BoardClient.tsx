@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
+import { showSize } from "@/lib/size";
 import {
   availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
@@ -602,6 +603,10 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                     <span className="gs-tile-meta">{t.unitsLeft(availableUnits(it).length)}</span>
                   )}
                 </span>
+                {/* furniture: the measurements on the tile, as on the buyer's card */}
+                {it.measurements && (
+                  <span className="gs-tile-size" dir={showSize(it.measurements).dir}>{showSize(it.measurements).text}</span>
+                )}
               </span>
             </button>
               {/* the same × as on a pool photo: the listing goes, the photos
@@ -681,7 +686,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           </div>
           <p className="gs-detail-price">{priceOf(openItem.price)}</p>
           {openItem.measurements && (
-            <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir="ltr">{openItem.measurements}</span></p>
+            <p className="gs-detail-size"><b>{t.measurements}</b> · <span dir={showSize(openItem.measurements).dir}>{showSize(openItem.measurements).text}</span></p>
           )}
           {openItem.tags.length > 0 && (
             <p className="gs-detail-tags">{openItem.tags.map((x) => TAG_LABEL[x]?.he ?? x).join(" · ")}</p>

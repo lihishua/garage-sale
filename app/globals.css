@@ -462,6 +462,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-tile-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-top:3px}
 .gs-tile-meta{font-size:13px;opacity:.55;white-space:nowrap}
+.gs-tile-size{display:block;font-family:var(--hand);font-weight:300;font-size:13px;opacity:.7;margin-top:3px;text-align:end}
 
 /* the sheet's foot: edit and delete, apart from the paid buttons above them */
 .gs-sheet-foot{display:flex;justify-content:space-between;gap:12px;margin-top:18px;
