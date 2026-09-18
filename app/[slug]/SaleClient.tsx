@@ -442,15 +442,16 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                 </Chip>
               ))}
             </div>
-            {/* filters the same grid as the chips, but it is a setting, not one
-                of the choices — so a switch, on its own line under them */}
-            <label className="gs-switch">
-              <input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
-              <span className="gs-switch-knob" aria-hidden="true" />
-              <span>{t.onlyAvailable}</span>
-            </label>
-
+            {/* one line of settings under the chips: the "only available"
+                switch at the start, the sort at the end. The switch filters
+                the same grid as the chips, but it is a setting, not one of
+                the choices, so it is not among them */}
             <div className="gs-sortbar">
+              <label className="gs-switch">
+                <input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
+                <span className="gs-switch-knob" aria-hidden="true" />
+                <span>{t.onlyAvailable}</span>
+              </label>
               <label className="gs-sort">
                 <span>{t.sort}</span>
                 <select value={sort} onChange={(e) => setSort(e.target.value)}>
