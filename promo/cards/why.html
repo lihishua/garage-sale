@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<meta charset="utf-8">
+<title>למה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Playpen+Sans+Hebrew:wght@300&family=Heebo:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  /* the app's own palette and type, so the video reads as the app */
+  :root{--ink:#1B1815;--paper:#FCFBF7;--cream:#F2EBD9;--line:#D8D2C4;--orange:#EE5A2A;--mustard:#F7BC45;
+    --butter:#FBE3A4;--lime:#9ACB3B;--sky:#5C9FCC;--grape:#9179C2;--pink:#E0336B;
+    --body:'Amatic SC','Heebo',sans-serif;--hand:'Playpen Sans Hebrew','Heebo',sans-serif}
+  html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:var(--paper);color:var(--ink);
+    font-family:var(--body)}
+  .stage{position:relative;width:1080px;height:1920px}
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:0 90px;box-sizing:border-box;opacity:0;transition:opacity .45s}
+  .scene.on{opacity:1}
+  .logo{width:620px;height:auto}
+  .tag{font-family:var(--hand);font-weight:300;font-size:64px;margin:70px 0 0;text-align:center;line-height:1.35}
+  /* a card: white on the paper, ink border, like an item card on the board */
+  .card{background:#fff;border:3px solid var(--ink);border-radius:36px;padding:70px 64px;width:100%;
+    box-sizing:border-box;text-align:center;box-shadow:0 30px 80px rgba(27,24,21,.12);
+    transform:translateY(40px);transition:transform .5s cubic-bezier(.2,.8,.2,1)}
+  .scene.on .card{transform:none}
+  .card h1{font-family:var(--body);font-weight:700;font-size:118px;line-height:1.05;margin:0 0 30px}
+  .card p{font-family:var(--hand);font-weight:300;font-size:52px;line-height:1.45;margin:0;opacity:.8}
+  .glyph{width:220px;height:220px;margin:0 auto 40px;border-radius:50%;display:grid;place-items:center;
+    border:3px solid var(--ink)}
+  .glyph svg{width:120px;height:120px}
+  .url{font-family:var(--hand);font-weight:300;font-size:62px;margin:50px 0 0;color:var(--orange);direction:ltr}
+  .strip{display:flex;gap:18px;justify-content:center;margin-top:40px;flex-wrap:wrap}
+  .chip{font-family:var(--body);font-size:46px;border:3px solid var(--ink);border-radius:60px;padding:10px 34px;background:var(--cream)}
+</style>
+<div class="stage">
+  <section class="scene" id="s1">
+    <img class="logo" src="logo.webp" alt="Garage Sale">
+    <p class="tag">מכירת חצר. בלי החצר.</p>
+  </section>
+
+  <section class="scene" id="s2">
+    <div class="card">
+      <div class="glyph" style="background:var(--butter)">
+        <!-- an empty chair -->
+        <svg viewBox="0 0 64 64" fill="none" stroke="#1B1815" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 10h20v22H18zM14 32h32M18 32v20M46 32v20M18 44h28"/></svg>
+      </div>
+      <h1>לא מחכים לאף אחד</h1>
+      <p>לא צריך להוציא הכל החוצה<br>ולקוות שמישהו יבוא</p>
+    </div>
+  </section>
+
+  <section class="scene" id="s3">
+    <div class="card">
+      <div class="glyph" style="background:#DCEBF6">
+        <!-- rain -->
+        <svg viewBox="0 0 64 64" fill="none" stroke="#1B1815" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 34a10 10 0 0 1 1-20 13 13 0 0 1 25 3 9 9 0 0 1 0 17z"/><path d="M22 42l-3 8M32 42l-3 8M42 42l-3 8"/></svg>
+      </div>
+      <h1>המכירה נמשכת</h1>
+      <p>אף אחד לא מפספס</p>
+      <div class="strip"><span class="chip">גם בגשם</span><span class="chip">גם מרחוק</span><span class="chip">מתי שנוח</span></div>
+    </div>
+  </section>
+
+  <section class="scene" id="s4">
+    <div class="card">
+      <div class="glyph" style="background:#E3F0C9">
+        <!-- a check -->
+        <svg viewBox="0 0 64 64" fill="none" stroke="#1B1815" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 34l12 12 24-26"/></svg>
+      </div>
+      <h1>מוסיפים תוך כדי</h1>
+      <p>ורואים בדיוק מה נמכר</p>
+    </div>
+  </section>
+
+  <section class="scene" id="s5">
+    <img class="logo" src="logo.webp" alt="Garage Sale">
+    <p class="url">garagesaleonline.app</p>
+  </section>
+</div>
+<script>
+  // the recorder calls show(n) on the beat of each narrated line
+  window.show = (n) => document.querySelectorAll('.scene').forEach((s, i) => s.classList.toggle('on', i === n));
+</script>
+</html>

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<meta charset="utf-8">
+<title>איך</title>
+<link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Playpen+Sans+Hebrew:wght@300&family=Heebo:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#1B1815;--paper:#FCFBF7;--cream:#F2EBD9;--orange:#EE5A2A;--butter:#FBE3A4;
+    --body:'Amatic SC','Heebo',sans-serif;--hand:'Playpen Sans Hebrew','Heebo',sans-serif}
+  html,body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body)}
+  /* full-frame title cards */
+  .stage{position:relative;width:1080px;height:1920px;overflow:hidden}
+  .scene{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center}
+  .scene.on{display:flex}
+  .logo{width:620px}
+  .tag{font-family:var(--body);font-weight:700;font-size:110px;margin:60px 0 0;line-height:1.1}
+  .url{font-family:var(--hand);font-weight:300;font-size:62px;margin:40px 0 0;color:var(--orange);direction:ltr}
+  .sub{font-family:var(--hand);font-weight:300;font-size:56px;margin:50px 0 0;opacity:.85}
+  /* the caption bar: 1080×260, transparent, one line of Amatic over the phone */
+  .cap{width:1080px;height:260px;display:none;align-items:center;justify-content:center;text-align:center;
+    padding:0 60px;box-sizing:border-box;background:transparent}
+  .cap.on{display:flex}
+  .cap span{font-family:var(--body);font-weight:700;font-size:82px;line-height:1.1}
+  .cap b{color:var(--orange);font-weight:700}
+  /* the phone's rounded outline, for the mask and the frame */
+  .mask{width:780px;height:1560px;border-radius:44px;background:#000;display:none}
+  .mask.on{display:block}
+</style>
+<div class="stage" id="stage">
+  <section class="scene" id="start"><img class="logo" src="logo.webp" alt=""><p class="tag">ככה זה עובד</p></section>
+  <section class="scene" id="end"><img class="logo" src="logo.webp" alt=""><p class="sub">תתחילו מכירה</p><p class="url">garagesaleonline.app</p></section>
+</div>
+<div class="cap" id="cap1"><span>מצלמים <b>ומעלים</b></span></div>
+<div class="cap" id="cap2"><span>שם ומחיר — או <b>"למסירה"</b></span></div>
+<div class="cap" id="cap3"><span>מקבלים <b>קישור</b> ושולחים לקבוצות</span></div>
+<div class="cap" id="cap4"><span>הקונים <b>בוחרים</b>…</span></div>
+<div class="cap" id="cap5"><span>…ושולחים לכם <b>וואטסאפ</b>. הפריט נשמר להם</span></div>
+<div class="cap" id="cap6"><span>מסרתם? <b>סימון אחד</b> — והלוח מעודכן</span></div>
+<div class="mask" id="mask"></div>
+</html>

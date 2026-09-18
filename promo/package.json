@@ -1,0 +1,6 @@
+{
+  "name": "garage-sale-promo",
+  "private": true,
+  "description": "The promo videos: title cards, scripted screen recordings, and the ffmpeg assembly. Not part of the app.",
+  "devDependencies": { "playwright": "^1.50.0" }
+}
