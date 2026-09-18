@@ -497,6 +497,12 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   padding:0;display:grid;place-items:center;background:#fff;border:1px solid var(--ink);
   border-radius:50%;cursor:pointer;font-size:18px;line-height:1;font-weight:700;color:var(--ink)}
 @media (hover:hover){.gs-pick-del:hover{background:var(--pink);color:#fff;border-color:var(--pink)}}
+/* the turn button, at the tile's bottom corner; waiting, it spins */
+.gs-pick-rot{inset-block-start:auto;inset-block-end:6px;font-size:0}
+@media (hover:hover){.gs-pick-rot:hover{background:var(--cream);color:var(--ink);border-color:var(--ink)}}
+.gs-pick-rot.busy svg{animation:gs-spin .9s linear infinite}
+.gs-pick-rot:disabled{cursor:default}
+@keyframes gs-spin{to{transform:rotate(360deg)}}
 /* on a board tile: the other top corner, since the sold check has this one */
 .gs-tile-wrap{position:relative}
 .gs-tile-del{inset-inline-end:auto;inset-inline-start:6px}

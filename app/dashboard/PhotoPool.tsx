@@ -11,7 +11,7 @@ import type { StagedPhoto } from "@/lib/types";
  * order is load-bearing. The first photo picked becomes position 0, which is
  * the cover of the listing (or of its first unit).
  */
-export default function PhotoPool({ photos, listed, onCreate, onDelete }: {
+export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate, turning }: {
   photos: StagedPhoto[];
   /**
    * Photos that are already part of a listing but are still sitting in the
@@ -29,6 +29,10 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete }: {
    * the board.
    */
   onDelete: (photo: StagedPhoto) => void;
+  /** turns the photo a quarter clockwise, for good — see BoardClient */
+  onRotate: (photo: StagedPhoto) => void;
+  /** ids of photos being turned right now: their buttons wait */
+  turning: string[];
 }) {
   const t = STR.he;
 
@@ -78,10 +82,24 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete }: {
               </button>
               {/* not offered on a `used` tile — see onDelete's doc above */}
               {!used && (
-                <button type="button" className="gs-pick-del" title={t.deletePhoto}
-                  aria-label={t.deletePhoto} onClick={() => onDelete(p)}>
-                  ×
-                </button>
+                <>
+                  <button type="button" className="gs-pick-del" title={t.deletePhoto}
+                    aria-label={t.deletePhoto} onClick={() => onDelete(p)}>
+                    ×
+                  </button>
+                  {/* the other corner: a quarter turn per tap, for the book
+                      that was photographed lying down */}
+                  <button type="button" className={"gs-pick-del gs-pick-rot" + (turning.includes(p.id) ? " busy" : "")}
+                    title={t.rotatePhoto} aria-label={t.rotatePhoto}
+                    disabled={turning.includes(p.id)} onClick={() => onRotate(p)}>
+                    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                      <path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="currentColor"
+                        strokeWidth="2.4" strokeLinecap="round" />
+                      <path d="M17 3v4.5h-4.5" fill="none" stroke="currentColor"
+                        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                </>
               )}
             </div>
           );

@@ -50,6 +50,38 @@ async function scaleTo(d: Decoded, maxW: number, quality: number): Promise<Blob>
 
 export type Prepared = { full: Blob; thumb: Blob; width: number };
 
+/**
+ * The saved photo, turned a quarter turn clockwise: both sizes again, from
+ * the full-size file. For the book photographed lying on its side — the
+ * EXIF note only knows which way the phone was held, not which way the
+ * thing in front of it was.
+ */
+export async function rotated(full: Blob): Promise<Prepared> {
+  const d = await decode(new File([full], "full.webp", { type: full.type || "image/webp" }));
+  try {
+    const turn = (maxW: number, quality: number): Promise<Blob> => {
+      // the long side becomes the short one, so the cap is on the turned width
+      const scale = Math.min(1, maxW / d.height);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(d.height * scale);
+      canvas.height = Math.round(d.width * scale);
+      const ctx = canvas.getContext("2d")!;
+      ctx.imageSmoothingQuality = "high";
+      ctx.translate(canvas.width, 0);
+      ctx.rotate(Math.PI / 2);
+      ctx.drawImage(d.src, 0, 0, canvas.height, canvas.width);
+      return new Promise((resolve, reject) =>
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/webp", quality)
+      );
+    };
+    const fullOut = await turn(1400, 0.82);
+    const thumb = await turn(320, 0.74);
+    return { full: fullOut, thumb, width: d.height };
+  } finally {
+    d.close();
+  }
+}
+
 /** throws "too_small" if the original is below the quality bar */
 export async function prepare(file: File): Promise<Prepared> {
   const d = await decode(file);

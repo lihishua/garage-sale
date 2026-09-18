@@ -240,6 +240,8 @@ export const STR = {
         ? `נמכרה אחת מתוך ${total} במארז הזה. אולי כדאי לעדכן את המחיר?`
         : `נמכרו ${sold} מתוך ${total} במארז הזה. אולי כדאי לעדכן את המחיר?`,
     deletePhoto: "מחיקת תמונה",
+    rotatePhoto: "סיבוב התמונה",
+    rotateFailed: "הסיבוב לא הצליח. נסו שוב.",
     photoCount: (n: number) => (n === 1 ? "תמונה אחת" : `${n} תמונות`),
     // a chip up top counts units ("12 פנוי"); the grid below it counts cards.
     // both numbers are true, but side by side they read as a bug — this ties
@@ -468,6 +470,8 @@ export const STR = {
     kindLocked: "The kind can't change: someone has already asked for or bought part of it.",
     bundleNudge: (sold: number, total: number) => `${sold} of ${total} sold from this lot. Maybe update the price?`,
     deletePhoto: "Delete photo",
+    rotatePhoto: "Rotate photo",
+    rotateFailed: "Couldn't rotate it. Try again.",
     photoCount: (n: number) => `${n} photo${n > 1 ? "s" : ""}`,
     matchCount: (n: number) => (n === 1 ? "out of 1 item" : `out of ${n} items`),
     signIn: "Sign in to my sale",

@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
+import { rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import {
   availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
@@ -323,6 +324,53 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     say(gone?.error ? t.photosNotDeleted : t.itemAndPhotosDeleted);
   }
 
+  const [turning, setTurning] = useState<string[]>([]);
+
+  /**
+   * A quarter turn clockwise, saved: the photo is fetched back, turned,
+   * both sizes uploaded under new names, and the row pointed at them. New
+   * names rather than overwriting, because the old ones are cached in every
+   * browser that has seen the pool — the same path would show the old
+   * photo until the cache gave up. The old files go last; if that fails the
+   * photo is still right and only a stray file is left behind.
+   */
+  async function rotatePhoto(photo: StagedPhoto) {
+    if (turning.includes(photo.id)) return;
+    setTurning((s) => [...s, photo.id]);
+    try {
+      const res = await fetch(photoUrl(photo.photo_path));
+      if (!res.ok) throw new Error(`fetch ${res.status}`);
+      const out = await rotated(await res.blob());
+
+      const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const fullPath = `${profile.id}/${stamp}.webp`;
+      const thumbPath = `${profile.id}/${stamp}-thumb.webp`;
+      const opts = { contentType: "image/webp" };
+      const [up1, up2] = await Promise.all([
+        supabase.storage.from("photos").upload(fullPath, out.full, opts),
+        supabase.storage.from("photos").upload(thumbPath, out.thumb, opts),
+      ]);
+      if (up1.error || up2.error) {
+        await supabase.storage.from("photos").remove([fullPath, thumbPath]);
+        throw new Error((up1.error ?? up2.error)!.message);
+      }
+
+      const { error } = await supabase.from("staged_photos")
+        .update({ photo_path: fullPath, thumb_path: thumbPath }).eq("id", photo.id);
+      if (error) {
+        await supabase.storage.from("photos").remove([fullPath, thumbPath]);
+        throw new Error(error.message);
+      }
+
+      setPool((p) => p.map((x) => (x.id === photo.id ? { ...x, photo_path: fullPath, thumb_path: thumbPath } : x)));
+      await supabase.storage.from("photos").remove([photo.photo_path, photo.thumb_path]);
+    } catch (e) {
+      say(t.rotateFailed);
+    } finally {
+      setTurning((s) => s.filter((id) => id !== photo.id));
+    }
+  }
+
   async function removePhoto(photo: StagedPhoto) {
     if (!(await ask(t.confirmDeletePhoto))) return;
     const { error } = await supabase.from("staged_photos").delete().eq("id", photo.id);
@@ -403,7 +451,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           <h2 className="gs-section-h">{t.poolTitle}</h2>
           {pool.length > 0 && <p className="gs-earned"><b>{pool.length}</b></p>}
         </div>
-        <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto} />
+        <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto}
+          onRotate={rotatePhoto} turning={turning} />
 
         <button className="gs-btn gs-btn-cream gs-btn-wide"
           onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
