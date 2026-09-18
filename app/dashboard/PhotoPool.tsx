@@ -85,18 +85,24 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
                 <>
                   <button type="button" className="gs-pick-del" title={t.deletePhoto}
                     aria-label={t.deletePhoto} onClick={() => onDelete(p)}>
-                    ×
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor"
+                        strokeWidth="3.2" strokeLinecap="round" />
+                    </svg>
                   </button>
                   {/* the other corner: a quarter turn per tap, for the book
                       that was photographed lying down */}
                   <button type="button" className={"gs-pick-del gs-pick-rot" + (turning.includes(p.id) ? " busy" : "")}
                     title={t.rotatePhoto} aria-label={t.rotatePhoto}
                     disabled={turning.includes(p.id)} onClick={() => onRotate(p)}>
-                    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-                      <path d="M19 12a7 7 0 1 1-2.05-4.95" fill="none" stroke="currentColor"
-                        strokeWidth="2.4" strokeLinecap="round" />
-                      <path d="M17 3v4.5h-4.5" fill="none" stroke="currentColor"
-                        strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+                    {/* two arrows chasing round a circle, clockwise */}
+                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                      <path d="M8 18.93A8 8 0 0 1 8.62 4.75" fill="none" stroke="currentColor"
+                        strokeWidth="2.3" strokeLinecap="round" />
+                      <path d="M11.52 3.4L9.72 7.11L7.52 2.39z" fill="currentColor" />
+                      <path d="M16 5.07A8 8 0 0 1 15.38 19.25" fill="none" stroke="currentColor"
+                        strokeWidth="2.3" strokeLinecap="round" />
+                      <path d="M12.48 20.6L14.28 16.89L16.48 21.61z" fill="currentColor" />
                     </svg>
                   </button>
                 </>

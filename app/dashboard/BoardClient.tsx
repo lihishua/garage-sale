@@ -600,7 +600,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               {/* the same × as on a pool photo: the listing goes, the photos
                   come back to the pool */}
               <button type="button" className="gs-pick-del gs-tile-del" title={t.deleteItem}
-                aria-label={t.deleteItem} onClick={() => remove(it)}>×</button>
+                aria-label={t.deleteItem} onClick={() => remove(it)}>
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor"
+                    strokeWidth="3.2" strokeLinecap="round" />
+                </svg>
+              </button>
             </div>
           );
         })}
