@@ -62,8 +62,6 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete }: {
 
   return (
     <>
-      <p className="gs-lead">{t.poolWaiting(photos.length)}</p>
-
       <div className="gs-pool">
         {photos.map((p) => {
           const used = listed.includes(p.id);

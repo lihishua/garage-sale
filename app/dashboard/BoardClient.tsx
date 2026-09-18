@@ -397,7 +397,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         {/* the gallery first, then the way to add to it: the button sits under
             what it fills, so the eye lands on the photos rather than on a
             control for photos it has not seen yet */}
-        <h2 className="gs-section-h" style={{ marginBottom: 12 }}>{t.poolTitle}</h2>
+        {/* the count sits with the heading, the way what came in sits with
+            the sales heading: a number, not a sentence */}
+        <div className="gs-status-head">
+          <h2 className="gs-section-h">{t.poolTitle}</h2>
+          {pool.length > 0 && <p className="gs-earned"><b>{pool.length}</b></p>}
+        </div>
         <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto} />
 
         <button className="gs-btn gs-btn-cream gs-btn-wide"
