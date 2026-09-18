@@ -115,7 +115,7 @@ export const STR = {
     startMine: "לפתוח מכירת חצר משלי",
     // seller
     // two sections on the board: things she does, then what is happening
-    sectionStatusH: "מצב המכירה",
+    sectionStatusH: "מצב מכירה",
     // what a buyer sees where a price would be, and what the seller ticks
     free: "למסירה",
     freeToggle: "חינם",
