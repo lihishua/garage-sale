@@ -6,7 +6,7 @@
 import fs from "node:fs";
 import { phone, open, upload, pickLast, createItem, SITE } from "./flow.mjs";
 
-const SLOW = 450; // a beat between taps, so the eye can follow
+const SLOW = 700; // a beat between taps, so the eye can follow
 const beat = (page, ms = SLOW) => page.waitForTimeout(ms);
 
 // a ripple where each tap lands: a phone shows no cursor, so this is the
@@ -27,35 +27,40 @@ async function scene(name, run) {
   await ctx.addInitScript(RIPPLE);
   const t0 = Date.now();
   const page = await ctx.newPage();
+  // moments the captions hang on, as seconds into the recording
+  const marks = {};
+  const mark = (k) => { marks[k] = (Date.now() - t0) / 1000; };
   let failed = null;
-  try { await run(page); await beat(page, 1200); }
+  try { await run(page, mark); await beat(page, 1200); }
   catch (e) { failed = e; await page.screenshot({ path: `out/scene-${name}-failed.png` }).catch(() => {}); }
   const path = await page.video().path();
   await ctx.close();
   fs.renameSync(path, `out/scene-${name}.webm`);
   // the recording starts at page creation, before the page is zoomed: the
   // build cuts in at the last open() plus a breath
-  fs.writeFileSync(`out/scene-${name}.json`, JSON.stringify({ start: ((page.readyAt ?? t0) - t0) / 1000 + 0.25 }));
+  fs.writeFileSync(`out/scene-${name}.json`, JSON.stringify({ start: ((page.readyAt ?? t0) - t0) / 1000 + 0.25, marks }));
   if (failed) { console.error(`scene ${name} FAILED (see out/scene-${name}-failed.png):`, failed.message.split("\n")[0]); process.exit(1); }
   console.log(`scene ${name}: ${((Date.now() - t0) / 1000).toFixed(1)}s -> out/scene-${name}.webm`);
 }
 
 const scenes = {
-  a: async (page) => {
+  a: async (page, mark) => {
     await open(page, `${SITE}/dashboard`);
-    await beat(page, 800);
+    await beat(page, 1000);
     await upload(page, ["photos/IMG_0437.jpg", "photos/IMG_0438.jpg", "photos/IMG_0439.jpg"], { slow: SLOW });
     await beat(page);
     await pickLast(page, 3, { slow: SLOW });
     await beat(page);
+    mark("create");
     await createItem(page, { title: "ספרי ילדים", price: 10, tags: ["ספרים", "ילדים"], many: true, slow: SLOW });
-    await beat(page, 900);
-    await page.locator(".gs-linkbar").scrollIntoViewIfNeeded();
-    await beat(page);
-    await page.getByRole("button", { name: "העתקה" }).click();
     await beat(page, 1200);
+    mark("link");
+    await page.locator(".gs-linkbar").scrollIntoViewIfNeeded();
+    await beat(page, 900);
+    await page.getByRole("button", { name: "העתקה" }).click();
+    await beat(page, 1600);
   },
-  b: async (page) => {
+  b: async (page, mark) => {
     // a fresh buyer: whatever an earlier take left in this browser's list
     // is dropped (only the buyer's keys — the seller's login shares the store)
     await open(page, `${SITE}/demo`);
@@ -68,6 +73,7 @@ const scenes = {
     await beat(page, 1000);
     await page.getByRole("dialog").getByRole("button", { name: "אני רוצה את זה" }).click();
     await beat(page, 700);
+    mark("send");
     await page.locator(".gs-fab").click();
     await beat(page, 900);
     // "send the list to <seller>" first; then it asks who is sending
@@ -81,7 +87,7 @@ const scenes = {
     await page.locator(".gs-wa").waitFor();
     await beat(page, 2200);
   },
-  c: async (page) => {
+  c: async (page, mark) => {
     await open(page, `${SITE}/dashboard`);
     await beat(page, 800);
     await page.locator(".gs-section", { hasText: "בקשות שהגיעו" }).scrollIntoViewIfNeeded();
@@ -89,11 +95,12 @@ const scenes = {
     await page.locator(".gs-tile", { hasText: "אריה לקיר" }).scrollIntoViewIfNeeded();
     await beat(page);
     await page.locator(".gs-tile", { hasText: "אריה לקיר" }).click();
-    await beat(page, 900);
+    await beat(page, 1100);
+    mark("paid");
     await page.getByRole("button", { name: "קיבלתי תשלום" }).click();
-    await beat(page, 800);
-    await page.locator(".gs-status-head").first().scrollIntoViewIfNeeded();
-    await beat(page, 1500);
+    await beat(page, 900);
+    await page.locator(".gs-status-head").first().evaluate((el) => el.scrollIntoView({ block: "center", behavior: "smooth" }));
+    await beat(page, 1800);
   },
 };
 
