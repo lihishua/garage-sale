@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import type { StagedPhoto } from "@/lib/types";
-import { prepare, PHOTO_MIN_WIDTH } from "@/lib/images";
+import { prepare } from "@/lib/images";
 import { Sheet } from "@/components/ui";
 
 /**
@@ -122,6 +122,11 @@ export default function UploadPhotos({ onClose, onUploaded }:
     setBusy(false);
     if (lost) setErr(lastErr);
     if (done.length) onUploaded(done);
+
+    // A clean run closes itself: the board says how many landed, and the
+    // photos are right there. Anything less stays open holding the reason —
+    // a toast that fades is no place to learn a photo was too small.
+    if (done.length && !bad && !lost && !orphans) onClose();
   }
 
   return (
@@ -146,7 +151,6 @@ export default function UploadPhotos({ onClose, onUploaded }:
       <button className="gs-btn gs-btn-cream gs-btn-wide" onClick={onClose} disabled={busy}>
         {t.close}
       </button>
-      <p className="gs-fine">רוחב מינימלי לתמונה: {PHOTO_MIN_WIDTH} פיקסלים.</p>
     </Sheet>
   );
 }
