@@ -502,7 +502,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-tile-del{inset-inline-end:auto;inset-inline-start:6px}
 
 .gs-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:80;
-  background:var(--ink);color:#fff;font-weight:400;font-size:18px;padding:11px 20px;
+  background:var(--orange);color:#fff;font-weight:700;font-size:18px;padding:11px 20px;
   border-radius:26px;box-shadow:0 4px 16px rgba(27,24,21,.3);
   text-align:center;max-width:calc(100vw - 32px);width:max-content}
 
