@@ -274,8 +274,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the binary question: one thing, or several? two plain boxes, the chosen
    one filled — no numbers, no radio dot; the box is the whole control */
 /* the same two columns as the name row under it — one item over the name,
-   the lot over the price — so the two rows read as one block */
-.gs-choices{display:grid;grid-template-columns:1fr 172px;gap:8px;margin:0 0 8px}
+   the lot over the price, all four boxes the same width — so the two rows
+   read as one block */
+.gs-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 8px}
 .gs-choice{min-width:0;text-align:center;background:#fff;color:var(--ink);
   border:1px solid var(--line);border-radius:9px;padding:8px 6px;cursor:pointer;
   font:inherit;font-weight:700;font-size:15px;line-height:1.3;font-family:var(--body)}
@@ -284,7 +285,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the item sheet's first row: name, a short price box, and "free". No
    labels — the boxes carry their own — so a one-photo item fits a phone
    screen without scrolling. */
-.gs-namerow{display:grid;grid-template-columns:1fr 172px;gap:8px;align-items:center;margin-bottom:10px}
+.gs-namerow{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center;margin-bottom:10px}
 .gs-namerow .gs-input{min-width:0}
 /* price or free: one pill, two halves, the picked half in butter yellow.
    The price is the default pick; "free" is the other answer. */
@@ -306,9 +307,10 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-err-row{margin:-6px 0 10px}
 .gs-desc{display:block;margin-bottom:10px}
 /* under the price half of the pill alone, and as wide as it: the switch
-   belongs to that number. 172 pill − 60 "free" − its 1px seam = 111; the
-   end margin skips the "free" half. */
-.gs-seg-sm{width:111px;margin-block:-4px 10px;margin-inline:auto 61px;border-radius:7px}
+   belongs to that number. The pill is half the row less half the 8px gap;
+   take off the 60px "free" half and its 1px seam, and the end margin skips
+   that half. */
+.gs-seg-sm{width:calc(50% - 4px - 61px);margin-block:-4px 10px;margin-inline:auto 61px;border-radius:7px}
 .gs-seg-sm .gs-seg-opt{padding:3px 2px;font-size:12px}
 .gs-sheet .gs-filters-tight{margin:0 0 10px;justify-content:center}
 .gs-chip:disabled{opacity:.5;cursor:default}
