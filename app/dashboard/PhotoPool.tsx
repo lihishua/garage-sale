@@ -85,9 +85,9 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
                 <>
                   <button type="button" className="gs-pick-del" title={t.deletePhoto}
                     aria-label={t.deletePhoto} onClick={() => onDelete(p)}>
-                    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
-                      <path d="M5 5l14 14M19 5L5 19" fill="none" stroke="currentColor"
-                        strokeWidth="3.2" strokeLinecap="round" />
+                    <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+                      <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13M10 11v6M14 11v6" fill="none"
+                        stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </button>
                   {/* the other corner: a quarter turn per tap, for the book
