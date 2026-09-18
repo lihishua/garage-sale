@@ -6,7 +6,7 @@ import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, useConfirm } from "@/components/ui";
+import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, Chevron, useConfirm } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -599,6 +599,20 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             {/* the photo here is cropped to a short box; the glass shows the
                 whole of it, full size */}
             <ZoomButton onClick={() => setZoom(photoUrl(cur.path))} label={t.zoomIn} />
+            {/* several photos: a small arrow astride each side of the photo,
+                the strip under it still there for jumping straight to one */}
+            {slides.length > 1 && (
+              <>
+                <button type="button" className="gs-flip gs-flip-prev" aria-label={t.prevPhoto}
+                  onClick={() => setSlide((at + slides.length - 1) % slides.length)}>
+                  <Chevron />
+                </button>
+                <button type="button" className="gs-flip gs-flip-next" aria-label={t.nextPhoto}
+                  onClick={() => setSlide((at + 1) % slides.length)}>
+                  <Chevron />
+                </button>
+              </>
+            )}
             {standing(cur.unit) !== "free" ? (
               <span className="gs-band">{unitBand(cur.unit)}</span>
             ) : open.units.length > 1 && !whole(open) && (

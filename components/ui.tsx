@@ -60,6 +60,17 @@ export function XButton({ onClick, disabled, label }:
 // the name on the card it was opened from.
 // `compact` is the preview size: a card floating over the page, centred,
 // rather than a panel that takes the width. For a look at one thing.
+/** a chevron pointing to inline-end; the button's CSS turns it for the
+    other side and for a right-to-left page */
+export function Chevron() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" strokeWidth="2.4"
+        strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** the magnifying glass on a photo's corner: opens it full size */
 export function ZoomButton({ onClick, label }: { onClick: () => void; label: string }) {
   return (

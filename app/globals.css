@@ -259,6 +259,18 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-slide .gs-detail-photo{margin-bottom:0}
 .gs-slide .gs-detail-photo img{max-height:230px;object-fit:cover}
 .gs-slide.gone .gs-detail-photo img{filter:grayscale(1);opacity:.55}
+/* the arrows to the other photos: small circles astride the photo's sides,
+   halfway down. The chevron points to inline-end; the "previous" one is
+   turned round, and a right-to-left page turns both again. */
+.gs-flip{position:absolute;top:50%;width:28px;height:28px;margin-top:-14px;padding:0;
+  background:#fff;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center;
+  cursor:pointer;color:var(--ink);transition:transform .12s}
+.gs-flip:hover{transform:scale(1.12)}
+.gs-flip-prev{inset-inline-start:-14px}
+.gs-flip-next{inset-inline-end:-14px}
+.gs-flip-prev svg{transform:scaleX(-1)}
+html[dir="rtl"] .gs-flip svg{transform:scaleX(-1)}
+html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-detail-desc{font-size:19px;line-height:1.5;margin:8px 0;white-space:pre-wrap}
 .gs-detail-size{font-size:18px;background:var(--cream);border-radius:8px;padding:8px 12px;margin:10px 0}
 .gs-note{background:var(--cream);border-inline-start:2px solid var(--mustard);border-radius:6px;
