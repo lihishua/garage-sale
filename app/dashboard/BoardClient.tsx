@@ -451,20 +451,18 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {/* Section one: the photos, and the way to add to them. The other two
           sections are what is happening to that stock. */}
       <section className="gs-section gs-section-add">
-        {/* the gallery first, then the way to add to it: the button sits under
-            what it fills, so the eye lands on the photos rather than on a
-            control for photos it has not seen yet */}
         {/* the count sits with the heading, the way what came in sits with
             the sales heading: a number, not a sentence */}
         <div className="gs-status-head">
           <h2 className="gs-section-h">{t.poolTitle}</h2>
           {pool.length > 0 && <p className="gs-earned"><b>{pool.length}</b></p>}
         </div>
+        {/* the way in sits above the photos: with a screenful of them, a
+            button underneath was a scroll away every time */}
+        <button className="gs-btn gs-btn-cream gs-btn-wide gs-upload-btn"
+          onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
         <PhotoPool photos={pool} listed={listed} onCreate={setMaking} onDelete={removePhoto}
           onRotate={rotatePhoto} turning={turning} previews={previews} />
-
-        <button className="gs-btn gs-btn-cream gs-btn-wide"
-          onClick={() => setUploading(true)}>{t.uploadPhotos}</button>
       </section>
 
       {/* The lists that came in are the part she acts on, so they come

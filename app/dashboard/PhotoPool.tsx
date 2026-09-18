@@ -116,12 +116,19 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
 
       <p className="gs-hint">{t.coverHint}</p>
 
-      <button className="gs-btn gs-btn-orange gs-btn-wide"
-        disabled={selected.length === 0} onClick={() => onCreate(selected)}>
-        {/* createItemFrom(0) would read "מ־0 תמונות" — a disabled button says
-            what it is instead of counting nothing */}
-        {selected.length ? t.createItemFrom(selected.length) : t.createItem}
-      </button>
+      {/* The button follows her down the page, the way the buyer's list
+          does: with fourteen photos the pool is a screen tall, and a button
+          under it was a scroll away from the photo she had just tapped.
+          Nothing to press until something is picked. */}
+      {selected.length > 0 && (
+        <div className="gs-bar">
+          <div className="gs-bar-row">
+            <button className="gs-btn gs-btn-orange" onClick={() => onCreate(selected)}>
+              {t.createItemFrom(selected.length)}
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

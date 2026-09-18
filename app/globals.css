@@ -364,6 +364,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 /* the first section ends on a full-width button, which carries its own
    bottom weight */
 .gs-section-add{padding-bottom:8px}
+.gs-upload-btn{margin:0 0 14px}
 .gs-section-h{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0}
 /* white things on a cream card: the requests, the link bar and the item
    cards already are; the empty-state line and the grid just need to sit in */
