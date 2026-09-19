@@ -1,4 +1,5 @@
-// Video 2 — "how". Two homes: the seller's phone on the right, the buyer's
+// The two "how" videos — out/sell.mp4 (the seller's side) and out/buy.mp4
+// (the buyer's) — built from the same pieces. Two homes: the seller's phone on the right, the buyer's
 // on the left. Whoever is acting is the big phone (700×1400); the other
 // waits small (300×600) and dimmed on their own couch. Segments run at the
 // recordings' natural pace; captions change on the marks the recorder
@@ -58,33 +59,41 @@ still("out/scene-b.webm", B.start + 0.3, "out/still-b-first.png");
 still("out/scene-a.webm", dur("out/scene-a.webm") - 0.2, "out/still-a-last.png");
 still("out/scene-b.webm", dur("out/scene-b.webm") - 0.2, "out/still-b-last.png");
 
-const segs = [
-  card("start", "out/how-start.png", 3.0),
-  segment("a", { active: "seller", big: { src: "out/scene-a.webm", meta: "out/scene-a.json" }, small: "out/still-b-first.png",
-    caps: [["out/cap1.png", null, "create"], ["out/cap2.png", "create", "link"], ["out/cap3.png", "link", null]] }),
-  segment("chat1", { active: "seller", big: { src: "out/chat-1.webm", meta: "out/chat-1.json" }, small: "out/still-b-first.png",
-    caps: [["out/cap4.png", null, null]] }),
-  segment("b", { active: "buyer", big: { src: "out/scene-b.webm", meta: "out/scene-b.json" }, small: "out/still-a-last.png",
-    caps: [["out/cap5.png", null, "send"], ["out/cap6.png", "send", null]] }),
-  segment("chat2", { active: "seller", big: { src: "out/chat-2.webm", meta: "out/chat-2.json" }, small: "out/still-b-last.png",
-    caps: [["out/cap7.png", null, null]] }),
-  segment("c", { active: "seller", big: { src: "out/scene-c.webm", meta: "out/scene-c.json" }, small: "out/still-b-last.png",
-    caps: [["out/cap8.png", null, null]] }),
-  card("end", "out/how-end.png", 3.5),
-];
+const segs = {
+  sell: [
+    card("start-sell", "out/how-start-sell.png", 3.0),
+    segment("a", { active: "seller", big: { src: "out/scene-a.webm", meta: "out/scene-a.json" }, small: "out/still-b-first.png",
+      caps: [["out/cap1.png", null, "create"], ["out/cap2.png", "create", "link"], ["out/cap3.png", "link", null]] }),
+    segment("chat1", { active: "seller", big: { src: "out/chat-1.webm", meta: "out/chat-1.json" }, small: "out/still-b-first.png",
+      caps: [["out/cap4.png", null, null]] }),
+    segment("chat2", { active: "seller", big: { src: "out/chat-2.webm", meta: "out/chat-2.json" }, small: "out/still-b-last.png",
+      caps: [["out/cap7.png", null, null]] }),
+    segment("c", { active: "seller", big: { src: "out/scene-c.webm", meta: "out/scene-c.json" }, small: "out/still-b-last.png",
+      caps: [["out/cap8.png", null, null]] }),
+    card("end", "out/how-end.png", 3.5),
+  ],
+  buy: [
+    card("start-buy", "out/how-start-buy.png", 3.0),
+    segment("b", { active: "buyer", big: { src: "out/scene-b.webm", meta: "out/scene-b.json" }, small: "out/still-a-last.png",
+      caps: [["out/cap5.png", null, "send"], ["out/cap6.png", "send", null]] }),
+    card("end", "out/how-end.png", 3.5),
+  ],
+};
 
-// chain with cross-fades, then the music
-const lens = segs.map(dur);
-let f = "", prev = "[0:v]", offset = 0;
-for (let i = 1; i < segs.length; i++) {
-  offset += lens[i - 1] - FADE;
-  const out = i === segs.length - 1 ? "[vv]" : `[x${i}]`;
-  f += `${prev}[${i}:v]xfade=transition=fade:duration=${FADE}:offset=${offset.toFixed(3)}${out};`;
-  prev = out;
+// chain each with cross-fades, then the music
+for (const [name, list] of Object.entries(segs)) {
+  const lens = list.map(dur);
+  let f = "", prev = "[0:v]", offset = 0;
+  for (let i = 1; i < list.length; i++) {
+    offset += lens[i - 1] - FADE;
+    const out = i === list.length - 1 ? "[vv]" : `[x${i}]`;
+    f += `${prev}[${i}:v]xfade=transition=fade:duration=${FADE}:offset=${offset.toFixed(3)}${out};`;
+    prev = out;
+  }
+  const total = offset + lens[lens.length - 1];
+  f += `[vv]fade=t=out:st=${(total - 0.6).toFixed(2)}:d=0.6,format=yuv420p[v];` +
+    `[${list.length}:a]loudnorm=I=-20:TP=-2:LRA=11,atrim=0:${total.toFixed(2)},afade=t=in:d=0.6,afade=t=out:st=${(total - 1.6).toFixed(2)}:d=1.5[a]`;
+  sh([...list.flatMap((s) => ["-i", s]), "-i", "music/happy-ukulele.mp3", "-filter_complex", f, "-map", "[v]", "-map", "[a]",
+    "-r", "30", "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", `out/${name}.mp4`]);
+  console.log(`out/${name}.mp4: ${total.toFixed(1)}s`);
 }
-const total = offset + lens[lens.length - 1];
-f += `[vv]fade=t=out:st=${(total - 0.6).toFixed(2)}:d=0.6,format=yuv420p[v];` +
-  `[${segs.length}:a]loudnorm=I=-20:TP=-2:LRA=11,atrim=0:${total.toFixed(2)},afade=t=in:d=0.6,afade=t=out:st=${(total - 1.6).toFixed(2)}:d=1.5[a]`;
-sh([...segs.flatMap((s) => ["-i", s]), "-i", "music/happy-ukulele.mp3", "-filter_complex", f, "-map", "[v]", "-map", "[a]",
-  "-r", "30", "-c:v", "libx264", "-preset", "slow", "-crf", "20", "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "out/how.mp4"]);
-console.log(`out/how.mp4: ${total.toFixed(1)}s`);
