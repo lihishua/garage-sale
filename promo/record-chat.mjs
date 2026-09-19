@@ -63,38 +63,45 @@ const clips = {
     await wait(page, 400);
   },
   invite: async (page, mark) => {
+    // strangers until now: no history, just the message the seller sends
     await ev(page, (S) => window.setup({ who: S, sub: "אונליין", ava: "👩" }), SELLER);
-    await ev(page, () => window.bubble({ text: "היי! מה שלומך?" }));
-    await wait(page, 200);
-    await ev(page, () => window.bubble({ text: "הכל טוב 🙂", out: true, ticks: true }));
-    await wait(page, 1500);
+    await wait(page, 2800);
     mark("link");
     await ev(page, ({ S, LINK }) => window.bubble({ text: `מכירת החצר (ללא חצר) של ${S} 🏡\n${LINK}` }), { S: SELLER, LINK });
-    await wait(page, 2600);
-    // a tap on the link
-    await page.locator(".msg a").last().evaluate((a) => {
-      const r = a.getBoundingClientRect();
-      a.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
-    });
-    await wait(page, 900);
+    await wait(page, 3000);
+    // the finger settles on the link, then taps it
+    const a = page.locator(".msg a").last();
+    await a.hover(); await wait(page, 900);
+    await a.dispatchEvent("pointerdown");
+    await wait(page, 1200);
   },
   reply: async (page) => {
     await ev(page, (S) => window.setup({ who: S, sub: "אונליין", ava: "👩" }), SELLER);
-    await ev(page, () => window.bubble({ text: "היי! מה שלומך?" }));
-    await ev(page, () => window.bubble({ text: "הכל טוב 🙂", out: true, ticks: true }));
-    await wait(page, 900);
-    await ev(page, (LIST) => window.type(LIST, 900), LIST);
-    await wait(page, 500);
+    await wait(page, 2800);
+    await ev(page, (LIST) => window.type(LIST, 1100), LIST);
+    await wait(page, 700);
     await ev(page, () => window.send());
-    await wait(page, 1000);
+    await wait(page, 1200);
     await ev(page, () => window.ticks());
-    await wait(page, 1800);
+    await wait(page, 2200);
     await ev(page, () => window.bubble({ text: "מעולה! מתי נוח לך לאסוף?" }));
-    await wait(page, 800);
+    await wait(page, 1200);
   },
 };
 // the ripple on a tap, as in the app recordings
-const RIPPLE = `document.addEventListener("pointerdown",(e)=>{const r=document.createElement("div");r.style.cssText="position:fixed;z-index:99999;pointer-events:none;width:44px;height:44px;border-radius:50%;background:rgba(238,90,42,.35);border:2px solid rgba(238,90,42,.8);transform:translate(-50%,-50%) scale(.4);left:"+e.clientX+"px;top:"+e.clientY+"px;transition:transform .35s ease-out,opacity .35s ease-out;opacity:1";document.body.appendChild(r);requestAnimationFrame(()=>{r.style.transform="translate(-50%,-50%) scale(1.1)";r.style.opacity="0"});setTimeout(()=>r.remove(),450)},true)`;
+const RIPPLE = `
+  const ring = document.createElement("div");
+  ring.style.cssText = "position:fixed;z-index:99999;pointer-events:none;width:64px;height:64px;border-radius:50%;"
+    + "border:4px solid #EE5A2A;background:rgba(238,90,42,.18);transform:translate(-50%,-50%);opacity:0;"
+    + "box-shadow:0 0 0 6px rgba(238,90,42,.25);transition:opacity .25s,transform .18s,background .18s";
+  document.body.appendChild(ring);
+  document.addEventListener("pointermove", (e) => { ring.style.left = e.clientX + "px"; ring.style.top = e.clientY + "px"; ring.style.opacity = "1"; }, true);
+  document.addEventListener("pointerdown", (e) => {
+    ring.style.left = e.clientX + "px"; ring.style.top = e.clientY + "px"; ring.style.opacity = "1";
+    ring.style.transform = "translate(-50%,-50%) scale(.8)"; ring.style.background = "rgba(238,90,42,.6)";
+    setTimeout(() => { ring.style.transform = "translate(-50%,-50%)"; ring.style.background = "rgba(238,90,42,.18)"; }, 220);
+    setTimeout(() => { ring.style.opacity = "0"; }, 900);
+  }, true);`;
 const wanted = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(clips);
 fs.mkdirSync("out/raw", { recursive: true });
 for (const name of wanted) await clip(name, async (page, mark) => { await page.evaluate(RIPPLE); await clips[name](page, mark); });

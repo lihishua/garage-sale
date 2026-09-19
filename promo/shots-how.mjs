@@ -10,6 +10,8 @@ const only = (id) => page.evaluate((id) => {
   document.getElementById(id).classList.add("on");
 }, id);
 for (const id of ["start-sell", "start-buy", "end"]) { await only(id); await page.screenshot({ path: `out/how-${id}.png`, clip: { x: 0, y: 0, width: 1080, height: 1920 } }); }
-for (let n = 1; n <= 11; n++) { await only(`cap${n}`); await page.screenshot({ path: `out/cap${n}.png`, omitBackground: true, clip: { x: 0, y: 0, width: 1080, height: 260 } }); }
-await only("mask"); await page.screenshot({ path: "out/mask.png", omitBackground: true, clip: { x: 0, y: 0, width: 780, height: 1560 } });
+await page.evaluate(() => document.documentElement.classList.add("caps"));
+for (let n = 1; n <= 11; n++) { await only(`cap${n}`); await page.screenshot({ path: `out/cap${n}.png`, omitBackground: true, clip: { x: 300, y: 0, width: 780, height: 300 } }); }
+await page.evaluate(() => document.documentElement.classList.remove("caps"));
+await only("mask"); await page.screenshot({ path: "out/mask.png", omitBackground: true, clip: { x: 300, y: 0, width: 780, height: 1560 } });
 await browser.close();

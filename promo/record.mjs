@@ -6,21 +6,36 @@
 import fs from "node:fs";
 import { phone, open, upload, pickLast, createItem, SITE } from "./flow.mjs";
 
-const SLOW = 700; // a beat between taps, so the eye can follow
+const SLOW = 1000; // a beat between taps, so the eye can follow
+const HOLD = 2600; // the still moment under each caption
 const beat = (page, ms = SLOW) => page.waitForTimeout(ms);
 
-// a ripple where each tap lands: a phone shows no cursor, so this is the
-// only sign that something was pressed
+// The finger: a phone shows no cursor, so an orange ring marks where the
+// next tap will land — it settles on the target first, then flashes on
+// the press. It follows the pointer, which only moves when we move it.
 const RIPPLE = `
+  const ring = document.createElement("div");
+  ring.style.cssText = "position:fixed;z-index:99999;pointer-events:none;width:64px;height:64px;border-radius:50%;"
+    + "border:4px solid #EE5A2A;background:rgba(238,90,42,.18);transform:translate(-50%,-50%);opacity:0;"
+    + "box-shadow:0 0 0 6px rgba(238,90,42,.25);transition:opacity .25s,transform .18s,background .18s";
+  document.addEventListener("DOMContentLoaded", () => document.body.appendChild(ring));
+  if (document.body) document.body.appendChild(ring);
+  document.addEventListener("pointermove", (e) => { ring.style.left = e.clientX + "px"; ring.style.top = e.clientY + "px"; ring.style.opacity = "1"; }, true);
   document.addEventListener("pointerdown", (e) => {
-    const r = document.createElement("div");
-    r.style.cssText = "position:fixed;z-index:99999;pointer-events:none;width:44px;height:44px;border-radius:50%;"
-      + "background:rgba(238,90,42,.35);border:2px solid rgba(238,90,42,.8);transform:translate(-50%,-50%) scale(.4);"
-      + "left:" + e.clientX + "px;top:" + e.clientY + "px;transition:transform .35s ease-out,opacity .35s ease-out;opacity:1";
-    document.body.appendChild(r);
-    requestAnimationFrame(() => { r.style.transform = "translate(-50%,-50%) scale(1.1)"; r.style.opacity = "0"; });
-    setTimeout(() => r.remove(), 450);
+    ring.style.left = e.clientX + "px"; ring.style.top = e.clientY + "px"; ring.style.opacity = "1";
+    ring.style.transform = "translate(-50%,-50%) scale(.8)"; ring.style.background = "rgba(238,90,42,.6)";
+    setTimeout(() => { ring.style.transform = "translate(-50%,-50%)"; ring.style.background = "rgba(238,90,42,.18)"; }, 220);
+    setTimeout(() => { ring.style.opacity = "0"; }, 900);
   }, true);`;
+
+/** a tap you can see coming: the ring settles on the target, then presses */
+async function tap(page, locator, { before = 800, after = SLOW } = {}) {
+  await locator.scrollIntoViewIfNeeded();
+  await locator.hover();
+  await page.waitForTimeout(before);
+  await locator.click();
+  await page.waitForTimeout(after);
+}
 
 async function scene(name, run) {
   const ctx = await phone({ video: "out/raw" });
@@ -66,41 +81,43 @@ const scenes = {
     await open(page, `${SITE}/demo`);
     await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("gs.")).forEach((k) => localStorage.removeItem(k)));
     await open(page, `${SITE}/demo`);
-    await beat(page, 1600);
+    await beat(page, HOLD);
     // four hearts, slowly, straight off the cards
     for (const title of ["ספה תלת־מושבית", "אריה לקיר", "מקרר", "כורסת דובי"]) {
       const card = page.locator(".gs-card", { hasText: title });
       await card.scrollIntoViewIfNeeded();
       await beat(page, 500);
-      await card.locator(".gs-heart").click();
-      await beat(page, 1100);
+      await tap(page, card.locator(".gs-heart"), { after: 1500 });
     }
-    await beat(page, 600);
+    await beat(page, 400);
     // the list: look it over, take the fridge off
     mark("list");
-    await page.locator(".gs-fab").click();
-    await beat(page, 2200);
+    await beat(page, HOLD);
+    await tap(page, page.locator(".gs-fab"), { after: 2400 });
     mark("drop");
-    await page.locator(".gs-list-row", { hasText: "מקרר" }).getByRole("button").click();
-    await beat(page, 1600);
+    await beat(page, HOLD);
+    await tap(page, page.locator(".gs-list-row", { hasText: "מקרר" }).getByRole("button"), { after: 2000 });
     // send: who is asking, then the message, then off to WhatsApp
     mark("form");
-    await page.getByRole("button", { name: /^לשלוח את הרשימה ל/ }).click();
-    await beat(page, 900);
-    await page.getByLabel("השם שלך").pressSequentially("דנה", { delay: 110 });
-    await beat(page, 400);
-    await page.getByLabel("מספר טלפון").pressSequentially("0501234567", { delay: 80 });
-    await beat(page, 700);
-    mark("send");
-    await page.getByRole("button", { name: "לשלוח את הרשימה", exact: true }).click();
-    await page.locator(".gs-wa").waitFor();
-    await beat(page, 2200);
-    // the green button opens WhatsApp — a new tab here, which we drop
-    const [popup] = await Promise.all([
-      page.context().waitForEvent("page").catch(() => null),
-      page.getByRole("button", { name: /ווטסאפ|וואטסאפ/ }).click(),
-    ]);
+    await beat(page, HOLD);
+    await tap(page, page.getByRole("button", { name: /^לשלוח את הרשימה ל/ }), { after: 1200 });
+    await page.getByLabel("השם שלך").hover();
     await beat(page, 600);
+    await page.getByLabel("השם שלך").pressSequentially("דנה", { delay: 140 });
+    await beat(page, 700);
+    await page.getByLabel("מספר טלפון").hover();
+    await beat(page, 500);
+    await page.getByLabel("מספר טלפון").pressSequentially("0501234567", { delay: 100 });
+    await beat(page, 1000);
+    mark("send");
+    await tap(page, page.getByRole("button", { name: "לשלוח את הרשימה", exact: true }), { after: 300 });
+    await page.locator(".gs-wa").waitFor();
+    await beat(page, 3200);
+    // the green button opens WhatsApp — a new tab here, which we drop
+    const wa = page.getByRole("button", { name: /ווטסאפ|וואטסאפ/ });
+    await wa.hover(); await beat(page, 900);
+    const [popup] = await Promise.all([page.context().waitForEvent("page").catch(() => null), wa.click()]);
+    await beat(page, 800);
     if (popup) await popup.close().catch(() => {});
   },
   c: async (page, mark) => {

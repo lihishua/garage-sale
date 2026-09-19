@@ -11,6 +11,7 @@ const meta = (f) => JSON.parse(fs.readFileSync(f, "utf8"));
 
 const FADE = 0.5;
 const PHONE = { w: 780, h: 1560, x: 150, y: 300 };
+const CAP = { show: 2.5, y: 300 + (1560 - 300) / 2 }; // how long a caption stays, and where
 
 /** one segment: the phone (video) in its frame on the paper, captions over it */
 function segment(name, src, caps) {
@@ -23,9 +24,11 @@ function segment(name, src, caps) {
     `color=c=#FCFBF7:s=1080x1920:r=30:d=${len}[bg];` +
     `[bg][pf]overlay=${PHONE.x - 3}:${PHONE.y - 3}[g1];[g1][pp]overlay=${PHONE.x}:${PHONE.y}[g2]`;
   let last = "g2";
-  caps.forEach(([png, from, to], i) => {
-    const a = t(from), b = to == null ? len + 1 : t(to);
-    f += `;[${last}][${2 + i}]overlay=0:40:enable='between(t,${a.toFixed(2)},${b.toFixed(2)})'[g${3 + i}]`;
+  caps.forEach(([png, from], i) => {
+    const a = t(from), b = a + CAP.show;
+    const on = `enable='between(t,${a.toFixed(2)},${b.toFixed(2)})'`;
+    f += `;[${last}]drawbox=x=${PHONE.x}:y=${PHONE.y}:w=${PHONE.w}:h=${PHONE.h}:color=black@0.45:t=fill:${on}[d${i}]` +
+      `;[d${i}][${2 + i}]overlay=${PHONE.x}:${CAP.y}:${on}[g${3 + i}]`;
     last = `g${3 + i}`;
   });
   f += `;[${last}]trim=duration=${len},format=yuv420p[v]`;
@@ -38,12 +41,12 @@ function card(name, png, len) {
   console.log(`seg ${name}: ${len}s (card)`);
   return `out/seg-${name}.mp4`;
 }
-const cap = (n, from = null, to = null) => [`out/cap${n}.png`, from, to];
+const cap = (n, from = null) => [`out/cap${n}.png`, from];
 
 const videos = {
   sell: () => [
     card("start-sell", "out/how-start-sell.png", 2.5),
-    segment("a", "out/scene-a.webm", [cap(1, null, "create"), cap(2, "create", "link"), cap(3, "link")]),
+    segment("a", "out/scene-a.webm", [cap(1), cap(2, "create"), cap(3, "link")]),
     segment("group", "out/chat-group.webm", [cap(4)]),
     segment("inbox", "out/chat-inbox.webm", [cap(5)]),
     segment("c", "out/scene-c.webm", [cap(6)]),
@@ -52,7 +55,7 @@ const videos = {
   buy: () => [
     card("start-buy", "out/how-start-buy.png", 2.5),
     segment("invite", "out/chat-invite.webm", [cap(7)]),
-    segment("b", "out/scene-b.webm", [cap(8, null, "list"), cap(9, "list", "form"), cap(10, "form")]),
+    segment("b", "out/scene-b.webm", [cap(8), cap(9, "list"), cap(10, "form")]),
     segment("reply", "out/chat-reply.webm", [cap(11)]),
     card("end", "out/how-end.png", 3.0),
   ],
