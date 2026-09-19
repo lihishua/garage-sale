@@ -66,26 +66,42 @@ const scenes = {
     await open(page, `${SITE}/demo`);
     await page.evaluate(() => Object.keys(localStorage).filter((k) => k.startsWith("gs.")).forEach((k) => localStorage.removeItem(k)));
     await open(page, `${SITE}/demo`);
+    await beat(page, 1600);
+    // four hearts, slowly, straight off the cards
+    for (const title of ["ספה תלת־מושבית", "אריה לקיר", "מקרר", "כורסת דובי"]) {
+      const card = page.locator(".gs-card", { hasText: title });
+      await card.scrollIntoViewIfNeeded();
+      await beat(page, 500);
+      await card.locator(".gs-heart").click();
+      await beat(page, 1100);
+    }
+    await beat(page, 600);
+    // the list: look it over, take the fridge off
+    mark("list");
+    await page.locator(".gs-fab").click();
+    await beat(page, 2200);
+    mark("drop");
+    await page.locator(".gs-list-row", { hasText: "מקרר" }).getByRole("button").click();
+    await beat(page, 1600);
+    // send: who is asking, then the message, then off to WhatsApp
+    mark("form");
+    await page.getByRole("button", { name: /^לשלוח את הרשימה ל/ }).click();
     await beat(page, 900);
-    await page.getByRole("button", { name: /^לבית/ }).click();
-    await beat(page, 900);
-    await page.getByRole("button", { name: "אריה לקיר" }).first().click();
-    await beat(page, 1000);
-    await page.getByRole("dialog").getByRole("button", { name: "אני רוצה את זה" }).click();
+    await page.getByLabel("השם שלך").pressSequentially("דנה", { delay: 110 });
+    await beat(page, 400);
+    await page.getByLabel("מספר טלפון").pressSequentially("0501234567", { delay: 80 });
     await beat(page, 700);
     mark("send");
-    await page.locator(".gs-fab").click();
-    await beat(page, 900);
-    // "send the list to <seller>" first; then it asks who is sending
-    await page.getByRole("button", { name: /^לשלוח את הרשימה ל/ }).click();
-    await beat(page, 700);
-    await page.getByLabel("השם שלך").pressSequentially("דנה", { delay: 80 });
-    await page.getByLabel("מספר טלפון").pressSequentially("0501234567", { delay: 60 });
-    await beat(page);
     await page.getByRole("button", { name: "לשלוח את הרשימה", exact: true }).click();
-    // the drafted WhatsApp message, and the green button that opens the chat
     await page.locator(".gs-wa").waitFor();
     await beat(page, 2200);
+    // the green button opens WhatsApp — a new tab here, which we drop
+    const [popup] = await Promise.all([
+      page.context().waitForEvent("page").catch(() => null),
+      page.getByRole("button", { name: /ווטסאפ|וואטסאפ/ }).click(),
+    ]);
+    await beat(page, 600);
+    if (popup) await popup.close().catch(() => {});
   },
   c: async (page, mark) => {
     await open(page, `${SITE}/dashboard`);

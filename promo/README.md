@@ -9,11 +9,10 @@ site, so they can be remade when the app changes.
   once; the session lives in `.profile/` (ignored).
 - `seed.mjs` / `reset.mjs` — put the demo board in its starting state.
 - `record.mjs` — records the three demo scenes to `out/scene-*.webm`.
-- `record-chat.mjs` — the two chat moments, on the mock in `cards/chat.html`.
-- `cards/stage.html` — the two homes the phones stand in.
+- `record-chat.mjs` — the four chat moments, on the drawn chat screen in `cards/chat.html`.
 - `shots.mjs` / `shots-how.mjs` — render the cards to PNG.
 - `build-why.sh` / `build-how.mjs` — ffmpeg assembly to `out/why.mp4` and
-  `out/how.mp4`.
+  `out/sell.mp4` + `out/buy.mp4`.
 
 Needs: `npm install` here, `npx playwright install chromium`, ffmpeg,
 `voice/why.m4a` (the narration), `music/happy-ukulele.mp3` (see
