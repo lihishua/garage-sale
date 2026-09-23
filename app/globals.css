@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Playpen+Sans+Hebrew:wght@300&family=Heebo:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Playpen+Sans+Hebrew:wght@300;600&family=Heebo:wght@300;400;700&display=swap');
 
 :root{
   --ink:#1B1815; --paper:#FCFBF7; --cream:#F2EBD9; --line:#D8D2C4;
@@ -8,7 +8,9 @@
      runs small and narrow for its size, so every size below is set for it and
      the hand sizes are tuned down to sit level with them. Amatic is set bold
      throughout: at its regular weight the strokes are hairlines, and family
-     testing it on phones found the interface hard to read. */
+     testing it on phones found the interface hard to read. Playpen's words
+     (titles, sizes, names) are bold for the same reason; its numbers
+     (prices, totals) stay light. */
   --body:'Amatic SC','Heebo',system-ui,sans-serif;
   --hand:'Playpen Sans Hebrew','Heebo',system-ui,sans-serif;
   --display:var(--body); --dw:700;
@@ -132,12 +134,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   object-fit:contain;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .gs-lightbox .gs-x{position:absolute;top:14px;inset-inline-end:14px}
 .gs-card-body{padding:9px 11px 11px}
-.gs-card-title{font-family:var(--hand);font-weight:300;font-size:15px;margin:0 0 5px;line-height:1.35}
+.gs-card-title{font-family:var(--hand);font-weight:600;font-size:15px;margin:0 0 5px;line-height:1.35}
 .gs-card-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .gs-price{font-family:var(--hand);font-weight:300;font-size:16px;color:var(--orange)}
 .gs-tags{font-size:13px;letter-spacing:.05em;opacity:.45}
 .gs-card-tags{font-size:13px;font-weight:700;letter-spacing:.04em;opacity:.5;margin:5px 0 0}
-.gs-card-size{font-family:var(--hand);font-weight:300;font-size:14px;opacity:.7;margin:4px 0 0;text-align:end}
+.gs-card-size{font-family:var(--hand);font-weight:600;font-size:14px;opacity:.7;margin:4px 0 0;text-align:end}
 .gs-waiting{font-size:14px;opacity:.45;margin:8px 0 0}
 .gs-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
@@ -216,7 +218,7 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
   box-shadow:0 12px 40px rgba(27,24,21,.25);max-width:500px;width:100%;padding:20px;margin:auto}
 .gs-sheet-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
 .gs-sheet-title{font-family:var(--display);font-weight:var(--dw);font-size:25px;margin:0;line-height:1.25}
-.gs-sheet-title.hand{font-family:var(--hand);font-weight:300;font-size:19px;line-height:1.4}
+.gs-sheet-title.hand{font-family:var(--hand);font-weight:600;font-size:19px;line-height:1.4}
 .gs-sheet-titles{min-width:0}
 /* the tags, right under the name they describe */
 .gs-sheet-sub{margin:2px 0 0;font-size:14px;letter-spacing:.06em;opacity:.45}
@@ -254,8 +256,8 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-detail-photo img{width:100%;display:block}
 .gs-detail-price{font-family:var(--hand);font-weight:300;font-size:25px;color:var(--orange);margin:0}
 /* "ליחידה", "נשארו 17", "₪25 לכל המארז" — the quiet half of a price */
-.gs-detail-per{font-family:var(--hand);font-weight:300;font-size:12px;color:var(--ink);opacity:.6;margin:3px 0 0}
-.gs-card-bundle{font-family:var(--hand);font-weight:300;font-size:11.5px;opacity:.6;margin:5px 0 0}
+.gs-detail-per{font-family:var(--hand);font-weight:600;font-size:12px;color:var(--ink);opacity:.6;margin:3px 0 0}
+.gs-card-bundle{font-family:var(--hand);font-weight:600;font-size:11.5px;opacity:.6;margin:5px 0 0}
 /* One slide per unit-photo. The heart sits on the slide because it claims that
    slide's unit — five angles of one crib share one, twenty books have twenty.
    A claimed unit is shown, greyed, and cannot be hearted. */
@@ -288,7 +290,7 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-list-row{display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid var(--line)}
 .gs-mini{width:44px;height:44px;flex:none;border:1px solid var(--ink);border-radius:6px;
   object-fit:cover;display:block}
-.gs-list-name{flex:1;font-family:var(--hand);font-weight:300;font-size:15px}
+.gs-list-name{flex:1;font-family:var(--hand);font-weight:600;font-size:15px}
 .gs-total{font-family:var(--hand);font-weight:300;font-size:18px;text-align:end;margin:0}
 .gs-empty{opacity:.55;text-align:center;padding:24px 10px;font-size:18px}
 
@@ -526,11 +528,11 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
   background:var(--lime);color:var(--ink);border:1px solid var(--ink);border-radius:11px;
   padding:4px 7px;direction:ltr}
 .gs-tile-body{display:block;padding:8px 10px 10px}
-.gs-tile-title{display:block;font-family:var(--hand);font-weight:300;font-size:14px;line-height:1.35;
+.gs-tile-title{display:block;font-family:var(--hand);font-weight:600;font-size:14px;line-height:1.35;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .gs-tile-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px;margin-top:3px}
 .gs-tile-meta{font-size:13px;opacity:.55;white-space:nowrap}
-.gs-tile-size{display:block;font-family:var(--hand);font-weight:300;font-size:13px;opacity:.7;margin-top:3px;text-align:end}
+.gs-tile-size{display:block;font-family:var(--hand);font-weight:600;font-size:13px;opacity:.7;margin-top:3px;text-align:end}
 
 /* the sheet's foot: edit and delete, apart from the paid buttons above them */
 .gs-sheet-foot{display:flex;justify-content:space-between;gap:12px;margin-top:18px;
