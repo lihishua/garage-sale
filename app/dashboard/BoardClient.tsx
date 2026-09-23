@@ -725,9 +725,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           {flyer.src ? (
             <>
               <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
-              <p className="gs-flyer-hint">{t.flyerHint}</p>
               <div className="gs-flyer-actions">
-                <button className="gs-btn gs-btn-green" onClick={shareFlyer}>{t.flyerSend}</button>
+                {/* the note on what Send does sits right under it */}
+                <div className="gs-flyer-send">
+                  <button className="gs-btn gs-btn-green" onClick={shareFlyer}>{t.flyerSend}</button>
+                  <p className="gs-flyer-hint">{t.flyerHint}</p>
+                </div>
                 <button className="gs-btn gs-btn-cream" onClick={() => {
                   navigator.clipboard?.writeText(saleUrl); say(t.copied);
                 }}>{t.flyerCopy}</button>
