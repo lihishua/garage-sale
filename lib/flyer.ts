@@ -94,7 +94,8 @@ export type FlyerText = { title1: string; title2: string; nots: string; call: st
  */
 export async function drawFlyer(url: string, text: FlyerText, photos: string[], rtl: boolean) {
   const body = (px: number) => `700 ${px}px "Amatic SC", Heebo, sans-serif`;
-  const link = (px: number) => `700 ${px}px Heebo, system-ui, sans-serif`;
+  // the link in the hand the prices are written in, a touch heavier to carry
+  const link = (px: number) => `600 ${px}px "Playpen Sans Hebrew", Heebo, sans-serif`;
   // the fonts are split by script; asking with the actual words pulls in the
   // Hebrew files, which the page itself may not have needed yet
   const words = Object.values(text).join(" ");
@@ -144,19 +145,17 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
     ctx.restore();
   }
 
+  // the phone is outlined with the same 5px line as the stall, so the two
+  // read as one drawing rather than a drawing next to a photo of a phone
   const pw = 240, ph = 440, py = top;
   ctx.lineJoin = "round";
-  ctx.fillStyle = INK;
-  ctx.beginPath();
-  ctx.roundRect(phoneX, py, pw, ph, 36);
-  ctx.fill();
   const sx = phoneX + 12, sy = py + 12, sw = pw - 24, sh = ph - 24;
   ctx.save();
   ctx.beginPath();
-  ctx.roundRect(sx, sy, sw, sh, 26);
+  ctx.roundRect(phoneX, py, pw, ph, 36);
   ctx.clip();
   ctx.fillStyle = PAPER;
-  ctx.fillRect(sx, sy, sw, sh);
+  ctx.fillRect(phoneX, py, pw, ph);
   if (logo) {
     const lw = 120, lh = (logo.height / logo.width) * lw;
     ctx.drawImage(logo, sx + (sw - lw) / 2, sy + 26, lw, lh);
@@ -192,7 +191,12 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.roundRect(sx + 18, sy + sh - 62, sw - 36, 40, 20);
   ctx.fill();
   ctx.restore();
-  ctx.fillStyle = "#333";
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.roundRect(phoneX, py, pw, ph, 36);
+  ctx.stroke();
+  ctx.fillStyle = INK;
   ctx.beginPath();
   ctx.roundRect(phoneX + pw / 2 - 30, py + 20, 60, 10, 5);
   ctx.fill();
