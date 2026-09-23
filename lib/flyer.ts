@@ -124,24 +124,47 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   // the headline, in two lines, the second in orange
   ctx.fillStyle = INK;
   fit(ctx, text.title1, body, 200, W - 120);
-  ctx.fillText(text.title1, W / 2, 195);
+  ctx.fillText(text.title1, W / 2, 185);
   ctx.fillStyle = ORANGE;
   fit(ctx, text.title2, body, 200, W - 120);
-  ctx.fillText(text.title2, W / 2, 365);
+  ctx.fillText(text.title2, W / 2, 345);
 
   // whose sale it is, right under the headline
   ctx.fillStyle = INK;
   ctx.globalAlpha = 0.7;
   fit(ctx, text.whose, body, 60, W - 140);
-  ctx.fillText(text.whose, W / 2, 440);
+  ctx.fillText(text.whose, W / 2, 415);
   ctx.globalAlpha = 1;
 
   // the picture: the yard on the side a reader starts from, the arrow, the
   // phone it turns into
-  const top = 480;
+  const top = 500;
   const yardX = rtl ? 580 : 60;
   const phoneX = rtl ? 90 : 750;
   if (yard) ctx.drawImage(yard, yardX, top, 440, 440);
+  // the app's own sign, standing on the awning on two short posts, a little
+  // askew, the way a real one would be nailed up
+  if (logo) {
+    const cx = yardX + 220, bw = 200, bh = 94;
+    ctx.save();
+    ctx.translate(cx, top + 40);
+    ctx.rotate(rtl ? 0.035 : -0.035);
+    ctx.strokeStyle = INK;
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-60, 0); ctx.lineTo(-60, -22);
+    ctx.moveTo(60, 0); ctx.lineTo(60, -22);
+    ctx.stroke();
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.roundRect(-bw / 2, -22 - bh, bw, bh, 12);
+    ctx.fill();
+    ctx.stroke();
+    const lw = bw - 24, lh = (logo.height / logo.width) * lw;
+    ctx.drawImage(logo, -lw / 2, -22 - bh / 2 - lh / 2, lw, lh);
+    ctx.restore();
+  }
   if (arrow) {
     // centred in the gap between the phone's edge and the stall's
     const aw = 230, ah = (arrow.height / arrow.width) * aw;
@@ -212,25 +235,27 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.fillStyle = INK;
   ctx.globalAlpha = 0.6;
   fit(ctx, text.nots, body, 76, W - 140);
-  ctx.fillText(text.nots, W / 2, 1035);
+  ctx.fillText(text.nots, W / 2, 1050);
   ctx.globalAlpha = 1;
   fit(ctx, text.call, body, 92, W - 120);
-  ctx.fillText(text.call, W / 2, 1130);
+  ctx.fillText(text.call, W / 2, 1150);
 
+  // the link is small: whoever gets the flyer gets the link with it to tap,
+  // so here it is only a reminder of where to go
   const shown = url.replace(/^https?:\/\//, "");
   ctx.direction = "ltr";
-  const lpx = fit(ctx, shown, link, 58, W - 200);
-  const lw = ctx.measureText(shown).width + 80;
+  const lpx = fit(ctx, shown, link, 30, W - 200);
+  const lw = ctx.measureText(shown).width + 48, lh = lpx + 26;
   ctx.fillStyle = BUTTER;
   ctx.strokeStyle = INK;
-  ctx.lineWidth = 4;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.roundRect((W - lw) / 2, 1170, lw, lpx + 52, (lpx + 52) / 2);
+  ctx.roundRect((W - lw) / 2, 1200, lw, lh, lh / 2);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = INK;
   ctx.textBaseline = "middle";
-  ctx.fillText(shown, W / 2, 1170 + (lpx + 52) / 2 + 2);
+  ctx.fillText(shown, W / 2, 1200 + lh / 2 + 1);
   ctx.textBaseline = "alphabetic";
 
   // a frame round the whole thing, in the drawing's ink, so it reads as a

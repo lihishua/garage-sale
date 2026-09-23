@@ -427,7 +427,19 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
   margin-bottom:18px}
 .gs-board-logo{width:104px;height:auto;display:block;grid-column:2}
 .gs-board-head .gs-signout{grid-column:3;justify-self:end}
-.gs-flyer-btn{margin:0 0 18px}
+/* the board's one way out, dressed to be pressed: the logo's hand-drawn
+   arrow on each side pointing in at the words, a heavy outline and a hard
+   shadow like the drawings on the flyer it makes */
+.gs-flyer-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  margin:0 0 18px;padding:12px;font-size:25px;line-height:1.1;-webkit-text-stroke:.7px currentColor;
+  border:2px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink)}
+.gs-flyer-btn img{flex:none;width:52px;height:auto}
+/* the arrow is drawn pointing right: the one at the end of the line keeps
+   that in Hebrew, where the end is the left; the one at the start turns */
+.gs-flyer-btn img:first-child{transform:scaleX(-1)}
+[dir="ltr"] .gs-flyer-btn img:first-child{transform:none}
+[dir="ltr"] .gs-flyer-btn img:last-child{transform:scaleX(-1)}
+.gs-flyer-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 /* no border here: the flyer carries its own frame */
 .gs-flyer-img{display:block;width:100%;max-width:420px;height:auto;margin:0 auto 8px}
 

@@ -486,7 +486,11 @@ export default function BoardClient({ profile, items: initial, requests, holderR
 
       {/* the one thing here that leaves the board: the sheet it opens
           sends the flyer with the link, or copies the bare link */}
-      <button className="gs-btn gs-btn-orange gs-btn-wide gs-flyer-btn" onClick={makeFlyer}>{t.flyer}</button>
+      <button className="gs-btn gs-btn-orange gs-flyer-btn" onClick={makeFlyer}>
+        <img src="/arrow.webp" alt="" />
+        <span>{t.flyer}</span>
+        <img src="/arrow.webp" alt="" />
+      </button>
 
       {/* Section one: the photos, and the way to add to them. The other two
           sections are what is happening to that stock. */}
