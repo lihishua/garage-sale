@@ -436,6 +436,11 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-linkbar code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-family:ui-monospace,monospace;font-size:13px;direction:ltr}
 .gs-linkbar-row .gs-btn{flex:none}
+.gs-flyer-btn{margin-top:10px}
+.gs-flyer-img{display:block;width:100%;max-width:420px;height:auto;margin:0 auto 14px;
+  border:1px solid var(--line);border-radius:8px}
+.gs-flyer-actions{display:flex;gap:10px;justify-content:center;margin-bottom:12px}
+.gs-flyer-actions .gs-btn{flex:1;max-width:200px}
 /* the heading and the takings on one line: the number is a result, not a
    control, so it is set like a price and never invites a tap */
 .gs-status-head{display:flex;justify-content:space-between;align-items:baseline;

@@ -7,6 +7,7 @@ import { rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { waDigits } from "@/lib/countries";
+import { drawFlyer } from "@/lib/flyer";
 import {
   availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
@@ -425,6 +426,47 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     say(t.shareAppCopied);
   };
 
+  /**
+   * The flyer, made on demand: drawing it fetches photos and fonts, which is
+   * not worth doing for a seller who never asks. The phone on it shows what
+   * is still for sale, one photo per listing, newest first as the board has them.
+   */
+  const [flyer, setFlyer] = useState<null | { file: File | null; src: string | null }>(null);
+  const makeFlyer = async () => {
+    setFlyer({ file: null, src: null });
+    const photos = items
+      .map((i) => i.units.find((u) => u.status === "available"))
+      .filter((u): u is Unit => !!u)
+      .slice(0, 4)
+      .map((u) => photoUrl(u.thumb_path));
+    const blob = await drawFlyer(saleUrl, t.flyerText(profile.display_name), photos, true).catch(() => null);
+    if (!blob) { setFlyer(null); say(t.flyerFailed); return; }
+    setFlyer({ file: new File([blob], `${profile.slug}-flyer.png`, { type: "image/png" }), src: URL.createObjectURL(blob) });
+  };
+  const closeFlyer = () => {
+    if (flyer?.src) URL.revokeObjectURL(flyer.src);
+    setFlyer(null);
+  };
+  /**
+   * Send goes with the link as text, since a link in a picture can't be
+   * tapped. Save goes without it: on iOS the share sheet offers "Save Image"
+   * only when everything being shared is an image. Where files can't be
+   * shared at all (a desktop, mostly), the picture downloads instead.
+   */
+  const shareFlyer = async (withLink: boolean) => {
+    const file = flyer?.file;
+    if (!file) return;
+    const data: ShareData = withLink ? { files: [file], text: saleUrl } : { files: [file] };
+    if (navigator.canShare?.(data)) {
+      try { await navigator.share(data); } catch { /* dismissed */ }
+      return;
+    }
+    const a = document.createElement("a");
+    a.href = flyer!.src!;
+    a.download = file.name;
+    a.click();
+  };
+
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
 
   const openWa = (phone: string, text: string) =>
@@ -454,6 +496,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             navigator.clipboard?.writeText(saleUrl); say(t.copied);
           }}>{t.copy}</button>
         </div>
+        <button className="gs-btn gs-btn-orange gs-btn-wide gs-flyer-btn" onClick={makeFlyer}>{t.flyer}</button>
       </div>
 
       {/* Section one: the photos, and the way to add to them. The other two
@@ -687,6 +730,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           the paid buttons, the nudge, edit, delete — in a place that can be as
           tall as it needs to be without dragging the grid with it. */}
       {zoom && <Lightbox src={zoom} alt={openItem?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
+
+      {flyer && (
+        <Sheet title={t.flyerTitle} look onClose={closeFlyer}>
+          {flyer.src ? (
+            <>
+              <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
+              <div className="gs-flyer-actions">
+                <button className="gs-btn gs-btn-green" onClick={() => shareFlyer(true)}>{t.flyerSend}</button>
+                <button className="gs-btn gs-btn-cream" onClick={() => shareFlyer(false)}>{t.flyerSave}</button>
+              </div>
+              <p className="gs-note">{t.flyerHint}</p>
+            </>
+          ) : (
+            <p className="gs-lead">{t.flyerMaking}</p>
+          )}
+        </Sheet>
+      )}
 
       {openItem && (
         <Sheet title={openItem.title} hand compact onClose={() => setOpenId(null)}
