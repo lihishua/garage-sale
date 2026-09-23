@@ -484,19 +484,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         }}>{t.signOut}</button>
       </div>
 
-      {/* her link, on its own between the head and the sections: it is the
-          one thing here that leaves the board */}
-      <div className="gs-linkbar">
-        <b className="gs-linkbar-h">{t.myLink}</b>
-        {/* the link and the button that copies it are one thing, on their own
-            line — the heading above names them rather than sharing a row */}
-        <div className="gs-linkbar-row">
-          <code>{saleUrl}</code>
-        </div>
-        {/* one way out: the sheet it opens sends the flyer, copies the bare
-            link, or saves the picture */}
-        <button className="gs-btn gs-btn-orange gs-btn-wide gs-flyer-btn" onClick={makeFlyer}>{t.flyer}</button>
-      </div>
+      {/* the one thing here that leaves the board: the sheet it opens
+          sends the flyer with the link, or copies the bare link */}
+      <button className="gs-btn gs-btn-orange gs-btn-wide gs-flyer-btn" onClick={makeFlyer}>{t.flyer}</button>
 
       {/* Section one: the photos, and the way to add to them. The other two
           sections are what is happening to that stock. */}
