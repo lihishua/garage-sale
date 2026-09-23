@@ -154,7 +154,7 @@ export const STR = {
     flyerText: (name: string) => ({
       title1: "מכירת חצר", title2: "ללא חצר!",
       nots: "בלי תאריך · בלי שעה · בלי כיבוד",
-      call: "פשוט נכנסים ללינק ולוקחים מה שרוצים!",
+      call: "פשוט נכנסים ללינק, וקונים מה שרוצים",
       whose: `המכירה של ${name}`,
     }),
     signOut: "יציאה",
@@ -410,7 +410,7 @@ export const STR = {
     flyerText: (name: string) => ({
       title1: "A garage sale", title2: "without the garage!",
       nots: "No date · no hours · no refreshments",
-      call: "Just open the link and take what you like!",
+      call: "Just open the link, and buy what you like",
       whose: `${name}'s sale`,
     }),
     signOut: "Sign out",
