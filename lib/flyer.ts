@@ -132,14 +132,14 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   // the picture: the yard on the side a reader starts from, the arrow, the
   // phone it turns into
   const top = 440;
-  const yardX = rtl ? 600 : 40;
+  const yardX = rtl ? 580 : 60;
   const phoneX = rtl ? 90 : 750;
   if (yard) ctx.drawImage(yard, yardX, top, 440, 440);
   if (arrow) {
     // centred in the gap between the phone's edge and the stall's
     const aw = 230, ah = (arrow.height / arrow.width) * aw;
     ctx.save();
-    ctx.translate(rtl ? 465 : 615, top + 220);
+    ctx.translate(rtl ? 455 : 625, top + 220);
     if (rtl) ctx.scale(-1, 1);
     ctx.drawImage(arrow, -aw / 2, -ah / 2, aw, ah);
     ctx.restore();
@@ -231,6 +231,15 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   fit(ctx, text.whose, body, 60, W - 140);
   ctx.fillText(text.whose, W / 2, 1300);
   ctx.globalAlpha = 1;
+
+  // a frame round the whole thing, in the drawing's ink, so it reads as a
+  // flyer and not a screenshot when it lands in a chat
+  ctx.globalAlpha = 1;
+  ctx.strokeStyle = INK;
+  ctx.lineWidth = 10;
+  ctx.beginPath();
+  ctx.roundRect(20, 20, W - 40, H - 40, 28);
+  ctx.stroke();
 
   return new Promise<Blob | null>((res) => cv.toBlob(res, "image/png"));
 }
