@@ -6,7 +6,8 @@ import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
-import { Heart, Chip, Sheet, Field, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, Chevron, useConfirm } from "@/components/ui";
+import { DEFAULT_DIAL, fullPhone, validLocal, waDigits } from "@/lib/countries";
+import { Heart, Chip, Sheet, Field, PhoneField, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, Chevron, useConfirm } from "@/components/ui";
 
 /**
  * The list holds **unit ids**, not item ids — a unit is the thing a buyer can
@@ -66,6 +67,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const [slide, setSlide] = useState(0);
   const [panel, setPanel] = useState<null | "wish" | "checkout" | "sent">(null);
   const [buyer, setBuyer] = useState({ name: "", phone: "" });
+  // the buyer's number goes to the seller as a wa.me link, so it needs its
+  // country code as much as the seller's does — see lib/countries.ts
+  const [dial, setDial] = useState(DEFAULT_DIAL);
   const [err, setErr] = useState<{ name?: string; phone?: string }>({});
   const [busy, setBusy] = useState(false);
   const [showTop, setShowTop] = useState(false);
@@ -300,15 +304,16 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   async function send() {
     const e: typeof err = {};
     if (!buyer.name.trim()) e.name = t.errName;
-    if (!/^[\d\s+-]{7,}$/.test(buyer.phone.trim())) e.phone = t.errPhone;
+    if (!validLocal(buyer.phone)) e.phone = t.errPhone;
     if (Object.keys(e).length) { setErr(e); return; }
     setErr({});
     setBusy(true);
 
     const ids = wishUnits.map(({ unit }) => unit.id);
+    const phone = fullPhone(dial, buyer.phone);
     const supabase = supabaseBrowser();
     const { data, error } = await supabase.rpc("reserve_units", {
-      p_slug: sale.slug, p_unit_ids: ids, p_name: buyer.name.trim(), p_phone: buyer.phone.trim(),
+      p_slug: sale.slug, p_unit_ids: ids, p_name: buyer.name.trim(), p_phone: phone,
     });
     setBusy(false);
 
@@ -350,7 +355,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       .map(({ item, n }) => `• ${item.title}${n > 1 && !whole(item) ? ` ×${n}` : ""} — ${priceOf(costOf(item, n), lang)}`)
       .join("\n");
     const total = [...held.values()].reduce((s, g) => s + costOf(g.item, g.n), 0);
-    const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}\n\n${t.total}: ${money(total)}\n\n${buyer.name.trim()} — ${buyer.phone.trim()}`;
+    const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}\n\n${t.total}: ${money(total)}\n\n${buyer.name.trim()} — +${phone}`;
 
     setSent({ msg, phone: data.seller_phone ?? null, dropped: unavailable.length });
     setPanel("sent");
@@ -392,7 +397,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   }
 
   const openWa = (phone: string, text: string) =>
-    window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
+    window.open(`https://wa.me/${waDigits(phone)}?text=${encodeURIComponent(text)}`, "_blank");
 
 
   /** what a claimed unit says on its band — the server's word where there is one */
@@ -727,8 +732,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           <p className="gs-lead">{t.checkoutLead(wishUnits.length, sale.display_name)}</p>
           <Field label={t.yourName} value={buyer.name} err={err.name}
             onChange={(v) => setBuyer({ ...buyer, name: v })} placeholder={t.namePh} />
-          <Field label={t.phone} value={buyer.phone} err={err.phone} ltr
-            onChange={(v) => setBuyer({ ...buyer, phone: v })} placeholder={t.phonePh} />
+          <PhoneField label={t.phone} dial={dial} onDial={setDial} lang={lang}
+            value={buyer.phone} err={err.phone}
+            onChange={(v) => setBuyer({ ...buyer, phone: v })} />
           <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={send} disabled={busy}>
             {busy ? t.loading : t.send}
           </button>

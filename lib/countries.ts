@@ -65,3 +65,16 @@ export const fullPhone = (dial: string, local: string) =>
 /** enough digits left, once the trunk zero and the punctuation are gone */
 export const validLocal = (local: string) =>
   /^\d{6,14}$/.test(local.replace(/\D/g, "").replace(/^0+/, ""));
+
+/**
+ * A stored number as the digits a `wa.me` link wants.
+ *
+ * Buyers used to type their number free-hand, so requests from before the
+ * picker hold things like `0523777928` — which WhatsApp reads as a username
+ * and rejects. A leading trunk zero can only be a local number, and nearly
+ * every local number here is Israeli, so it gets the default code.
+ */
+export const waDigits = (phone: string) => {
+  const d = phone.replace(/\D/g, "");
+  return d.startsWith("0") ? DEFAULT_DIAL + d.replace(/^0+/, "") : d;
+};

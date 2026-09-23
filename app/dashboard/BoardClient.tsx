@@ -6,6 +6,7 @@ import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
+import { waDigits } from "@/lib/countries";
 import {
   availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
@@ -427,7 +428,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
 
   const openWa = (phone: string, text: string) =>
-    window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank");
+    window.open(`https://wa.me/${waDigits(phone)}?text=${encodeURIComponent(text)}`, "_blank");
 
   return (
     <main className="gs-wrap">
