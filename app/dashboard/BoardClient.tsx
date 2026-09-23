@@ -448,15 +448,15 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     setFlyer(null);
   };
   /**
-   * Send goes with the link as text, since a link in a picture can't be
-   * tapped. Save goes without it: on iOS the share sheet offers "Save Image"
-   * only when everything being shared is an image. Where files can't be
-   * shared at all (a desktop, mostly), the picture downloads instead.
+   * The picture goes with the link as text, since a link in a picture can't
+   * be tapped. The share sheet covers saving it too, so there is no separate
+   * save button. Where files can't be shared at all (a desktop, mostly), the
+   * picture downloads instead.
    */
-  const shareFlyer = async (withLink: boolean) => {
+  const shareFlyer = async () => {
     const file = flyer?.file;
     if (!file) return;
-    const data: ShareData = withLink ? { files: [file], text: saleUrl } : { files: [file] };
+    const data: ShareData = { files: [file], text: saleUrl };
     if (navigator.canShare?.(data)) {
       try { await navigator.share(data); } catch { /* dismissed */ }
       return;
@@ -737,11 +737,10 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
               <p className="gs-flyer-hint">{t.flyerHint}</p>
               <div className="gs-flyer-actions">
-                <button className="gs-btn gs-btn-green" onClick={() => shareFlyer(true)}>{t.flyerSend}</button>
+                <button className="gs-btn gs-btn-green" onClick={shareFlyer}>{t.flyerSend}</button>
                 <button className="gs-btn gs-btn-cream" onClick={() => {
                   navigator.clipboard?.writeText(saleUrl); say(t.copied);
                 }}>{t.flyerCopy}</button>
-                <button className="gs-btn gs-btn-cream" onClick={() => shareFlyer(false)}>{t.flyerSave}</button>
               </div>
             </>
           ) : (

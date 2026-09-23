@@ -440,8 +440,8 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-flyer-img{display:block;width:100%;max-width:420px;height:auto;margin:0 auto 8px;
   border:1px solid var(--line);border-radius:8px}
 .gs-flyer-hint{margin:0 0 12px;font-size:17px;opacity:.75}
-/* three choices under the picture; on a narrow phone they stack rather than
-   squeeze three labels onto one line */
+/* the two choices under the picture, side by side; on a very narrow phone
+   they stack rather than squeeze */
 .gs-flyer-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:6px}
 .gs-flyer-actions .gs-btn{flex:1 1 140px;max-width:260px}
 /* the heading and the takings on one line: the number is a result, not a

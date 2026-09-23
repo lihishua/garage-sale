@@ -150,7 +150,6 @@ export const STR = {
     flyerFailed: "לא הצלחנו ליצור את הפלייר.",
     flyerSend: "שליחה",
     flyerCopy: "העתק לינק בלבד",
-    flyerSave: "שמירה לתמונות",
     flyerHint: "בבחירת ״שליחה״ יצורף לינק לפלייר",
     flyerText: (name: string) => ({
       title1: "מכירת חצר", title2: "ללא חצר!",
@@ -407,7 +406,6 @@ export const STR = {
     flyerFailed: "We couldn't make the flyer.",
     flyerSend: "Send",
     flyerCopy: "Copy link only",
-    flyerSave: "Save to photos",
     flyerHint: "\"Send\" attaches the link to the flyer",
     flyerText: (name: string) => ({
       title1: "A garage sale", title2: "without the garage!",
