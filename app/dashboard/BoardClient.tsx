@@ -458,13 +458,17 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     if (!file) return;
     const data: ShareData = { files: [file], text: saleUrl };
     if (navigator.canShare?.(data)) {
-      try { await navigator.share(data); } catch { /* dismissed */ }
+      // done once it has gone somewhere; backing out of the share sheet
+      // leaves the flyer open to try again
+      try { await navigator.share(data); closeFlyer(); } catch { /* dismissed */ }
       return;
     }
     const a = document.createElement("a");
     a.href = flyer!.src!;
     a.download = file.name;
     a.click();
+    // the download reads the blob URL that closing revokes, so give it a moment
+    setTimeout(closeFlyer, 1000);
   };
 
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
@@ -736,7 +740,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                   <p className="gs-flyer-hint">{t.flyerHint}</p>
                 </div>
                 <button className="gs-btn gs-btn-cream" onClick={() => {
-                  navigator.clipboard?.writeText(saleUrl); say(t.copied);
+                  navigator.clipboard?.writeText(saleUrl); say(t.copied); closeFlyer();
                 }}>{t.flyerCopy}</button>
               </div>
             </>
