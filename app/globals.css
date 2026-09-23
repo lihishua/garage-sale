@@ -40,11 +40,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 /* chips */
 .gs-filters{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
 .gs-filters-tight{justify-content:flex-start;margin:4px 0 16px}
-.gs-chip{font-family:var(--body);font-size:17px;font-weight:700;background:#fff;
+/* Amatic's bold is still thin at chip size, so the strokes are thickened
+   the way the flyer button's are, and the count is darker than a whisper */
+.gs-chip{font-family:var(--body);font-size:18px;font-weight:700;-webkit-text-stroke:.5px currentColor;background:#fff;
   border:1px solid var(--ink);border-radius:18px;padding:5px 14px;cursor:pointer;transition:background .12s}
 @media (hover:hover){.gs-chip:hover{background:var(--cream)}}
 .gs-chip.on{background:var(--ink);color:#fff}
-.gs-chip-n{opacity:.5;font-size:15px;margin-inline-start:2px}
+.gs-chip-n{opacity:.8;font-size:16px;margin-inline-start:2px}
 /* a switch: a pill with a knob that slides to the "on" side, and its label,
    the two framed together as one button-sized control. Bare, it read as a
    caption and buyers scrolled past it; framed and tinted, it reads as a
@@ -63,7 +65,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-switch input:checked + .gs-switch-knob::after{background:var(--orange);transform:translateX(-22px)}
 [dir="ltr"] .gs-switch input:checked + .gs-switch-knob::after{transform:translateX(22px)}
 .gs-switch input:focus-visible + .gs-switch-knob{outline:2px solid var(--ink);outline-offset:2px}
-.gs-chip.on .gs-chip-n{opacity:.65}
+.gs-chip.on .gs-chip-n{opacity:.9}
 
 /* the switch at the start, the sort at the end, on one line */
 .gs-sortbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
