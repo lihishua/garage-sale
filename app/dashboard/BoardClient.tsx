@@ -492,10 +492,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             line — the heading above names them rather than sharing a row */}
         <div className="gs-linkbar-row">
           <code>{saleUrl}</code>
-          <button className="gs-btn gs-btn-sm" onClick={() => {
-            navigator.clipboard?.writeText(saleUrl); say(t.copied);
-          }}>{t.copy}</button>
         </div>
+        {/* one way out: the sheet it opens sends the flyer, copies the bare
+            link, or saves the picture */}
         <button className="gs-btn gs-btn-orange gs-btn-wide gs-flyer-btn" onClick={makeFlyer}>{t.flyer}</button>
       </div>
 
@@ -732,15 +731,18 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       {zoom && <Lightbox src={zoom} alt={openItem?.title ?? ""} onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
 
       {flyer && (
-        <Sheet title={t.flyerTitle} look onClose={closeFlyer}>
+        <Sheet title="" look onClose={closeFlyer}>
           {flyer.src ? (
             <>
               <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
+              <p className="gs-flyer-hint">{t.flyerHint}</p>
               <div className="gs-flyer-actions">
                 <button className="gs-btn gs-btn-green" onClick={() => shareFlyer(true)}>{t.flyerSend}</button>
+                <button className="gs-btn gs-btn-cream" onClick={() => {
+                  navigator.clipboard?.writeText(saleUrl); say(t.copied);
+                }}>{t.flyerCopy}</button>
                 <button className="gs-btn gs-btn-cream" onClick={() => shareFlyer(false)}>{t.flyerSave}</button>
               </div>
-              <p className="gs-note">{t.flyerHint}</p>
             </>
           ) : (
             <p className="gs-lead">{t.flyerMaking}</p>

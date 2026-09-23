@@ -117,7 +117,8 @@ export function Sheet({ title, sub, hand, compact, look, onClose, busy, children
         onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
           <div className="gs-sheet-titles">
-            <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>
+            {/* a sheet whose content speaks for itself can go without a heading */}
+            {title && <h2 className={"gs-sheet-title" + (hand ? " hand" : "")}>{title}</h2>}
             {sub && <p className="gs-sheet-sub">{sub}</p>}
           </div>
           <XButton onClick={close} disabled={busy} label="×" />
