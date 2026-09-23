@@ -151,7 +151,7 @@ export const STR = {
     flyerCopy: "העתק לינק בלבד",
     flyerHint: "בבחירת ״שליחה״ יצורף לינק לפלייר",
     flyerText: (name: string) => ({
-      title1: "מכירת חצר", title2: "ללא חצר!",
+      title1: "מכירת חצר", title2: "ללא חצר",
       nots: "בלי תאריך · בלי שעה · בלי כיבוד",
       call: "פשוט נכנסים ללינק, וקונים מה שרוצים",
       whose: `המכירה של ${name}`,
@@ -406,7 +406,7 @@ export const STR = {
     flyerCopy: "Copy link only",
     flyerHint: "\"Send\" attaches the link to the flyer",
     flyerText: (name: string) => ({
-      title1: "A garage sale", title2: "without the garage!",
+      title1: "A garage sale", title2: "without the garage",
       nots: "No date · no hours · no refreshments",
       call: "Just open the link, and buy what you like",
       whose: `${name}'s sale`,

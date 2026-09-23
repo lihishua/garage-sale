@@ -121,24 +121,33 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.textAlign = "center";
   ctx.textBaseline = "alphabetic";
 
-  // the headline, in two lines, the second in orange
+  // the headline on one line, its second half in orange. Canvas can't colour
+  // part of a string, so the halves are drawn apart: measured together to
+  // size them, then each set from its own edge, the first half on the side
+  // a reader starts from
+  const head = `${text.title1} ${text.title2}`;
+  fit(ctx, head, body, 200, W - 120);
+  const hw = ctx.measureText(head).width;
+  const h2w = ctx.measureText(text.title2).width;
+  const startX = rtl ? (W + hw) / 2 : (W - hw) / 2;
+  const endX = rtl ? (W - hw) / 2 : (W + hw) / 2;
+  ctx.textAlign = "start";
   ctx.fillStyle = INK;
-  fit(ctx, text.title1, body, 200, W - 120);
-  ctx.fillText(text.title1, W / 2, 185);
+  ctx.fillText(text.title1, startX, 250);
   ctx.fillStyle = ORANGE;
-  fit(ctx, text.title2, body, 200, W - 120);
-  ctx.fillText(text.title2, W / 2, 345);
+  ctx.fillText(text.title2, rtl ? endX + h2w : endX - h2w, 250);
+  ctx.textAlign = "center";
 
   // whose sale it is, right under the headline
   ctx.fillStyle = INK;
   ctx.globalAlpha = 0.7;
   fit(ctx, text.whose, body, 60, W - 140);
-  ctx.fillText(text.whose, W / 2, 415);
+  ctx.fillText(text.whose, W / 2, 345);
   ctx.globalAlpha = 1;
 
   // the picture: the yard on the side a reader starts from, the arrow, the
   // phone it turns into
-  const top = 500;
+  const top = 450;
   const yardX = rtl ? 580 : 60;
   const phoneX = rtl ? 90 : 750;
   if (yard) ctx.drawImage(yard, yardX, top, 440, 440);
@@ -235,10 +244,10 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.fillStyle = INK;
   ctx.globalAlpha = 0.6;
   fit(ctx, text.nots, body, 76, W - 140);
-  ctx.fillText(text.nots, W / 2, 1050);
+  ctx.fillText(text.nots, W / 2, 1035);
   ctx.globalAlpha = 1;
   fit(ctx, text.call, body, 92, W - 120);
-  ctx.fillText(text.call, W / 2, 1150);
+  ctx.fillText(text.call, W / 2, 1140);
 
   // the link is small: whoever gets the flyer gets the link with it to tap,
   // so here it is only a reminder of where to go
