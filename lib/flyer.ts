@@ -94,8 +94,8 @@ export type FlyerText = { title1: string; title2: string; nots: string; call: st
  */
 export async function drawFlyer(url: string, text: FlyerText, photos: string[], rtl: boolean) {
   const body = (px: number) => `700 ${px}px "Amatic SC", Heebo, sans-serif`;
-  // the link in the hand the prices are written in, a touch heavier to carry
-  const link = (px: number) => `600 ${px}px "Playpen Sans Hebrew", Heebo, sans-serif`;
+  // the link in the hand the prices are written in, at its regular weight
+  const link = (px: number) => `300 ${px}px "Playpen Sans Hebrew", Heebo, sans-serif`;
   // the fonts are split by script; asking with the actual words pulls in the
   // Hebrew files, which the page itself may not have needed yet
   const words = Object.values(text).join(" ");
@@ -124,14 +124,21 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   // the headline, in two lines, the second in orange
   ctx.fillStyle = INK;
   fit(ctx, text.title1, body, 200, W - 120);
-  ctx.fillText(text.title1, W / 2, 205);
+  ctx.fillText(text.title1, W / 2, 195);
   ctx.fillStyle = ORANGE;
   fit(ctx, text.title2, body, 200, W - 120);
-  ctx.fillText(text.title2, W / 2, 385);
+  ctx.fillText(text.title2, W / 2, 365);
+
+  // whose sale it is, right under the headline
+  ctx.fillStyle = INK;
+  ctx.globalAlpha = 0.7;
+  fit(ctx, text.whose, body, 60, W - 140);
+  ctx.fillText(text.whose, W / 2, 440);
+  ctx.globalAlpha = 1;
 
   // the picture: the yard on the side a reader starts from, the arrow, the
   // phone it turns into
-  const top = 440;
+  const top = 480;
   const yardX = rtl ? 580 : 60;
   const phoneX = rtl ? 90 : 750;
   if (yard) ctx.drawImage(yard, yardX, top, 440, 440);
@@ -205,10 +212,10 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.fillStyle = INK;
   ctx.globalAlpha = 0.6;
   fit(ctx, text.nots, body, 76, W - 140);
-  ctx.fillText(text.nots, W / 2, 985);
+  ctx.fillText(text.nots, W / 2, 1035);
   ctx.globalAlpha = 1;
   fit(ctx, text.call, body, 92, W - 120);
-  ctx.fillText(text.call, W / 2, 1085);
+  ctx.fillText(text.call, W / 2, 1130);
 
   const shown = url.replace(/^https?:\/\//, "");
   ctx.direction = "ltr";
@@ -218,19 +225,13 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.strokeStyle = INK;
   ctx.lineWidth = 4;
   ctx.beginPath();
-  ctx.roundRect((W - lw) / 2, 1125, lw, lpx + 52, (lpx + 52) / 2);
+  ctx.roundRect((W - lw) / 2, 1170, lw, lpx + 52, (lpx + 52) / 2);
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = INK;
   ctx.textBaseline = "middle";
-  ctx.fillText(shown, W / 2, 1125 + (lpx + 52) / 2 + 2);
+  ctx.fillText(shown, W / 2, 1170 + (lpx + 52) / 2 + 2);
   ctx.textBaseline = "alphabetic";
-
-  ctx.direction = rtl ? "rtl" : "ltr";
-  ctx.globalAlpha = 0.7;
-  fit(ctx, text.whose, body, 60, W - 140);
-  ctx.fillText(text.whose, W / 2, 1300);
-  ctx.globalAlpha = 1;
 
   // a frame round the whole thing, in the drawing's ink, so it reads as a
   // flyer and not a screenshot when it lands in a chat
