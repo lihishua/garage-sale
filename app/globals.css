@@ -277,6 +277,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-slide .gs-detail-photo{margin-bottom:0}
 .gs-slide .gs-detail-photo img{max-height:230px;object-fit:cover}
 .gs-slide.gone .gs-detail-photo img{filter:grayscale(1);opacity:.55}
+/* in the sheet the band sits on the photo's bottom edge, not across its
+   middle, so the thing itself can be seen */
+.gs-slide .gs-band{top:auto;bottom:10px;transform:translateX(-50%) rotate(-3deg);font-size:18px}
 /* the arrows to the other photos: small circles astride the photo's sides,
    halfway down. The chevron points to inline-end; the "previous" one is
    turned round, and a right-to-left page turns both again. */

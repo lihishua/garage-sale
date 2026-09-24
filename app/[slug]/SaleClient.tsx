@@ -652,7 +652,10 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               shot from, and a heart per angle was the wrong instrument for
               it — so its gallery is just pictures, and the one decision is
               the one button at the bottom. */}
-          <div className={"gs-slide" + (standing(cur.unit) !== "free" ? " gone" : "")}>
+          {/* a held unit is shown in full colour: the buyer is deciding whether
+              to wait for it, so they need to see it properly. Only what is
+              gone for good greys out. */}
+          <div className={"gs-slide" + (!["free", "held"].includes(standing(cur.unit)) ? " gone" : "")}>
             <div className="gs-detail-photo">
               <img src={photoUrl(cur.path)} alt={open.title} />
             </div>
@@ -688,7 +691,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
             <div className="gs-pool gs-pool-sm">
               {slides.map((s, n) => (
                 <button key={`${s.unit.id}-${s.path}`} type="button"
-                  className={"gs-pick" + (n === at ? " cur" : "") + (standing(s.unit) !== "free" ? " gone" : "")}
+                  className={"gs-pick" + (n === at ? " cur" : "") + (!["free", "held"].includes(standing(s.unit)) ? " gone" : "")}
                   onClick={() => setSlide(n)} aria-pressed={n === at}
                   aria-label={t.photoOf(n + 1, slides.length)}>
                   <img src={photoUrl(s.thumb)} alt="" loading="lazy" />
