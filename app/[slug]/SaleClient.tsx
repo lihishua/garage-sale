@@ -500,7 +500,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                         ) : (
                           <img src={photoUrl(cover.thumb_path)} alt={it.title} loading="lazy" />
                         )}
-                        {gone && <span className="gs-band">{bandFor(it)}</span>}
+                        {gone && <span className={"gs-band" + (bandFor(it) === t.taken ? " held" : "")}>{bandFor(it)}</span>}
                       </button>
                       {/* the label follows the press, so nothing announces
                           "add" on a control that is about to remove */}
@@ -619,7 +619,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               </>
             )}
             {standing(cur.unit) !== "free" ? (
-              <span className="gs-band">{unitBand(cur.unit)}</span>
+              <span className={"gs-band" + (standing(cur.unit) === "held" ? " held" : "")}>{unitBand(cur.unit)}</span>
             ) : open.units.length > 1 && !whole(open) && (
               <button className="gs-heart" onClick={() => toggleUnit(cur.unit)}
                 aria-pressed={wishSet.has(cur.unit.id)}

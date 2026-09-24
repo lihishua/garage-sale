@@ -86,7 +86,9 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-card{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;
   transition:transform .14s}
 .gs-card:hover{transform:translateY(-3px)}
-.gs-card.taken{opacity:.55}
+/* a card with nothing left greys its photo and its words, not the band on it */
+.gs-card.taken .gs-photo img{filter:grayscale(1);opacity:.5}
+.gs-card.taken .gs-card-body{opacity:.55}
 .gs-photo{display:block;width:100%;border:0;background:var(--cream);border-radius:8px 8px 0 0;
   padding:0;cursor:pointer;position:relative;border-bottom:1px solid var(--ink);overflow:hidden}
 .gs-photo img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
@@ -114,9 +116,14 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-collage-3 > :first-child{grid-row:span 2}
 .gs-collage-4{grid-template-columns:1fr 1fr;grid-template-rows:minmax(0,1fr) minmax(0,1fr)}
 .gs-collage-9{grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,minmax(0,1fr))}
+/* the word across a photo that can't be had. It sits at full strength on a
+   greyed card, big enough to read from arm's length; "someone asked" is the
+   logo's orange, because unlike "sold" it may yet come back */
 .gs-band{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-5deg);
-  font-size:14px;background:var(--mustard);border:1px solid var(--ink);
-  border-radius:4px;padding:3px 9px;white-space:nowrap}
+  font-size:20px;line-height:1.1;background:var(--mustard);border:2px solid var(--ink);
+  border-radius:6px;padding:5px 14px;white-space:nowrap;box-shadow:2px 2px 0 var(--ink);
+  -webkit-text-stroke:.4px currentColor}
+.gs-band.held{background:var(--orange);color:#fff}
 .gs-heart{position:absolute;top:8px;inset-inline-end:8px;background:#fff;border:1px solid var(--ink);
   border-radius:50%;width:32px;height:32px;display:grid;place-items:center;cursor:pointer;transition:transform .12s}
 .gs-heart:hover{transform:scale(1.12)}
