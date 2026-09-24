@@ -142,13 +142,13 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-lightbox img{max-width:calc(100vw - 24px);max-height:calc(100dvh - 24px);width:auto;height:auto;
   object-fit:contain;border-radius:6px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .gs-lightbox .gs-x{position:absolute;top:14px;inset-inline-end:14px}
-.gs-card-body{padding:9px 11px 11px}
+.gs-card-body{padding:9px 11px 11px;text-align:center}
 .gs-card-title{font-family:var(--hand);font-weight:600;font-size:15px;margin:0 0 5px;line-height:1.35}
-.gs-card-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.gs-card-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:center;column-gap:10px}
 .gs-price{font-family:var(--hand);font-weight:600;font-size:16px;color:var(--orange)}
 .gs-tags{font-size:13px;letter-spacing:.05em;opacity:.45}
 .gs-card-tags{font-size:13px;font-weight:700;letter-spacing:.04em;opacity:.5;margin:5px 0 0}
-.gs-card-size{font-family:var(--hand);font-weight:600;font-size:14px;opacity:.7;margin:4px 0 0;text-align:end}
+.gs-card-size{font-family:var(--hand);font-weight:600;font-size:14px;opacity:.7;margin:4px 0 0}
 .gs-waiting{font-size:14px;opacity:.45;margin:8px 0 0}
 .gs-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
 
