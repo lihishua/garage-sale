@@ -34,11 +34,11 @@ export const STR = {
     privacyLink: "מדיניות פרטיות",
     privacyTitle: "מה קורה עם המידע שלכם",
     privBuyersH: "אם אתם קונים",
-    privBuyers1: "אין חשבון ואין הרשמה. רשימת המשאלות שלכם נשמרת באחסון המקומי של הדפדפן, במכשיר שלכם בלבד — לא אצלנו. אפשר למחוק אותה בכל רגע דרך הגדרות הדפדפן.",
-    privBuyers2: "כשאתם שולחים רשימה, השם ומספר הטלפון שהזנתם נשמרים אצלנו, כדי שהמוכרת תדע מי ביקש מה ותוכל ליצור איתכם קשר. זה כל מה שנשמר, ורק המוכרת של אותה מכירה רואה את זה. ביטול הבקשה מוחק אותה.",
-    privBuyers3: "אם ביקשתם שנעדכן אתכם כשפריט חוזר, כתובת המייל נשמרת אצלנו רק עד שהמייל נשלח, ואז נמחקת. אם הפריט נמכר, היא נמחקת בלי שנשלח כלום. המוכרת לא רואה אותה. המייל יוצא דרך Resend, שירות שליחת מיילים.",
+    privBuyers1: "אין חשבון ואין הרשמה. רשימת המשאלות שלכם נשמרת באחסון המקומי של הדפדפן, במכשיר שלכם בלבד - לא אצלנו. אפשר למחוק אותה בכל רגע דרך הגדרות הדפדפן.",
+    privBuyers2: "כשאתם שולחים רשימה, השם ומספר הטלפון שהזנתם נשמרים אצלנו, כדי שהמוכרת תדע מי ביקש מה ותוכל ליצור איתכם קשר. זה כל מה שנשמר. ביטול הבקשה מוחק את כל המידע.",
+    privBuyers3: "אם ביקשתם שנעדכן אתכם כשפריט חוזר, כתובת המייל נשמרת אצלנו רק עד שהמייל נשלח, או אם הפריט נמכר, ואז נמחקת. מנהל המכירה לא רואה אותה. המייל יוצא דרך שירות שליחת מיילים.",
     privSellersH: "אם אתם מוכרים",
-    privSellers1: "כדי לפתוח מכירה אנחנו שומרים אימייל, שם ומספר וואטסאפ. האימייל משמש רק לשליחת קוד כניסה. מספר הטלפון לא מופיע בשום מקום ציבורי — קונה מקבל אותו רק אחרי שביקש משהו, כדי לשלוח לכם הודעה.",
+    privSellers1: "כדי לפתוח מכירה אנחנו שומרים אימייל, שם, ומספר טלפון (נדרש ווטסאפ). האימייל משמש רק לשליחת קוד כניסה. מספר הטלפון לא מופיע בשום מקום ציבורי — קונה מקבל אותו רק לאחר בקשת פריטים, כדי לשלוח לכם הודעה.",
     privSellers2: "כניסה למערכת נשמרת בעוגייה אחת, שתפקידה היחיד הוא לזכור שאתם מחוברים. זו העוגייה היחידה באתר.",
     privNotH: "מה אין כאן",
     privNot1: "אין כלי אנליטיקה, אין פיקסלים, אין מעקב ואין פרסומות. אנחנו לא יודעים כמה אנשים ביקרו במכירה, ולא מנסים לדעת.",
@@ -49,18 +49,18 @@ export const STR = {
     privBack: "חזרה",
     // passing the app itself on — the seller telling a friend, not a buyer
     shareApp: "שתף את האפליקציה",
-    shareAppText: "מכירת חצר ללא חצר.\nמצלמים את כל מה שרוצים להיפטר ממנו בבית, שולחים לינק למכירה, ומקבלים לווטסאפ מי רוצה מה.",
+    shareAppText: "מכירת חצר ללא חצר.\nמצלמים את כל מה שרוצים להיפטר ממנו, שולחים לינק למכירה, ומקבלים לווטסאפ מי רוצה מה.",
     shareAppCopied: "הקישור לאפליקציה הועתק.",
     // the WhatsApp/link preview for one seller's sale page
     shareBlurb: (name: string) => `מכירת החצר (ללא חצר) של ${name}`,
-    wishList: "רשימת המשאלות",
-    wishEmpty: "עדיין ריק. לחצו על הלב ליד כל דבר שמעניין אתכם.",
+    wishList: "רשימת רצונות",
+    wishEmpty: "עדיין ריק. לחצו על הלב של פריטים שמעניינים אתכם",
     // the bar that follows the buyer down the page
     myList: "הרשימה שלי",
     // a request already sent, and taking it back. The list itself is kept: a
     // buyer who cancels is usually rethinking, not leaving.
-    pendingNote: "שלחתם בקשה. אפשר לבטל אותה כל עוד המוכרת לא סגרה איתכם.",
-    withdraw: "לבטל את הבקשה",
+    pendingNote: "שלחתם בקשה. אפשר לבטל אותה בכל רגע נתון.",
+    withdraw: "ביטול בקשה",
     withdrawConfirm: "לבטל את הבקשה? הפריטים יחזרו למכירה, והרשימה שלכם תישאר כמו שהיא.",
     withdrawn: "הבקשה בוטלה. הרשימה שלכם נשמרה.",
     withdrawGone: "הבקשה כבר לא קיימת — אולי המוכרת כבר טיפלה בה.",
@@ -71,12 +71,12 @@ export const STR = {
     addToList: "אני רוצה את זה",
     onList: "לחצו להסרה",
     measurements: "מידות",
-    takenNote: "מישהו כבר ביקש את הפריט. אם זה לא ייצא לפועל הוא יחזור ללוח.",
+    takenNote: "מישהו כבר ביקש את הפריט. אם בסוף לא ימכר - הוא יחזור ללוח.",
     // leaving an email on a held item, to hear when it's back
     waitAsk: "עדכנו אותי אם זה חוזר",
     waitEmail: "המייל שלכם",
     waitSend: "עדכנו אותי",
-    waitDone: "נשלח לכם מייל ברגע שזה חוזר למכירה.",
+    waitDone: "נשלח לכם מייל אם הפריט יחזור למכירה.",
     waitBadEmail: "זו לא נראית כתובת מייל.",
     waitBack: "זה בדיוק חזר למכירה!",
     waitErr: "לא הצלחנו לשמור את זה. נסו שוב.",
@@ -85,7 +85,8 @@ export const STR = {
     // was sold or just held — true of both, and claims neither
     claimedBand: "כבר נתפס",
     allGone: "הכל נתפס",
-    goneNote: "מישהו הקדים אתכם על זה.",
+    // the face is isolated left-to-right, or RTL mirrors it into ")-:"
+    goneNote: "מישהו הקדים אתכם.. \u2066:-(\u2069",
     // the heart on a card takes the whole מארז at once; the hearts inside take
     // one photo each
     wantAll: "אני רוצה את כל המארז",
@@ -106,10 +107,8 @@ export const STR = {
     total: "סך הכל",
     sendList: (n: string) => `לשלוח את הרשימה ל${n}`,
     whoAsks: "מי מבקש?",
-    checkoutLead: (n: number, name: string) =>
-      n === 1
-        ? `${name} צריך שם ומספר טלפון כדי לשמור לכם פריט אחד.`
-        : `${name} צריך שם ומספר טלפון כדי לשמור לכם ${n} פריטים.`,
+    checkoutLead: (_n: number, name: string) =>
+      `${name} צריך שם ומספר טלפון כדי לשמור לכם פריטים`,
     yourName: "השם שלך",
     namePh: "נועה לוי",
     phone: "מספר טלפון",
@@ -154,8 +153,8 @@ export const STR = {
     // the flyer: the sale link as a picture to save and send
     flyer: "קבל קישור ומודעה למכירה",
     flyerTitle: "מודעה למכירה",
-    flyerMaking: "מכינים את הפלייר…",
-    flyerFailed: "לא הצלחנו ליצור את הפלייר.",
+    flyerMaking: "מכינים את הפלייר...",
+    flyerFailed: "יצירת פלייר נכשלה",
     flyerSend: "שליחה",
     flyerCopy: "העתק לינק בלבד",
     flyerHint: "בבחירת ״שליחה״ יצורף לינק לפלייר",
@@ -187,7 +186,7 @@ export const STR = {
     priceForLabel: "המחיר הוא",
     priceForEach: "לכל פריט",
     priceForAll: "להכל",
-    priceForHint: "אפשר לפרט יותר בתיאור, והמחיר הסופי נסגר ממילא בוואטסאפ.",
+    priceForHint: "אפשר לפרט יותר בתיאור, וגם ככה סוגרים הכל בוואטסאפ.",
     pricePerUnit: "מחיר לפריט יחיד (₪)",
     description: "תיאור (לא חובה)",
     tagsLabel: "תגיות",
@@ -242,7 +241,7 @@ export const STR = {
     manyThings: (n: number) => `מארז של ${n} פריטים (כמו ספרים)`,
     pricePerUnitHint: "המחיר של פריט אחד מתוך המארז.",
     bundlePrice: "מחיר לכל המארז (₪)",
-    bundlePriceHint: "מחיר מיוחד למי שלוקח את כל המארז. רשות.",
+    bundlePriceHint: "מחיר מיוחד למי שלוקח את כל המארז.",
     perUnit: "ליחידה",
     forAll: "לכל המארז",
     // beside "paid": what it actually went for, pre-filled with the asking price
@@ -278,7 +277,7 @@ export const STR = {
     // the same button in the other tab: what it does, not how it does it
     openSale: "פתיחת מכירה",
     linkSentTitle: "הקוד בדרך אליכם",
-    linkSentBody: (mail: string) => `שלחנו קוד כניסה ל־${mail}.`,
+    linkSentBody: (mail: string) => `שלחנו קוד כניסה ל־ ${mail}.`,
     codeLabel: "הקוד מהמייל",
     enterCode: "כניסה",
     errCode: "הקוד לא נכון, או שפג תוקפו.",

@@ -475,11 +475,10 @@ begin
   v_html := format(
     '<div dir="rtl" style="font-family:Arial,sans-serif;font-size:17px;line-height:1.6;color:#1B1815">'
     || '<p>היי!</p>'
-    || '<p><b>%s</b> שביקשתם שנעדכן עליו חזר למכירה של %s.</p>'
-    || '<p>מי שמגיע ראשון לוקח:</p>'
+    || '<p><b>%s</b> שביקשתם עדכון לגביו - חזר למכירה של %s.</p>'
     || '<p><a href="%s" style="display:inline-block;background:#EE5A2A;color:#fff;'
     || 'text-decoration:none;padding:10px 22px;border-radius:10px;font-weight:bold">לכניסה למכירה</a></p>'
-    || '<p style="font-size:13px;color:#888">שלחנו את זה פעם אחת בלבד, כי ביקשתם. הכתובת שלכם כבר נמחקה אצלנו.</p>'
+    || '<p style="font-size:13px;color:#888">שלחנו את זה פעם אחת בלבד, כי ביקשתם.<br>הכתובת שלכם כבר נמחקה אצלנו.</p>'
     || '</div>',
     replace(replace(replace(v_title, '&', '&amp;'), '<', '&lt;'), '>', '&gt;'),
     replace(replace(replace(v_seller, '&', '&amp;'), '<', '&lt;'), '>', '&gt;'),
