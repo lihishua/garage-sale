@@ -39,6 +39,17 @@ Next.js 14 (App Router) + Supabase. Domain: **garagesaleonline.app**.
    need it: a brand-new seller may be sent the signup one rather than the magic link one,
    so fixing only one leaves first-time sellers stranded.
 7. **Project Settings → API**: copy the `Project URL` and the `anon public` key.
+8. **"Tell me if it's back" emails.** A buyer can leave an email on a held item, and the
+   database emails them through Resend when it comes back on sale. It needs a Resend API
+   key and a from-address on a domain verified in Resend, stored in Vault. In the SQL
+   Editor:
+   ```sql
+   select vault.create_secret('re_...', 'resend_api_key');
+   select vault.create_secret('Garage Sale <noreply@garagesaleonline.app>', 'notify_from');
+   ```
+   Without them, addresses are still collected and no email is sent. Sent requests show in
+   **Integrations → pg_net** (`net._http_response`) and in Resend's dashboard under
+   **Emails**.
 
 ## Running it
 
@@ -85,7 +96,8 @@ Push to GitHub, connect Vercel, add the two environment variables there.
 `garagesaleonline.app` is attached under **Vercel → Settings → Domains**.
 
 The domain also appears in the code, in `metadataBase` in `app/layout.tsx` and in
-`addressHint` in `lib/i18n.ts`. If it changes, update those too.
+`addressHint` in `lib/i18n.ts`, and in the sale link inside `notify_unit_back()`
+(`supabase/schema.sql`). If it changes, update those too.
 
 ## Layout
 

@@ -31,6 +31,14 @@ const wishKey = (slug: string) => `gs.wish.${slug}`;
  */
 const reqKey = (slug: string) => `gs.req.${slug}`;
 
+/**
+ * Units this browser asked to hear about, so the sheet says "we'll email you"
+ * instead of offering the same button twice. The address itself is kept too,
+ * under its own key, so the next held item needs no retyping.
+ */
+const waitKey = (slug: string) => `gs.wait.${slug}`;
+const EMAIL_KEY = "gs.email";
+
 /** one photo of one unit — what the gallery in the item sheet walks */
 type Slide = { unit: Unit; path: string; thumb: string };
 
@@ -80,6 +88,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const [claimed, setClaimed] = useState<Set<string>>(new Set());
   // the id of a request sent from this browser and not yet taken back
   const [pending, setPending] = useState<string | null>(null);
+  // "tell me if it's back": which unit's email box is open, and what's in it
+  const [waitFor, setWaitFor] = useState<string | null>(null);
+  const [waitEmail, setWaitEmail] = useState("");
+  const [waitErr, setWaitErr] = useState<string | undefined>();
+  const [waited, setWaited] = useState<Set<string>>(new Set());
 
   /* the wish list lives in the browser — no account needed to keep one */
   useEffect(() => {
@@ -95,6 +108,13 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
   useEffect(() => {
     try { setPending(localStorage.getItem(reqKey(sale.slug))); } catch { /* ignore */ }
+  }, [sale.slug]);
+
+  useEffect(() => {
+    try {
+      setWaited(new Set(JSON.parse(localStorage.getItem(waitKey(sale.slug)) ?? "[]")));
+      setWaitEmail(localStorage.getItem(EMAIL_KEY) ?? "");
+    } catch { /* private mode, or corrupted — start empty */ }
   }, [sale.slug]);
 
   /** remembering, and forgetting, the request this browser is holding */
@@ -396,6 +416,41 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     say(t.withdrawn);
   }
 
+  /**
+   * Asking to be told when a held unit is back. The server re-checks the
+   * status: a unit freed while the sheet sat open comes back as "available",
+   * and the page catches up rather than taking an email for nothing.
+   */
+  async function joinWait(u: Unit) {
+    const email = waitEmail.trim();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setWaitErr(t.waitBadEmail); return; }
+    setWaitErr(undefined);
+    setBusy(true);
+    const { data, error } = await supabaseBrowser().rpc("wait_for_unit", { p_unit_id: u.id, p_email: email });
+    setBusy(false);
+    if (error || !data) { say(t.waitErr); return; }
+    if (!data.ok) {
+      if (data.error === "bad_email") { setWaitErr(t.waitBadEmail); return; }
+      if (data.error === "available" || data.error === "sold") {
+        const status = data.error as "available" | "sold";
+        setItems((prev) => prev.map((i) => ({
+          ...i, units: i.units.map((x) => (x.id === u.id ? { ...x, status } : x)),
+        })));
+        say(status === "available" ? t.waitBack : t.soldNote);
+        return;
+      }
+      say(t.waitErr);
+      return;
+    }
+    const next = new Set(waited).add(u.id);
+    setWaited(next);
+    setWaitFor(null);
+    try {
+      localStorage.setItem(waitKey(sale.slug), JSON.stringify([...next]));
+      localStorage.setItem(EMAIL_KEY, email);
+    } catch { /* private mode — the note won't survive a reload */ }
+  }
+
   const openWa = (phone: string, text: string) =>
     window.open(`https://wa.me/${waDigits(phone)}?text=${encodeURIComponent(text)}`, "_blank");
 
@@ -664,6 +719,25 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               {standing(cur.unit) === "sold" ? t.soldNote
                 : standing(cur.unit) === "held" ? t.takenNote : t.goneNote}
             </p>
+          )}
+          {/* held may yet come back: leave an email and hear the moment it does */}
+          {standing(cur.unit) === "held" && (
+            waited.has(cur.unit.id) ? (
+              <p className="gs-wait-done">{t.waitDone}</p>
+            ) : waitFor === cur.unit.id ? (
+              <div className="gs-wait">
+                <Field label={t.waitEmail} value={waitEmail} err={waitErr} ltr type="email"
+                  onChange={setWaitEmail} placeholder="name@example.com" />
+                <button className="gs-btn gs-btn-orange gs-btn-wide" disabled={busy}
+                  onClick={() => joinWait(cur.unit)}>
+                  {busy ? t.loading : t.waitSend}
+                </button>
+              </div>
+            ) : (
+              <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => setWaitFor(cur.unit.id)}>
+                {t.waitAsk}
+              </button>
+            )
           )}
 
           {/* The decision. A מארז gets two, because "all of it" and "only

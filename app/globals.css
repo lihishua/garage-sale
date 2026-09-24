@@ -438,6 +438,9 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
   margin-bottom:18px}
 .gs-board-logo{width:104px;height:auto;display:block;grid-column:2}
 .gs-board-head .gs-signout{grid-column:3;justify-self:end}
+/* "tell me if it's back", under the note on a held item */
+.gs-wait{margin-top:4px}
+.gs-wait-done{margin:8px 0 0;text-align:center;color:var(--orange);font-size:19px}
 /* the board's one way out, dressed to be pressed: the logo's hand-drawn
    arrow on each side pointing in at the words, a heavy outline and a hard
    shadow like the drawings on the flyer it makes */

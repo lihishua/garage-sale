@@ -22,6 +22,7 @@ export default function PrivacyPage() {
         <h2>{t.privBuyersH}</h2>
         <p>{t.privBuyers1}</p>
         <p>{t.privBuyers2}</p>
+        <p>{t.privBuyers3}</p>
       </section>
 
       <section>
