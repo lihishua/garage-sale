@@ -678,17 +678,19 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           away. It shows up once there is something to show — a list, or a
           request still open — so an untouched sale is not fronted by a bar
           about nothing. */}
+      {/* floating a fifth of the way up, like the seller's make-an-item
+          button: at the bottom edge a bar is easy to miss */}
       {(wishUnits.length > 0 || pending) && (
-        <div className="gs-bar">
-          {pending && <p className="gs-bar-note">{t.pendingNote}</p>}
-          <div className="gs-bar-row">
+        <div className="gs-float">
+          {pending && <p className="gs-float-note">{t.pendingNote}</p>}
+          <div className="gs-float-row">
             {wishUnits.length > 0 && (
-              <button className="gs-btn gs-btn-orange" onClick={() => setPanel("wish")}>
+              <button className="gs-btn gs-btn-orange gs-float-btn" onClick={() => setPanel("wish")}>
                 {t.myList} ({wishUnits.length})
               </button>
             )}
             {pending && (
-              <button className="gs-btn gs-btn-cream" onClick={withdraw} disabled={busy}>
+              <button className="gs-btn gs-btn-cream gs-float-btn" onClick={withdraw} disabled={busy}>
                 {t.withdraw}
               </button>
             )}
@@ -697,7 +699,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       )}
 
       {showTop && (
-        <button className={"gs-top" + (wishUnits.length > 0 || pending ? " lifted" : "")}
+        <button className="gs-top"
           aria-label={t.toTop}
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
           <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
