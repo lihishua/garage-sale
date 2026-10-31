@@ -540,6 +540,17 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     setTimeout(closeFlyer, 1000);
   };
 
+  /** the bare link, through the share sheet; where there is none, copied */
+  const shareLink = async () => {
+    if (navigator.share) {
+      try { await navigator.share({ text: saleUrl }); closeFlyer(); } catch { /* dismissed */ }
+      return;
+    }
+    navigator.clipboard?.writeText(saleUrl);
+    say(t.copied);
+    closeFlyer();
+  };
+
   const openItem = openId ? items.find((i) => i.id === openId) ?? null : null;
 
   const openWa = (phone: string, text: string) =>
@@ -808,14 +819,11 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <>
               <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
               <div className="gs-flyer-actions">
-                {/* the note on what Send does sits right under it */}
+                {/* the labels say it all: with the flyer, or the bare link */}
                 <div className="gs-flyer-send">
                   <button className="gs-btn gs-btn-green" onClick={shareFlyer}>{t.flyerSend}</button>
-                  <p className="gs-flyer-hint">{t.flyerHint}</p>
                 </div>
-                <button className="gs-btn gs-btn-cream" onClick={() => {
-                  navigator.clipboard?.writeText(saleUrl); say(t.copied); closeFlyer();
-                }}>{t.flyerCopy}</button>
+                <button className="gs-btn gs-btn-cream" onClick={shareLink}>{t.flyerCopy}</button>
               </div>
             </>
           ) : (
