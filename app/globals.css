@@ -86,7 +86,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
    units is tall, and the default `stretch` dragged its neighbour to match,
    leaving a big empty panel that reads as a loading failure. */
 .gs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));
-  gap:18px;align-items:start}
+  gap:18px;align-items:stretch}  /* a row of cards is one height, short ones included */
 /* No tilt. Alternating a card a third of a degree each way was meant to read
    as handmade, and at a glance it reads as a grid that failed to line up —
    the cards are the one thing on the page that should look deliberate. The
