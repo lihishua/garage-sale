@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
-import { prepare, rotated } from "@/lib/images";
+import { fingerprint, fingerprintOf, namePrefix, prepare, rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { waDigits } from "@/lib/countries";
@@ -231,7 +231,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     if (!file || !u) return;
     try {
       const out = await prepare(file);
-      const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const fp = await fingerprint(file).catch(() => null);
+      const stamp = `${namePrefix(fp)}${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const fullPath = `${profile.id}/${stamp}.webp`;
       const thumbPath = `${profile.id}/${stamp}-thumb.webp`;
       const opts = { contentType: "image/webp" };
@@ -419,6 +420,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     say(gone?.error ? t.photosNotDeleted : t.itemAndPhotosDeleted);
   }
 
+  /** fingerprints of every photo on the board, so an upload skips them */
+  const known = useMemo(() => new Set(
+    [...pool.map((p) => p.photo_path), ...items.flatMap((i) => i.units.flatMap(unitPaths))]
+      .map(fingerprintOf).filter((x): x is string => !!x)
+  ), [pool, items]);
+
   const [turning, setTurning] = useState<string[]>([]);
   // the turned thumbnail, straight from memory, shown the moment it exists:
   // the upload behind it takes seconds on a phone and the eye should not
@@ -442,7 +449,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       const out = await rotated(await res.blob());
       setPreviews((m) => ({ ...m, [photo.id]: URL.createObjectURL(out.thumb) }));
 
-      const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      // the turned photo is the same photo: it keeps its fingerprint
+      const stamp = `${namePrefix(fingerprintOf(photo.photo_path))}${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const fullPath = `${profile.id}/${stamp}.webp`;
       const thumbPath = `${profile.id}/${stamp}-thumb.webp`;
       const opts = { contentType: "image/webp" };
@@ -818,6 +826,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
 
       {uploading && (
         <UploadPhotos
+          known={known}
           onClose={() => setUploading(false)}
           onUploaded={(photos) => {
             // appended, matching the oldest-first order the board is fetched in

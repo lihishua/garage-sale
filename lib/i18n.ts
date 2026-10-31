@@ -225,6 +225,9 @@ export const STR = {
     uploadingN: (done: number, total: number) => `מעלה ${done} מתוך ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "תמונה אחת נוספה לתמונות שמחכות." : `${n} תמונות נוספו לתמונות שמחכות.`,
+    photosSkipped: (n: number) =>
+      n === 1 ? "תמונה אחת כבר נמצאת בלוח התמונות. דילגתי עליה."
+        : `${n} תמונות כבר נמצאות בלוח התמונות. דילגתי עליהן.`,
     photosRejected: (n: number) =>
       n === 1 ? "תמונה אחת נדחתה — קטנה מדי או לא נקראה." : `${n} תמונות נדחו — קטנות מדי או לא נקראו.`,
     photosFailed: (n: number) =>
@@ -504,6 +507,8 @@ export const STR = {
     uploadingN: (done: number, total: number) => `Uploading ${done} of ${total}`,
     photosAdded: (n: number) =>
       n === 1 ? "1 photo added to the waiting photos." : `${n} photos added to the waiting photos.`,
+    photosSkipped: (n: number) =>
+      n === 1 ? "1 photo is already on your board. Skipped it." : `${n} photos are already on your board. Skipped them.`,
     photosRejected: (n: number) =>
       n === 1 ? "1 photo was rejected — too small or unreadable." : `${n} photos were rejected — too small or unreadable.`,
     photosFailed: (n: number) =>

@@ -8,6 +8,24 @@
 const MIN_WIDTH = 1200;
 export const PHOTO_MIN_WIDTH = MIN_WIDTH;
 
+/**
+ * A photo's fingerprint: the first 20 hex digits of the SHA-256 of the file
+ * she picked, before any resizing. The same photo picked again gives the same
+ * one, so an upload cut off halfway can simply be run again and what already
+ * made it is skipped. It lives in the stored file's name — `f<fp>-<stamp>` —
+ * so the board can tell from paths it already has, with no column to keep.
+ */
+export async function fingerprint(file: Blob): Promise<string> {
+  const hash = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+  return [...new Uint8Array(hash)].slice(0, 10).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** the fingerprint in a stored path, or null for one named before they existed */
+export const fingerprintOf = (path: string) => path.match(/\/f([0-9a-f]{20})-/)?.[1] ?? null;
+
+/** the start of a new file name: the fingerprint carried on, where there is one */
+export const namePrefix = (fp: string | null) => (fp ? `f${fp}-` : "");
+
 /** a decoded photo, the right way up, and how to let go of it */
 type Decoded = { src: CanvasImageSource; width: number; height: number; close: () => void };
 

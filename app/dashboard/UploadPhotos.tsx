@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import type { StagedPhoto } from "@/lib/types";
-import { prepare } from "@/lib/images";
+import { fingerprint, namePrefix, prepare } from "@/lib/images";
 import { Sheet } from "@/components/ui";
 
 /**
@@ -12,8 +12,12 @@ import { Sheet } from "@/components/ui";
  * empties her camera roll into `staged_photos` first and decides what is a
  * listing afterwards (Task 5).
  */
-export default function UploadPhotos({ onClose, onUploaded }:
-  { onClose: () => void; onUploaded: (photos: StagedPhoto[]) => void }) {
+export default function UploadPhotos({ onClose, onUploaded, known }:
+  {
+    onClose: () => void; onUploaded: (photos: StagedPhoto[]) => void;
+    /** fingerprints of every photo already on the board, pool and listings */
+    known: Set<string>;
+  }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -25,6 +29,8 @@ export default function UploadPhotos({ onClose, onUploaded }:
   const [rejected, setRejected] = useState(0);
   const [failed, setFailed] = useState(0);
   const [stuck, setStuck] = useState(0);
+  // already on the board, so not uploaded twice
+  const [skipped, setSkipped] = useState(0);
   const [err, setErr] = useState("");
 
   async function pick(e: React.ChangeEvent<HTMLInputElement>) {
@@ -43,13 +49,15 @@ export default function UploadPhotos({ onClose, onUploaded }:
     setBusy(true);
     setErr("");
     setTotal(files.length);
-    setAt(0); setAdded(0); setRejected(0); setFailed(0); setStuck(0);
+    setAt(0); setAdded(0); setRejected(0); setFailed(0); setStuck(0); setSkipped(0);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBusy(false); setErr(t.errSend); return; }
 
     const done: StagedPhoto[] = [];
-    let sent = 0, bad = 0, lost = 0, orphans = 0, lastErr = "";
+    let sent = 0, bad = 0, lost = 0, orphans = 0, dup = 0, lastErr = "";
+    // this batch's own, too: the same photo picked twice in one go
+    const seen = new Set(known);
 
     /**
      * Compensating delete: the blobs are up but nothing references them.
@@ -70,6 +78,12 @@ export default function UploadPhotos({ onClose, onUploaded }:
     // phone stall the connection, and a stalled batch loses every photo
     // instead of some. One bad file is skipped, not fatal to the rest.
     for (let n = 0; n < files.length; n++) {
+      // already on the board — in the pool or in a listing: skip it. A photo
+      // whose fingerprint can't be taken just goes up unchecked.
+      const fp = await fingerprint(files[n]).catch(() => null);
+      if (fp && seen.has(fp)) { setSkipped(++dup); continue; }
+
+
       // too small (under PHOTO_MIN_WIDTH) or unreadable — count it and move on
       const blobs = await prepare(files[n]).catch(() => null);
       if (!blobs) { setRejected(++bad); continue; }
@@ -79,8 +93,8 @@ export default function UploadPhotos({ onClose, onUploaded }:
       setAt(++sent);
 
       const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const fullPath = `${user.id}/${stamp}.webp`;
-      const thumbPath = `${user.id}/${stamp}-thumb.webp`;
+      const fullPath = `${user.id}/${namePrefix(fp)}${stamp}.webp`;
+      const thumbPath = `${user.id}/${namePrefix(fp)}${stamp}-thumb.webp`;
       const opts = { contentType: "image/webp" };
 
       // The two blobs of one photo go together rather than one after the other.
@@ -115,6 +129,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
         continue;
       }
 
+      if (fp) seen.add(fp);
       done.push(data as StagedPhoto);
       setAdded(done.length);
     }
@@ -126,7 +141,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
     // A clean run closes itself: the board says how many landed, and the
     // photos are right there. Anything less stays open holding the reason —
     // a toast that fades is no place to learn a photo was too small.
-    if (done.length && !bad && !lost && !orphans) onClose();
+    if (done.length && !bad && !lost && !orphans && !dup) onClose();
   }
 
   return (
@@ -143,6 +158,7 @@ export default function UploadPhotos({ onClose, onUploaded }:
       {/* at === 0 while the first photo is still being resized in the browser */}
       {busy && <p className="gs-lead">{at ? t.uploadingN(at, total) : t.loading}</p>}
       {!busy && added > 0 && <p className="gs-lead">{t.photosAdded(added)}</p>}
+      {skipped > 0 && <p className="gs-hint">{t.photosSkipped(skipped)}</p>}
       {rejected > 0 && <span className="gs-err">{t.photosRejected(rejected)}</span>}
       {failed > 0 && <span className="gs-err">{t.photosFailed(failed)}</span>}
       {stuck > 0 && <span className="gs-err">{t.photosStuck(stuck)}</span>}
