@@ -76,7 +76,8 @@ export type StagedPhoto = {
   created_at: string;
 };
 
-export type Sale = { id: string; display_name: string; slug: string };
+/** `sale_name`: what she calls the sale on her flyer, if she changed it */
+export type Sale = { id: string; display_name: string; slug: string; sale_name?: string | null };
 
 export type RequestRow = {
   id: string;

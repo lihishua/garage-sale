@@ -12,6 +12,8 @@ create table if not exists profiles (
   phone        text not null,          -- never exposed publicly, see public_sales
   slug         text not null unique,
   tags         text[] not null default '{}',  -- her own tags, beyond the built-in ones
+  -- the name on her flyer and on the sale page's greeting; null is display_name
+  sale_name    text check (sale_name is null or length(sale_name) between 1 and 60),
   created_at   timestamptz not null default now()
 );
 
@@ -109,7 +111,7 @@ create table if not exists request_items (
 
 drop view if exists public_sales;
 create view public_sales with (security_invoker = off) as
-  select id, display_name, slug from profiles;
+  select id, display_name, slug, sale_name from profiles;
 
 grant select on public_sales to anon, authenticated;
 

@@ -537,6 +537,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       <main className="gs-wrap">
         <header className="gs-head">
           <img className="gs-logo" src="/logo.webp" alt="Garage Sale" />
+          {/* what this page is, for someone who just tapped a link */}
+          <div className="gs-welcome">
+            <p className="gs-welcome-h">{t.welcome(sale.sale_name || sale.display_name)}</p>
+            <p>{t.welcomeA} <span className="gs-welcome-heart"><Heart on={false} /></span> {t.welcomeB}</p>
+          </div>
         </header>
 
         {items.length === 0 ? (

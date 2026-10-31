@@ -18,7 +18,7 @@ import PhotoPool from "./PhotoPool";
 import CreateItem from "./CreateItem";
 import EditItem from "./EditItem";
 
-type Profile = { id: string; display_name: string; phone: string; slug: string; tags: string[] };
+type Profile = { id: string; display_name: string; phone: string; slug: string; tags: string[]; sale_name?: string | null };
 
 export default function BoardClient({ profile, items: initial, requests, holderRequests, staged }:
   {
@@ -522,17 +522,19 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   /**
    * The name under the headline. Hers by default, but a flyer may be for the
-   * family's sale or a nickname, so she can change it here — for the flyer
-   * only, remembered in this browser; the sale itself keeps its name.
+   * family's sale or a nickname, so she can change it. It is the sale's name
+   * from then on: saved on the profile, it also greets buyers on the sale
+   * page. Her own name elsewhere — WhatsApp, "send the list to" — stays.
    */
-  const FLYER_NAME = `gs.flyerName.${profile.id}`;
-  const [flyerName, setFlyerName] = useState(profile.display_name);
-  useEffect(() => {
-    try { const saved = localStorage.getItem(FLYER_NAME); if (saved) setFlyerName(saved); } catch { /* ignore */ }
-  }, [FLYER_NAME]);
+  const [flyerName, setFlyerName] = useState(profile.sale_name || profile.display_name);
   const makeFlyer = async (name = flyerName) => {
-    const who = name.trim() || profile.display_name;
-    try { localStorage.setItem(FLYER_NAME, who); } catch { /* ignore */ }
+    const who = name.trim().slice(0, 60) || profile.display_name;
+    if (who !== flyerName) {
+      // best effort: the flyer is right either way, and a failed write
+      // costs only the sale page's greeting
+      await supabase.from("profiles")
+        .update({ sale_name: who === profile.display_name ? null : who }).eq("id", profile.id);
+    }
     // redrawing keeps the old picture up until the new one is ready
     const old = flyer?.src ?? null;
     if (!old) setFlyer({ file: null, src: null });

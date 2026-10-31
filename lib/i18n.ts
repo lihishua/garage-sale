@@ -123,6 +123,10 @@ export const STR = {
     someGone: "חלק מהפריטים נתפסו בינתיים והוסרו מהרשימה.",
     backToSale: "חזרה למכירה",
     startMine: "לפתוח מכירת חצר משלי",
+    // the greeting under the logo; the heart is drawn between the two halves
+    welcome: (name: string) => `ברוכים הבאים למכירה של ${name}!`,
+    welcomeA: "סמנו",
+    welcomeB: "על כל מה שמעניין אתכם ושלחו לי את הרשימה. מה שביקשתם נשמר בשבילכם עד שנדבר.",
     saleEnd: "סוף המכירה",
     ownSaleLead: "רוצים מכירה כזאת משלכם?",
     // seller
@@ -410,6 +414,9 @@ export const STR = {
     someGone: "Some items were taken while you were deciding and have been dropped from your list.",
     backToSale: "Back to the sale",
     startMine: "Start my own garage sale",
+    welcome: (name: string) => `Welcome to ${name}'s sale!`,
+    welcomeA: "Tap",
+    welcomeB: "on whatever you like and send me the list. What you asked for is kept for you until we talk.",
     saleEnd: "End of the sale",
     ownSaleLead: "Want a sale like this of your own?",
     sectionStatusH: "How the sale's going",

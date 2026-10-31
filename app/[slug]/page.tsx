@@ -26,7 +26,7 @@ type Row = Omit<Item, "units"> & { units: (Unit & { photos: UnitPhoto[] })[] };
  */
 const loadSale = cache(async (slug: string) => {
   const { data } = await supabaseServer()
-    .from("public_sales").select("id, display_name, slug").eq("slug", slug).single<Sale>();
+    .from("public_sales").select("id, display_name, slug, sale_name").eq("slug", slug).single<Sale>();
   return data;
 });
 

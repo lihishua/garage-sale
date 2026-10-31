@@ -36,6 +36,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 /* header */
 .gs-head{text-align:center;padding:14px 0 22px}
 .gs-logo{width:min(300px,62vw);height:auto;display:block;margin:0 auto}
+/* the greeting under the logo: who, then what to do, the heart drawn in */
+.gs-welcome{max-width:420px;margin:14px auto 0;font-size:20px;line-height:1.35}
+.gs-welcome p{margin:0}
+.gs-welcome-h{font-size:26px;font-weight:700;margin-bottom:4px !important}
+.gs-welcome-heart{display:inline-block;vertical-align:-4px}
+.gs-welcome-heart svg{width:20px;height:20px}
 
 /* chips */
 .gs-filters{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin-bottom:12px}
