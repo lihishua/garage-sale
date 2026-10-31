@@ -540,7 +540,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           {/* what this page is, for someone who just tapped a link */}
           <div className="gs-welcome">
             <p className="gs-welcome-h">{t.welcome(sale.sale_name || sale.display_name)}</p>
-            <p>{t.welcomeA} <span className="gs-welcome-heart"><Heart on={false} /></span> {t.welcomeB}</p>
+            <p>{t.welcomeA} <span className="gs-welcome-heart"><Heart on /></span> {t.welcomeB}</p>
+            <p>{t.welcomeC}</p>
           </div>
         </header>
 

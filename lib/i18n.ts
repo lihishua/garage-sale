@@ -126,7 +126,8 @@ export const STR = {
     // the greeting under the logo; the heart is drawn between the two halves
     welcome: (name: string) => `ברוכים הבאים למכירה של ${name}!`,
     welcomeA: "סמנו",
-    welcomeB: "על כל מה שמעניין אתכם ושלחו לי את הרשימה. מה שתבקשו יישמר לכם עד שנדבר.",
+    welcomeB: "על כל מה שמעניין אתכם ושלחו לי את הרשימה.",
+    welcomeC: "מה שתבקשו יישמר לכם עד שנדבר.",
     saleEnd: "סוף המכירה",
     ownSaleLead: "רוצים מכירה כזאת משלכם?",
     // seller
@@ -416,7 +417,8 @@ export const STR = {
     startMine: "Start my own garage sale",
     welcome: (name: string) => `Welcome to ${name}'s sale!`,
     welcomeA: "Tap",
-    welcomeB: "on whatever you like and send me the list. Whatever you ask for will be kept for you until we talk.",
+    welcomeB: "on whatever you like and send me the list.",
+    welcomeC: "Whatever you ask for will be kept for you until we talk.",
     saleEnd: "End of the sale",
     ownSaleLead: "Want a sale like this of your own?",
     sectionStatusH: "How the sale's going",
