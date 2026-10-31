@@ -74,8 +74,6 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-chip.on .gs-chip-n{opacity:.9}
 
 /* the switch at the start, the sort at the end, on one line */
-/* under the chips, when several are on: what they add up to */
-.gs-picked{margin:-4px 0 10px;font-size:20px;font-weight:700}
 .gs-sortbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:22px}
 .gs-sort{display:flex;align-items:center;gap:7px;font-size:15px;opacity:.75}
 .gs-sort select{font:inherit;font-size:15px;color:var(--ink);background:#fff;

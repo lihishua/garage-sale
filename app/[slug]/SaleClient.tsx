@@ -564,8 +564,6 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                 </Chip>
               ))}
             </div>
-            {/* two or more chips on: what they come to together */}
-            {filters.length > 1 && <p className="gs-picked">{t.pickedCount(pickedCount)}</p>}
             {/* one line of settings under the chips: the "only available"
                 switch at the start, the sort at the end. The switch filters
                 the same grid as the chips, but it is a setting, not one of
@@ -574,7 +572,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
               <label className="gs-switch">
                 <input type="checkbox" checked={onlyFree} onChange={(e) => setOnlyFree(e.target.checked)} />
                 <span className="gs-switch-knob" aria-hidden="true" />
-                <span>{t.onlyAvailable}</span>
+                {/* how many are free in what the chips show: always there, so
+                    pressing a chip changes a number rather than moving the page */}
+                <span>{t.onlyAvailable} <span className="gs-chip-n">{pickedCount}</span></span>
               </label>
               <label className="gs-sort">
                 <span>{t.sort}</span>
