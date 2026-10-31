@@ -595,6 +595,13 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 @media (hover:hover){.gs-pick-rot:hover{background:var(--cream);color:var(--ink);border-color:var(--ink)}}
 .gs-pick-rot.busy svg{animation:gs-spin .9s linear infinite}
 .gs-pick-rot:disabled{cursor:default}
+/* the create form's strip: tiles big enough to tap open, with a corner star
+   for the cover — inside the corner, since the tiles sit close together */
+.gs-pool-make{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px}
+.gs-pick-star{inset-block-start:4px;inset-inline-end:4px;width:26px;height:26px;color:var(--ink)}
+.gs-pick-star.on{background:var(--orange);color:#fff;border-color:var(--ink)}
+@media (hover:hover){.gs-pick-star:hover{background:var(--cream);color:var(--ink);border-color:var(--ink)}
+  .gs-pick-star.on:hover{background:var(--orange);color:#fff}}
 @keyframes gs-spin{to{transform:rotate(360deg)}}
 /* on a board tile: the other top corner, since the sold check has this one */
 .gs-tile-wrap{position:relative}

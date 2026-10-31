@@ -4,7 +4,7 @@ import React, { useRef, useState } from "react";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
 import { type Item, type StagedPhoto, type Unit } from "@/lib/types";
-import { Sheet, TagPicker, SizeFields } from "@/components/ui";
+import { Sheet, TagPicker, SizeFields, Lightbox } from "@/components/ui";
 import { EMPTY_SIZE, formatSize, sizeFilled, type Size } from "@/lib/size";
 
 /**
@@ -29,7 +29,7 @@ import { EMPTY_SIZE, formatSize, sizeFilled, type Size } from "@/lib/size";
  * numbers for one pile of books was the confusing part. The final number is
  * settled on WhatsApp regardless; the description carries the rest.
  */
-export default function CreateItem({ photos, onClose, onCreated, knownTags, onTagMade, onTagDropped }: {
+export default function CreateItem({ photos: picked, onClose, onCreated, knownTags, onTagMade, onTagDropped }: {
   photos: StagedPhoto[];
   onClose: () => void;
   /**
@@ -50,6 +50,13 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
 }) {
   const t = STR.he;
   const supabase = supabaseBrowser();
+
+  // her pick order, until she names a different cover: that one moves first,
+  // since position 0 is what every card shows
+  const [photos, setPhotos] = useState(picked);
+  const makeCover = (p: StagedPhoto) => setPhotos((ps) => [p, ...ps.filter((x) => x.id !== p.id)]);
+  /** the photo being looked at full size, or none */
+  const [zoom, setZoom] = useState<string | null>(null);
 
   const [f, setF] = useState({ title: "", price: "", desc: "", size: EMPTY_SIZE as Size, tags: [] as string[] });
   // what the one price covers on a lot: each photo, or the whole pile
@@ -208,15 +215,32 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
   }
 
   return (
+    <>
     <Sheet title={t.createItem} onClose={onClose} busy={busy}>
       {/* which photo leads the listing is not guessable from a grid, and it is
           the one thing about this strip she needs to know — when there is a
           strip. One photo is the cover by itself and needs no badge. */}
-      <div className="gs-pool gs-pool-sm">
+      {/* A tap shows the photo full size. The star picks the cover — only for
+          one thing shot several times: a lot's cover is a collage of them all,
+          and one photo is its own cover. */}
+      <div className="gs-pool gs-pool-sm gs-pool-make">
         {photos.map((p, i) => (
-          <div key={p.id} className="gs-pick">
-            <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
-            {i === 0 && multi && <span className="gs-pick-tag">{t.cover}</span>}
+          <div key={p.id} className="gs-pick-wrap">
+            <button type="button" className="gs-pick" aria-label={t.zoomIn}
+              onClick={() => setZoom(photoUrl(p.photo_path))}>
+              <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
+              {i === 0 && multi && !many && <span className="gs-pick-tag">{t.cover}</span>}
+            </button>
+            {multi && !many && (
+              <button type="button" className={"gs-pick-del gs-pick-star" + (i === 0 ? " on" : "")}
+                aria-pressed={i === 0} aria-label={t.makeCover} title={t.makeCover}
+                disabled={busy || done} onClick={() => makeCover(p)}>
+                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                  <path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.1 6-.8z"
+                    fill={i === 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                </svg>
+              </button>
+            )}
           </div>
         ))}
       </div>
@@ -313,5 +337,7 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
         </button>
       )}
     </Sheet>
+    {zoom && <Lightbox src={zoom} alt="" onClose={() => setZoom(null)} closeLabel={t.zoomOut} />}
+    </>
   );
 }

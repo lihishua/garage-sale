@@ -209,6 +209,7 @@ export const STR = {
     selectPhotos: "בחרו תמונות",
     pickHint: "לחץ על תמונה/תמונות על מנת ליצור פריט/פריטים",
     cover: "שער",
+    makeCover: "לבחור כתמונת שער",
     alreadyListed: "כבר בפריט",
     uploadingN: (done: number, total: number) => `מעלה ${done} מתוך ${total}`,
     photosAdded: (n: number) =>
@@ -516,6 +517,7 @@ export const STR = {
     replacePhoto: "Update photo",
     photoReplaced: "Photo updated",
     replaceFailed: "Couldn't update the photo. Try again.",
+    makeCover: "Make this the cover",
     pricePerUnitHint: "The price of one thing from the lot.",
     bundlePrice: "Price for the whole box (₪)",
     bundlePriceHint: "A special price for someone who takes the whole lot. Optional.",
