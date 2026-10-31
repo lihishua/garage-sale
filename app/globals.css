@@ -622,10 +622,13 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 /* the create form's strip: tiles big enough to tap open, with a corner star
    for the cover — inside the corner, since the tiles sit close together */
 .gs-pool-make{grid-template-columns:repeat(auto-fill,minmax(68px,1fr));gap:10px}
-.gs-pick-star{inset-block-start:4px;inset-inline-end:4px;width:26px;height:26px;color:var(--ink)}
-.gs-pick-star.on{background:var(--orange);color:#fff;border-color:var(--ink)}
+.gs-pick-star{inset-block-start:3px;inset-inline-end:3px;width:20px;height:20px;color:var(--ink)}
+/* the cover: the star filled orange, the word beside it in orange, on white */
+.gs-pick-star.on{width:auto;display:flex;align-items:center;gap:2px;padding:0 5px;
+  border-radius:10px;border-color:var(--orange);color:var(--orange);
+  font-size:13px;font-weight:700;line-height:1}
 @media (hover:hover){.gs-pick-star:hover{background:var(--cream);color:var(--ink);border-color:var(--ink)}
-  .gs-pick-star.on:hover{background:var(--orange);color:#fff}}
+  .gs-pick-star.on:hover{background:#fff;color:var(--orange);border-color:var(--orange)}}
 @keyframes gs-spin{to{transform:rotate(360deg)}}
 /* on a board tile: the other top corner, since the sold check has this one */
 .gs-tile-wrap{position:relative}

@@ -229,16 +229,17 @@ export default function CreateItem({ photos: picked, onClose, onCreated, knownTa
             <button type="button" className="gs-pick" aria-label={t.zoomIn}
               onClick={() => setZoom(photoUrl(p.photo_path))}>
               <img src={photoUrl(p.thumb_path)} alt="" loading="lazy" />
-              {i === 0 && multi && !many && <span className="gs-pick-tag">{t.cover}</span>}
             </button>
             {multi && !many && (
               <button type="button" className={"gs-pick-del gs-pick-star" + (i === 0 ? " on" : "")}
                 aria-pressed={i === 0} aria-label={t.makeCover} title={t.makeCover}
                 disabled={busy || done} onClick={() => makeCover(p)}>
-                <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="11" height="11" aria-hidden="true">
                   <path d="M12 3.2l2.6 5.5 6 .8-4.4 4.1 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.1 6-.8z"
-                    fill={i === 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+                    fill={i === 0 ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 </svg>
+                {/* the cover says so beside its star, small and orange */}
+                {i === 0 && <span>{t.cover}</span>}
               </button>
             )}
           </div>
