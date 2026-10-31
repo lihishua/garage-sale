@@ -116,18 +116,15 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
 
       <p className="gs-hint">{t.pickHint}</p>
 
-      {/* The button follows her down the page, the way the buyer's list
-          does: with fourteen photos the pool is a screen tall, and a button
-          under it was a scroll away from the photo she had just tapped.
-          Nothing to press until something is picked. */}
+      {/* The button follows her down the page: with fourteen photos the pool
+          is a screen tall, and a button under it was a scroll away from the
+          photo she had just tapped. It floats a fifth of the way up, big and
+          pressable, because at the very bottom it went unnoticed. Nothing to
+          press until something is picked. */}
       {selected.length > 0 && (
-        <div className="gs-bar">
-          <div className="gs-bar-row">
-            <button className="gs-btn gs-btn-orange" onClick={() => onCreate(selected)}>
-              {t.createItemFrom(selected.length)}
-            </button>
-          </div>
-        </div>
+        <button className="gs-btn gs-btn-orange gs-make-fab" onClick={() => onCreate(selected)}>
+          {t.createItemFrom(selected.length)}
+        </button>
       )}
     </>
   );

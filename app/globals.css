@@ -211,6 +211,17 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .gs-bar-row{display:flex;gap:9px;justify-content:center;align-items:center;
   max-width:520px;margin:0 auto}
 .gs-bar-row .gs-btn{flex:1}
+/* "make an item from these": floating well above the bottom edge, where it
+   was missed, with the thick outline and hard shadow of the board's other
+   must-press buttons; it pops in when the first photo is picked */
+.gs-make-fab{position:fixed;z-index:40;left:50%;bottom:calc(20vh + env(safe-area-inset-bottom));
+  transform:translateX(-50%);max-width:calc(100vw - 32px);white-space:nowrap;
+  padding:12px 26px;font-size:24px;line-height:1.1;-webkit-text-stroke:.5px currentColor;
+  border:2px solid var(--ink);border-radius:14px;box-shadow:3px 3px 0 var(--ink);
+  animation:gs-make-pop .25s ease-out}
+.gs-make-fab:hover{border-color:var(--ink)}
+.gs-make-fab:active{transform:translate(calc(-50% + 2px),2px);box-shadow:1px 1px 0 var(--ink)}
+@keyframes gs-make-pop{from{transform:translate(-50%,12px) scale(.9);opacity:0}}
 /* why a withdraw button is being offered at all */
 .gs-bar-note{max-width:520px;margin:0 auto 8px;text-align:center;font-size:15px;opacity:.65;
   line-height:1.35}
