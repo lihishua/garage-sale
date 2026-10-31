@@ -385,6 +385,8 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-priceor.free .gs-priceor-free{background:var(--butter)}
 .gs-priceor-free:disabled,.gs-priceor-price input:disabled{cursor:default}
 .gs-err-row{margin:-6px 0 10px}
+/* under a box in the name-and-price row; the row's own gap is the spacing */
+.gs-err-cell{margin-top:-4px}
 .gs-desc{display:block;margin-bottom:10px}
 /* under the price half of the pill alone, and as wide as it: the switch
    belongs to that number. The pill is half the row less half the 8px gap;

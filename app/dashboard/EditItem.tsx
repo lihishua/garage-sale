@@ -185,9 +185,17 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
             {t.freeToggle}
           </button>
         </div>
+        {/* each box's complaint right under that box: the name's under the
+            name, the price's under the price */}
+        {(err.title === t.errTitle || err.price) && (
+          <>
+            <span className="gs-err gs-err-cell">{err.title === t.errTitle && err.title}</span>
+            <span className="gs-err gs-err-cell">{err.price}</span>
+          </>
+        )}
       </div>
-      {err.title && <span className="gs-err gs-err-row">{err.title}</span>}
-      {err.price && <span className="gs-err gs-err-row">{err.price}</span>}
+      {/* anything else — the save failing — has the whole width */}
+      {err.title && err.title !== t.errTitle && <span className="gs-err gs-err-row">{err.title}</span>}
 
       {/* a lot's one number, and what it covers: each photo, or the pile.
           A small switch under the price, no label — the two options are
