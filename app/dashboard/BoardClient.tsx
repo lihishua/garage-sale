@@ -328,6 +328,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
     [requests, dropped]
   );
 
+  /** the requests, three to a page, and which page is in view */
+  const reqPages = useMemo(() => {
+    const pages: RequestRow[][] = [];
+    for (let n = 0; n < shownRequests.length; n += 3) pages.push(shownRequests.slice(n, n + 3));
+    return pages;
+  }, [shownRequests]);
+  const reqTrack = React.useRef<HTMLDivElement>(null);
+  const [reqPage, setReqPage] = useState(0);
+  // in a right-to-left page scrollLeft runs negative, so its size is what counts
+  const onReqScroll = () => {
+    const el = reqTrack.current;
+    if (el) setReqPage(Math.round(Math.abs(el.scrollLeft) / el.clientWidth));
+  };
+  const toReqPage = (n: number) =>
+    (reqTrack.current?.children[n] as HTMLElement | undefined)
+      ?.scrollIntoView({ behavior: "smooth", inline: "start", block: "nearest" });
+
   async function releaseRequest(r: RequestRow) {
     if (!(await ask(t.confirmRemoveReq(r.buyer_name.split(" ")[0])))) return;
     const { data, error } = await supabase.rpc("release_request", { p_request_id: r.id });
@@ -619,53 +636,73 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           the grid they filter: with the requests in between, the filter and
           the thing being filtered were a screen apart. */}
       <section className="gs-section">
-        <h2 className="gs-section-h" style={{ marginBottom: 16 }}>{t.requestsH}</h2>
+        <h2 className="gs-section-h" style={{ marginBottom: 16 }}>
+          {t.requestsH}{shownRequests.length > 0 && ` (${shownRequests.length})`}
+        </h2>
           {shownRequests.length === 0 ? <p className="gs-empty">{t.requestsEmpty}</p> : (
-            <div className="gs-reqs">
-              {shownRequests.map((r) => {
-                const lines = r.request_items
-                  .map((ri) => { const l = unitIndex.get(ri.unit_id); return l && { ...l, part: !!ri.part }; })
-                  .filter(Boolean) as { unit: Unit; item: Item; part: boolean }[];
-                const total = lines.reduce((s, l) => s + (costOf(l.item, 1) ?? 0), 0);
-                return (
-                  <div key={r.id} className="gs-req">
-                    {/* in the corner rather than in the footer: it undoes the
-                        whole card, so it belongs to the card, not beside the
-                        one action that acts on its contents */}
-                    <button className="gs-req-x" onClick={() => releaseRequest(r)}
-                      title={t.removeReq} aria-label={t.removeReq}>×</button>
-                    <div className="gs-req-top">
-                      <span className="gs-req-name">{r.buyer_name}</span>
-                      <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
-                      <span className="gs-req-time" dir="ltr">
-                        {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
-                      </span>
-                    </div>
-                    <ul className="gs-req-items">
-                      {lines.map(({ unit, item, part }) => (
-                        <li key={unit.id}>
-                          {item.title}
-                          {isPile(item) && item.price_for === "each" && item.price > 0 && (
-                            <> ({part ? t.partOfLot : t.wholeLot})</>
-                          )}
-                          {" — "}{priceOf(item.price)}
-                          {isPile(item) && item.price_for === "each" && item.price > 0 && ` ${t.perUnit}`}
-                          {unit.status === "sold" && <b> · {t.statSold}</b>}
-                          {unit.status === "available" && <b> · {t.backToStock}</b>}
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="gs-req-foot">
-                      <b>{money(total)}</b>
-                      <button className="gs-btn gs-btn-green gs-btn-sm"
-                        onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
-                        {t.messageX(r.buyer_name.split(" ")[0])}
-                      </button>
-                    </div>
+            <>
+              {/* three to a page, the pages side by side: a busy sale's
+                  requests are a swipe across, not a scroll down past them */}
+              <div className="gs-reqs-track" ref={reqTrack} onScroll={onReqScroll}>
+                {reqPages.map((page, n) => (
+                  <div key={n} className="gs-reqs">
+                    {page.map((r) => {
+                      const lines = r.request_items
+                        .map((ri) => { const l = unitIndex.get(ri.unit_id); return l && { ...l, part: !!ri.part }; })
+                        .filter(Boolean) as { unit: Unit; item: Item; part: boolean }[];
+                      const total = lines.reduce((s, l) => s + (costOf(l.item, 1) ?? 0), 0);
+                      return (
+                        <div key={r.id} className="gs-req">
+                          {/* in the corner rather than in the footer: it undoes the
+                              whole card, so it belongs to the card, not beside the
+                              one action that acts on its contents */}
+                          <button className="gs-req-x" onClick={() => releaseRequest(r)}
+                            title={t.removeReq} aria-label={t.removeReq}>×</button>
+                          <div className="gs-req-top">
+                            <span className="gs-req-name">{r.buyer_name}</span>
+                            <span className="gs-req-phone" dir="ltr">{r.buyer_phone}</span>
+                            <span className="gs-req-time" dir="ltr">
+                              {new Date(r.created_at).toLocaleString("he-IL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <ul className="gs-req-items">
+                            {lines.map(({ unit, item, part }) => (
+                              <li key={unit.id}>
+                                {item.title}
+                                {isPile(item) && item.price_for === "each" && item.price > 0 && (
+                                  <> ({part ? t.partOfLot : t.wholeLot})</>
+                                )}
+                                {" — "}{priceOf(item.price)}
+                                {isPile(item) && item.price_for === "each" && item.price > 0 && ` ${t.perUnit}`}
+                                {unit.status === "sold" && <b> · {t.statSold}</b>}
+                                {unit.status === "available" && <b> · {t.backToStock}</b>}
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="gs-req-foot">
+                            <b>{money(total)}</b>
+                            <button className="gs-btn gs-btn-green gs-btn-sm"
+                              onClick={() => openWa(r.buyer_phone, t.waReply(r.buyer_name.split(" ")[0], profile.display_name))}>
+                              {t.messageX(r.buyer_name.split(" ")[0])}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+              {reqPages.length > 1 && (
+                <div className="gs-reqs-dots">
+                  {reqPages.map((_, n) => (
+                    <button key={n} type="button" className={"gs-reqs-dot" + (n === reqPage ? " on" : "")}
+                      aria-label={t.reqPage(n + 1, reqPages.length)} aria-current={n === reqPage}
+                      onClick={() => toReqPage(n)} />
+                  ))}
+                  <span className="gs-reqs-more">{t.reqSwipe}</span>
+                </div>
+              )}
+            </>
           )}
       </section>
 

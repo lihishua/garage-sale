@@ -524,7 +524,17 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-stat-face > span{font-size:17px}
 .gs-stat.on .gs-stat-face b{opacity:.75}
 .gs-h2{font-family:var(--display);font-weight:var(--dw);font-size:20px;margin:28px 0 12px}
-.gs-reqs{display:grid;gap:12px}
+.gs-reqs{display:grid;gap:12px;align-content:start}
+/* pages of three, side by side, one in view at a time */
+.gs-reqs-track{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;
+  overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.gs-reqs-track::-webkit-scrollbar{display:none}
+.gs-reqs-track > .gs-reqs{flex:0 0 100%;scroll-snap-align:start}
+.gs-reqs-dots{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;margin-top:14px}
+.gs-reqs-dot{width:11px;height:11px;padding:0;border-radius:50%;border:1.5px solid var(--ink);
+  background:#fff;cursor:pointer}
+.gs-reqs-dot.on{background:var(--orange);border-color:var(--ink)}
+.gs-reqs-more{flex-basis:100%;text-align:center;font-size:17px;opacity:.7}
 .gs-req{position:relative;background:#fff;border:1px solid var(--ink);border-radius:10px;padding:13px}
 /* red, because it is the one control here that gives stock back and cannot be
    undone from this screen; quiet until reached for */
