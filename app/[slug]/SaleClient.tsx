@@ -69,7 +69,10 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
   const [items, setItems] = useState(initial);
   const [wish, setWish] = useState<string[]>([]);
-  const [filter, setFilter] = useState("all");
+  // the chips she has on: any number of them, and none at all is הכל
+  const [filters, setFilters] = useState<string[]>([]);
+  const toggleFilter = (x: string) =>
+    setFilters((fs) => (fs.includes(x) ? fs.filter((y) => y !== x) : [...fs, x]));
   // off by default: the whole sale — sold things included — shows on arrival
   const [onlyFree, setOnlyFree] = useState(false);
   const [sort, setSort] = useState("new");
@@ -214,21 +217,32 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     return c;
   }, [items, claimed]);
 
-  // A send can empty the category the buyer is standing in. Its chip goes with
-  // it, and a filter whose chip is gone leaves the grid narrowed with nothing
-  // pressed and no way back — so step out of it.
+  // A send can empty a category the buyer is standing in. Its chip goes with
+  // it, and a filter whose chip is gone narrows the grid with nothing pressed
+  // to undo it — so drop it.
   useEffect(() => {
-    if (filter !== "all" && !(counts[filter] > 0)) setFilter("all");
-  }, [counts, filter]);
+    if (filters.some((x) => !(counts[x] > 0))) setFilters((fs) => fs.filter((x) => counts[x] > 0));
+  }, [counts, filters]);
+
+  /** in any of the chips that are on — books and furniture is both piles */
+  const inFilters = (i: Item) =>
+    filters.length === 0 || filters.some((x) => (x === FREE ? i.price === 0 : i.tags.includes(x)));
+
+  // what the chips that are on hold between them, counted once each: a
+  // listing tagged both books and kids is not two
+  const pickedCount = useMemo(
+    () => items.filter(inFilters).reduce((n, i) => n + freeUnits(i).length, 0),
+    [items, filters, claimed]
+  );
 
   const shown = useMemo(() => {
     const list = items.filter((i) =>
-      (filter === "all" || (filter === FREE ? i.price === 0 : i.tags.includes(filter))) &&
+      inFilters(i) &&
       (!onlyFree || availableUnits(i).some((u) => !claimed.has(u.id))));
     if (sort === "low") return [...list].sort((a, b) => a.price - b.price);
     if (sort === "high") return [...list].sort((a, b) => b.price - a.price);
     return list;
-  }, [items, filter, onlyFree, sort, claimed]);
+  }, [items, filters, onlyFree, sort, claimed]);
 
   // The list, resolved against what is still claimable: stale ids from an old
   // visit and units someone else took both drop out on their own.
@@ -530,20 +544,22 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
         ) : (
           <>
             <div className="gs-filters" role="group">
-              <Chip on={filter === "all"} onClick={() => setFilter("all")}>
+              <Chip on={filters.length === 0} onClick={() => setFilters([])}>
                 {t.all} <span className="gs-chip-n">{counts.all}</span>
               </Chip>
               {counts[FREE] > 0 && (
-                <Chip on={filter === FREE} onClick={() => setFilter(FREE)}>
+                <Chip on={filters.includes(FREE)} onClick={() => toggleFilter(FREE)}>
                   {t.free} <span className="gs-chip-n">{counts[FREE]}</span>
                 </Chip>
               )}
               {saleTags.filter((tag) => counts[tag] > 0).map((tag) => (
-                <Chip key={tag} on={filter === tag} onClick={() => setFilter(tag)}>
+                <Chip key={tag} on={filters.includes(tag)} onClick={() => toggleFilter(tag)}>
                   {tagLabel(tag)} <span className="gs-chip-n">{counts[tag]}</span>
                 </Chip>
               ))}
             </div>
+            {/* two or more chips on: what they come to together */}
+            {filters.length > 1 && <p className="gs-picked">{t.pickedCount(pickedCount)}</p>}
             {/* one line of settings under the chips: the "only available"
                 switch at the start, the sort at the end. The switch filters
                 the same grid as the chips, but it is a setting, not one of
@@ -566,7 +582,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
             {shown.length === 0 ? (
               <p className="gs-empty">
-                {filter === "all" ? t.nothingFree : t.emptyFilter(tagLabel(filter))}
+                {filters.length === 0 ? t.nothingFree : t.emptyFilter(filters.map(tagLabel).join(", "))}
               </p>
             ) : (
               <div className="gs-grid">
