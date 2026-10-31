@@ -114,7 +114,7 @@ export default function PhotoPool({ photos, listed, onCreate, onDelete, onRotate
         })}
       </div>
 
-      <p className="gs-hint">{t.coverHint}</p>
+      <p className="gs-hint">{t.pickHint}</p>
 
       {/* The button follows her down the page, the way the buyer's list
           does: with fourteen photos the pool is a screen tall, and a button
