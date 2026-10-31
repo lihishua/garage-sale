@@ -122,6 +122,8 @@ export const STR = {
     someGone: "חלק מהפריטים נתפסו בינתיים והוסרו מהרשימה.",
     backToSale: "חזרה למכירה",
     startMine: "לפתוח מכירת חצר משלי",
+    saleEnd: "סוף המכירה",
+    ownSaleLead: "רוצים מכירה כזאת משלכם?",
     // seller
     // two sections on the board: things she does, then what is happening
     sectionStatusH: "מצב מכירה",
@@ -404,6 +406,8 @@ export const STR = {
     someGone: "Some items were taken while you were deciding and have been dropped from your list.",
     backToSale: "Back to the sale",
     startMine: "Start my own garage sale",
+    saleEnd: "End of the sale",
+    ownSaleLead: "Want a sale like this of your own?",
     sectionStatusH: "How the sale's going",
     free: "Free to a good home",
     freeToggle: "Free",

@@ -640,7 +640,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
           </>
         )}
 
+        {/* the sale ends here, said in words on a heavy line; what follows is
+            about the app, not this sale, so it sits apart in a box of its own */}
+        <div className="gs-sale-end" role="separator"><span>{t.saleEnd}</span></div>
         <footer className="gs-footer">
+          <p className="gs-footer-lead">{t.ownSaleLead}</p>
           <img className="gs-arrow" src="/arrow.webp" alt="" aria-hidden="true" />
           <Link href="/login?mode=signup"><button className="gs-btn gs-btn-mustard gs-btn-big">{t.startMine}</button></Link>
           <PrivacyNote lang={lang} />
