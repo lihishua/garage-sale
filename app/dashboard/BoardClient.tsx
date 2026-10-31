@@ -500,7 +500,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
    * not worth doing for a seller who never asks. The phone on it shows what
    * is still for sale, one photo per listing, newest first as the board has them.
    */
-  const [flyer, setFlyer] = useState<null | { file: File | null; src: string | null }>(null);
+  const [flyer, setFlyer] = useState<null | { file: File | null; src: string | null; nameEnd?: { x: number; y: number } }>(null);
+  // the "update name" box over the flyer: open with what is there now
+  const [nameDraft, setNameDraft] = useState<string | null>(null);
   /**
    * The name under the headline. Hers by default, but a flyer may be for the
    * family's sale or a nickname, so she can change it here — for the flyer
@@ -522,10 +524,14 @@ export default function BoardClient({ profile, items: initial, requests, holderR
       .filter((u): u is Unit => !!u)
       .slice(0, 4)
       .map((u) => photoUrl(u.thumb_path));
-    const blob = await drawFlyer(saleUrl, t.flyerText(who), photos, true).catch(() => null);
-    if (!blob) { if (!old) setFlyer(null); say(t.flyerFailed); return; }
+    const drawn = await drawFlyer(saleUrl, t.flyerText(who), photos, true).catch(() => null);
+    if (!drawn) { if (!old) setFlyer(null); say(t.flyerFailed); return; }
     if (old) URL.revokeObjectURL(old);
-    setFlyer({ file: new File([blob], `${profile.slug}-flyer.png`, { type: "image/png" }), src: URL.createObjectURL(blob) });
+    setFlyerName(who);
+    setFlyer({
+      file: new File([drawn.blob], `${profile.slug}-flyer.png`, { type: "image/png" }),
+      src: URL.createObjectURL(drawn.blob), nameEnd: drawn.nameEnd,
+    });
   };
   const closeFlyer = () => {
     if (flyer?.src) URL.revokeObjectURL(flyer.src);
@@ -832,13 +838,20 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         <Sheet title="" look onClose={closeFlyer}>
           {flyer.src ? (
             <>
-              <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
-              {/* the name on the flyer, changed here and drawn again */}
-              <div className="gs-flyer-name">
-                <input className="gs-input" value={flyerName} aria-label={t.flyerName}
-                  onChange={(e) => setFlyerName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") makeFlyer(); }} />
-                <button className="gs-btn gs-btn-cream gs-btn-sm" onClick={() => makeFlyer()}>{t.flyerRename}</button>
+              {/* a pencil right where the name ends: the name is part of the
+                  picture, so the way to change it sits on the picture */}
+              <div className="gs-flyer-pic">
+                <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
+                {flyer.nameEnd && (
+                  <button type="button" className="gs-flyer-pen" aria-label={t.flyerRename} title={t.flyerRename}
+                    style={{ left: `calc(${flyer.nameEnd.x * 100}% - 34px)`, top: `calc(${flyer.nameEnd.y * 100}% - 14px)` }}
+                    onClick={() => setNameDraft(flyerName)}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+                      <path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5zM13.5 7l3 3" fill="none"
+                        stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                )}
               </div>
               <div className="gs-flyer-actions">
                 {/* the labels say it all: with the flyer, or the bare link */}
@@ -852,6 +865,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <p className="gs-lead">{t.flyerMaking}</p>
           )}
         </Sheet>
+      )}
+
+      {/* "update name": the name now in the box, so it is plain what to edit */}
+      {nameDraft !== null && (
+        <div className="gs-scrim gs-scrim-mid gs-scrim-top" onClick={() => setNameDraft(null)}>
+          <div className="gs-confirm" role="dialog" aria-modal="true" aria-label={t.flyerRename}
+            onClick={(e) => e.stopPropagation()}>
+            <p>{t.flyerRename}</p>
+            <input className="gs-input" value={nameDraft} autoFocus aria-label={t.flyerName}
+              onChange={(e) => setNameDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { makeFlyer(nameDraft); setNameDraft(null); } }} />
+            <div className="gs-confirm-btns">
+              <button className="gs-btn gs-btn-orange" onClick={() => { makeFlyer(nameDraft); setNameDraft(null); }}>{t.ok}</button>
+              <button className="gs-btn gs-btn-cream" onClick={() => setNameDraft(null)}>{t.cancel}</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {openItem && (

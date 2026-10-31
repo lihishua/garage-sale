@@ -481,10 +481,14 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
 .gs-flyer-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
 /* no border here: the flyer carries its own frame */
 .gs-flyer-img{display:block;width:100%;max-width:420px;height:auto;margin:0 auto 8px}
-/* the name on the flyer: a box and a button, one row, as wide as the picture */
-.gs-flyer-name{display:flex;gap:8px;align-items:center;max-width:420px;margin:0 auto 12px}
-.gs-flyer-name .gs-input{flex:1;min-width:0;margin:0}
-.gs-flyer-name .gs-btn{flex:none}
+/* the picture and the pencil beside the name drawn on it */
+.gs-flyer-pic{position:relative;max-width:420px;margin:0 auto 8px}
+.gs-flyer-pic .gs-flyer-img{margin:0}
+.gs-flyer-pen{position:absolute;width:28px;height:28px;padding:0;display:grid;place-items:center;
+  background:#fff;color:var(--ink);border:1.5px solid var(--ink);border-radius:50%;
+  box-shadow:1.5px 1.5px 0 var(--ink);cursor:pointer}
+.gs-flyer-pen:active{transform:translate(1px,1px);box-shadow:none}
+.gs-confirm .gs-input{width:100%;margin:0 0 14px;box-sizing:border-box}
 
 /* the two choices under the picture, side by side; on a very narrow phone
    they stack rather than squeeze */

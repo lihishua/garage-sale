@@ -143,6 +143,10 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.globalAlpha = 0.7;
   fit(ctx, text.whose, body, 60, W - 140);
   ctx.fillText(text.whose, W / 2, 345);
+  // where the name ends, as fractions of the picture, so the page can put its
+  // edit button right beside it
+  const nw = ctx.measureText(text.whose).width;
+  const nameEnd = { x: (rtl ? W - nw : W + nw) / 2 / W, y: 325 / H };
   ctx.globalAlpha = 1;
 
   // the picture: the yard on the side a reader starts from, the arrow, the
@@ -276,5 +280,6 @@ export async function drawFlyer(url: string, text: FlyerText, photos: string[], 
   ctx.roundRect(20, 20, W - 40, H - 40, 28);
   ctx.stroke();
 
-  return new Promise<Blob | null>((res) => cv.toBlob(res, "image/png"));
+  const blob = await new Promise<Blob | null>((res) => cv.toBlob(res, "image/png"));
+  return blob && { blob, nameEnd };
 }
