@@ -501,15 +501,30 @@ export default function BoardClient({ profile, items: initial, requests, holderR
    * is still for sale, one photo per listing, newest first as the board has them.
    */
   const [flyer, setFlyer] = useState<null | { file: File | null; src: string | null }>(null);
-  const makeFlyer = async () => {
-    setFlyer({ file: null, src: null });
+  /**
+   * The name under the headline. Hers by default, but a flyer may be for the
+   * family's sale or a nickname, so she can change it here — for the flyer
+   * only, remembered in this browser; the sale itself keeps its name.
+   */
+  const FLYER_NAME = `gs.flyerName.${profile.id}`;
+  const [flyerName, setFlyerName] = useState(profile.display_name);
+  useEffect(() => {
+    try { const saved = localStorage.getItem(FLYER_NAME); if (saved) setFlyerName(saved); } catch { /* ignore */ }
+  }, [FLYER_NAME]);
+  const makeFlyer = async (name = flyerName) => {
+    const who = name.trim() || profile.display_name;
+    try { localStorage.setItem(FLYER_NAME, who); } catch { /* ignore */ }
+    // redrawing keeps the old picture up until the new one is ready
+    const old = flyer?.src ?? null;
+    if (!old) setFlyer({ file: null, src: null });
     const photos = items
       .map((i) => i.units.find((u) => u.status === "available"))
       .filter((u): u is Unit => !!u)
       .slice(0, 4)
       .map((u) => photoUrl(u.thumb_path));
-    const blob = await drawFlyer(saleUrl, t.flyerText(profile.display_name), photos, true).catch(() => null);
-    if (!blob) { setFlyer(null); say(t.flyerFailed); return; }
+    const blob = await drawFlyer(saleUrl, t.flyerText(who), photos, true).catch(() => null);
+    if (!blob) { if (!old) setFlyer(null); say(t.flyerFailed); return; }
+    if (old) URL.revokeObjectURL(old);
     setFlyer({ file: new File([blob], `${profile.slug}-flyer.png`, { type: "image/png" }), src: URL.createObjectURL(blob) });
   };
   const closeFlyer = () => {
@@ -570,7 +585,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
 
       {/* the one thing here that leaves the board: the sheet it opens
           sends the flyer with the link, or copies the bare link */}
-      <button className="gs-btn gs-btn-orange gs-flyer-btn" onClick={makeFlyer}>
+      <button className="gs-btn gs-btn-orange gs-flyer-btn" onClick={() => makeFlyer()}>
         <img src="/arrow.webp" alt="" />
         <span>{t.flyer}</span>
         <img src="/arrow.webp" alt="" />
@@ -818,6 +833,13 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           {flyer.src ? (
             <>
               <img className="gs-flyer-img" src={flyer.src} alt={t.flyerTitle} />
+              {/* the name on the flyer, changed here and drawn again */}
+              <div className="gs-flyer-name">
+                <input className="gs-input" value={flyerName} aria-label={t.flyerName}
+                  onChange={(e) => setFlyerName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") makeFlyer(); }} />
+                <button className="gs-btn gs-btn-cream gs-btn-sm" onClick={() => makeFlyer()}>{t.flyerRename}</button>
+              </div>
               <div className="gs-flyer-actions">
                 {/* the labels say it all: with the flyer, or the bare link */}
                 <div className="gs-flyer-send">

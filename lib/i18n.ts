@@ -157,6 +157,8 @@ export const STR = {
     flyerFailed: "יצירת פלייר נכשלה",
     flyerSend: "שלח לינק עם פלייר",
     flyerCopy: "שלח לינק בלבד",
+    flyerName: "השם בפלייר",
+    flyerRename: "עדכון השם",
     flyerText: (name: string) => ({
       title1: "מכירת חצר", title2: "ללא חצר",
       nots: "בלי תאריך · בלי שעה · בלי כיבוד",
@@ -431,6 +433,8 @@ export const STR = {
     flyerFailed: "We couldn't make the flyer.",
     flyerSend: "Send link with flyer",
     flyerCopy: "Send link only",
+    flyerName: "Name on the flyer",
+    flyerRename: "Update name",
     flyerText: (name: string) => ({
       title1: "A garage sale", title2: "without the garage",
       nots: "No date · no hours · no refreshments",
