@@ -104,15 +104,16 @@ export function Lightbox({ src, alt, onClose, closeLabel }:
   );
 }
 
-export function Sheet({ title, sub, hand, compact, look, onClose, busy, children }:
+export function Sheet({ title, sub, hand, compact, look, narrow, onClose, busy, children }:
   { title: string; /** a quiet line under the title — the item's tags */ sub?: React.ReactNode;
     hand?: boolean; compact?: boolean;
     /** a look at one thing, not a form: what is under the photo is centred */ look?: boolean;
+    /** a short form — two boxes and a button — needs no more width than that */ narrow?: boolean;
     onClose: () => void; busy?: boolean; children: React.ReactNode }) {
   const close = busy ? undefined : onClose;
   return (
     <div className={"gs-scrim" + (compact ? " gs-scrim-mid" : "")} onClick={close}>
-      <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "") + (look ? " gs-sheet-look" : "")}
+      <div className={"gs-sheet" + (compact ? " gs-sheet-compact" : "") + (look ? " gs-sheet-look" : "") + (narrow ? " gs-sheet-narrow" : "")}
         role="dialog" aria-label={title}
         onClick={(e) => e.stopPropagation()}>
         <div className="gs-sheet-head">
@@ -129,15 +130,17 @@ export function Sheet({ title, sub, hand, compact, look, onClose, busy, children
   );
 }
 
-export function Field({ label, value, onChange, placeholder, err, hint, type = "text", ltr, area, numeric }: {
+export function Field({ label, value, onChange, placeholder, err, hint, type = "text", ltr, area, numeric, bare }: {
   label: string; value: string; onChange: (v: string) => void;
+  /** no label on screen — the box says what goes in it; still read aloud */
+  bare?: boolean;
   placeholder?: string; err?: string; hint?: string; type?: string; ltr?: boolean; area?: boolean;
   /** digits only — brings up the number pad on a phone instead of the letters */
   numeric?: boolean;
 }) {
   return (
     <label className="gs-field">
-      <span className="gs-label">{label}</span>
+      <span className={"gs-label" + (bare ? " gs-sr" : "")}>{label}</span>
       {area ? (
         <textarea className={"gs-input" + (err ? " bad" : "")} rows={3} value={value}
           placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
@@ -190,14 +193,16 @@ export function SizeFields({ value, onChange, err, firstRef, lang = "he" }: {
  * at all — it is WhatsApp's requirement, not ours, and it used to be the
  * seller's problem to know that.
  */
-export function PhoneField({ label, dial, onDial, value, onChange, err, hint, lang = "he" }: {
+export function PhoneField({ label, dial, onDial, value, onChange, err, hint, lang = "he", bare }: {
   label: string; dial: string; onDial: (v: string) => void;
+  /** no label on screen, as in Field */
+  bare?: boolean;
   value: string; onChange: (v: string) => void;
   err?: string; hint?: string; lang?: Lang;
 }) {
   return (
     <label className="gs-field">
-      <span className="gs-label">{label}</span>
+      <span className={"gs-label" + (bare ? " gs-sr" : "")}>{label}</span>
       <span className="gs-phone">
         <select className="gs-dial" value={dial} dir="ltr"
           onChange={(e) => onDial(e.target.value)} aria-label={label}>

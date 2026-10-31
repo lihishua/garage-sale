@@ -290,6 +290,9 @@ html[dir="rtl"] .gs-arrow{transform:scaleX(-1)}
 .gs-confirm-more{display:block;margin:14px auto 0;font-size:15px}
 /* narrower than the form sheets, and everything under the photo centred
    with it: it is a look at one thing, read down the middle */
+.gs-sheet-narrow{max-width:380px}
+/* a label kept for screen readers, off the screen */
+.gs-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .gs-sheet-compact{max-width:340px;padding:16px;max-height:calc(100vh - 48px);overflow-y:auto;text-align:center}
 .gs-sheet-compact .gs-detail-photo{max-width:220px;margin:0 auto 12px}
 .gs-sheet-compact .gs-sheet-head{margin-bottom:10px;text-align:start}

@@ -895,11 +895,11 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       {panel === "checkout" && (
         // held shut while the reservation is in flight: sending twice would
         // hold the same units under two requests
-        <Sheet title={t.whoAsks} busy={busy} onClose={() => setPanel("wish")}>
-          <p className="gs-lead">{t.checkoutLead(wishUnits.length, sale.display_name)}</p>
-          <Field label={t.yourName} value={buyer.name} err={err.name}
-            onChange={(v) => setBuyer({ ...buyer, name: v })} placeholder={t.namePh} />
-          <PhoneField label={t.phone} dial={dial} onDial={setDial} lang={lang}
+        // narrow, and only the boxes: each says what goes in it
+        <Sheet title={t.whoAsks} busy={busy} narrow onClose={() => setPanel("wish")}>
+          <Field label={t.yourName} bare value={buyer.name} err={err.name}
+            onChange={(v) => setBuyer({ ...buyer, name: v })} placeholder={t.yourName} />
+          <PhoneField label={t.phone} bare dial={dial} onDial={setDial} lang={lang}
             value={buyer.phone} err={err.phone}
             onChange={(v) => setBuyer({ ...buyer, phone: v })} />
           <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={send} disabled={busy}>
