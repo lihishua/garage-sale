@@ -18,10 +18,11 @@ import { EMPTY_SIZE, formatSize, sizeFilled, type Size } from "@/lib/size";
  *   a table and 4 chairs, set -> 1 claimable thing, however many photos
  *   20 books                  -> 20 claimable things, 20 photos
  *
- * The first two are the same shape to this app. So when more than one photo is
- * picked we ask, in her own words, and default to "one thing" — the answer
- * that is right for every crib, every set, and wrong only for a genuine lot,
- * which she will notice because she counted the books herself.
+ * The first two are the same shape to this app. So we ask, in her own words,
+ * and default to "one thing" — the answer that is right for every crib, every
+ * set, and wrong only for a genuine lot, which she will notice because she
+ * counted the books herself. One photo gets the question too: a pile of books
+ * shot once is a lot of one photo (`is_lot`).
  *
  * A lot has one price and a switch saying what it covers — each photo, or
  * the whole pile. It used to have two prices, per-unit and all-for, and two
@@ -66,7 +67,7 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
   const sizeRef = useRef<HTMLInputElement>(null);
 
   const multi = photos.length > 1;
-  const many = multi && mode === "many";       // "one" is the only option when there is one photo
+  const many = mode === "many";
   const isFurniture = f.tags.includes("furniture");
 
   const set = (k: string, v: any) => setF((p) => ({ ...p, [k]: v }));
@@ -101,9 +102,10 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
       price: free ? 0 : Math.round(Number(f.price)),
       // a single thing's price is for that thing; only a lot has the question
       price_for: many ? priceFor : "each",
+      is_lot: many,
       tags: f.tags,
       measurements: isFurniture ? formatSize(f.size) : null,
-    }).select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at").single();
+    }).select("id, seller_id, title, description, price, price_for, is_lot, bundle_price, tags, measurements, created_at").single();
 
     if (itemErr || !item) {
       // nothing was written; the photos are untouched and still in the pool
@@ -219,25 +221,20 @@ export default function CreateItem({ photos, onClose, onCreated, knownTags, onTa
         ))}
       </div>
 
-      {/* The question. Only worth asking when there is more than one photo —
-          a single photo is one thing by definition. */}
-      {multi && (
-        <>
-          <span className="gs-label">{t.oneOrMany(photos.length)}</span>
-          <div className="gs-choices" role="radiogroup" aria-label={t.oneOrMany(photos.length)}>
-            <button type="button" role="radio" aria-checked={mode === "one"}
-              className={"gs-choice" + (mode === "one" ? " on" : "")}
-              disabled={busy || done} onClick={() => setMode("one")}>
-              {t.oneThing}
-            </button>
-            <button type="button" role="radio" aria-checked={mode === "many"}
-              className={"gs-choice" + (mode === "many" ? " on" : "")}
-              disabled={busy || done} onClick={() => setMode("many")}>
-              {t.manyThings(photos.length)}
-            </button>
-          </div>
-        </>
-      )}
+      {/* The question. Asked for one photo as well: a pile shot once is a lot. */}
+      <span className="gs-label">{t.oneOrMany(photos.length)}</span>
+      <div className="gs-choices" role="radiogroup" aria-label={t.oneOrMany(photos.length)}>
+        <button type="button" role="radio" aria-checked={mode === "one"}
+          className={"gs-choice" + (mode === "one" ? " on" : "")}
+          disabled={busy || done} onClick={() => setMode("one")}>
+          {t.oneThing}
+        </button>
+        <button type="button" role="radio" aria-checked={mode === "many"}
+          className={"gs-choice" + (mode === "many" ? " on" : "")}
+          disabled={busy || done} onClick={() => setMode("many")}>
+          {t.manyThings(photos.length)}
+        </button>
+      </div>
 
       {/* One row: the name, then the price-or-free pill — the boxes say what
           goes in them, so no labels over them; the sheet has to fit a phone

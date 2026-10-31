@@ -5,7 +5,7 @@ import Link from "next/link";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
 import { STR, TAG_LABEL, money, priceOf, type Lang } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
-import { TAGS, availableUnits, collageTiles, type Item, type Sale, type Unit } from "@/lib/types";
+import { TAGS, availableUnits, collageTiles, costOf, isLot, isPile, isWhole, type Item, type Sale, type Unit } from "@/lib/types";
 import { DEFAULT_DIAL, fullPhone, validLocal, waDigits } from "@/lib/countries";
 import { Heart, Chip, Sheet, Field, PhoneField, Toast, PrivacyNote, XButton, ZoomButton, Lightbox, Chevron, useConfirm } from "@/components/ui";
 
@@ -37,6 +37,12 @@ const reqKey = (slug: string) => `gs.req.${slug}`;
  * under its own key, so the next held item needs no retyping.
  */
 const waitKey = (slug: string) => `gs.wait.${slug}`;
+
+/**
+ * Units on the list "in part": a pile shot in one photo, of which she wants
+ * some. The unit is on the wish list either way; this only says how.
+ */
+const partKey = (slug: string) => `gs.part.${slug}`;
 const EMAIL_KEY = "gs.email";
 
 /** one photo of one unit — what the gallery in the item sheet walks */
@@ -93,6 +99,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   const [waitEmail, setWaitEmail] = useState("");
   const [waitErr, setWaitErr] = useState<string | undefined>();
   const [waited, setWaited] = useState<Set<string>>(new Set());
+  const [parts, setParts] = useState<string[]>([]);
 
   /* the wish list lives in the browser — no account needed to keep one */
   useEffect(() => {
@@ -109,6 +116,14 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   useEffect(() => {
     try { setPending(localStorage.getItem(reqKey(sale.slug))); } catch { /* ignore */ }
   }, [sale.slug]);
+
+  useEffect(() => {
+    try { setParts(JSON.parse(localStorage.getItem(partKey(sale.slug)) ?? "[]")); } catch { /* start empty */ }
+  }, [sale.slug]);
+  const keepParts = (next: string[]) => {
+    setParts(next);
+    try { localStorage.setItem(partKey(sale.slug), JSON.stringify(next)); } catch { /* ignore */ }
+  };
 
   useEffect(() => {
     try {
@@ -160,10 +175,16 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
    * count. Its heart takes every free unit at once, the units inside have no
    * hearts of their own, and it costs its price once — not once per photo.
    */
-  const whole = (i: Item) => i.units.length > 1 && i.price_for === "all";
+  const whole = isWhole;
 
-  /** what n units of an item cost: per unit, or the pile's one price */
-  const costOf = (i: Item, n: number) => (whole(i) ? (n > 0 ? i.price : 0) : i.price * n);
+  /**
+   * What a list line costs, in words where there is no number: a pile priced
+   * per item is "₪10 ליחידה", the count being the WhatsApp conversation's.
+   */
+  const costText = (i: Item, n: number) => {
+    const c = costOf(i, n);
+    return c === null ? `${priceOf(i.price, lang)} ${t.perUnit}` : priceOf(c, lang);
+  };
 
   /** what is still there to claim: available per the server, and not taken since */
   const freeUnits = (i: Item) => availableUnits(i).filter((u) => !claimed.has(u.id));
@@ -233,7 +254,9 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
   // `price` is per unit, so the total counts photos, not cards. The bundle
   // price deliberately does not enter here: it is the seller's offer to make
   // in the chat, and reserve_units has no notion of it.
-  const wishTotal = wishGroups.reduce((s, g) => s + costOf(g.item, g.units.length), 0);
+  const wishTotal = wishGroups.reduce((s, g) => s + (costOf(g.item, g.units.length) ?? 0), 0);
+  // a pile priced per item has no sum yet; with nothing else, no total either
+  const wishPriced = wishGroups.some((g) => costOf(g.item, g.units.length) !== null);
 
   const open = openId ? items.find((i) => i.id === openId) ?? null : null;
   const slides = useMemo(() => (open ? slidesOf(open) : []), [open]);
@@ -284,6 +307,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     setWish((w) => (on
       ? w.filter((x) => !free.includes(x))
       : [...w, ...free.filter((x) => !w.includes(x))]));
+    // from the card, a pile is wanted whole
+    if (!on && parts.some((x) => free.includes(x))) keepParts(parts.filter((x) => !free.includes(x)));
   };
 
   /* ---- the decision at the bottom of the item sheet ----
@@ -312,6 +337,13 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
    */
   const decideMarked = () => setOpenId(null);
 
+  /** a pile shot once, priced per item: all of it, or some of it */
+  const decidePile = (u: Unit, part: boolean) => {
+    setWish((w) => (w.includes(u.id) ? w : [...w, u.id]));
+    keepParts(part ? [...parts.filter((x) => x !== u.id), u.id] : parts.filter((x) => x !== u.id));
+    setOpenId(null);
+  };
+
   /** how many of a card's free units carry a heart right now */
   const markedIn = (i: Item) => freeUnits(i).filter((u) => wishSet.has(u.id)).length;
 
@@ -334,6 +366,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     const supabase = supabaseBrowser();
     const { data, error } = await supabase.rpc("reserve_units", {
       p_slug: sale.slug, p_unit_ids: ids, p_name: buyer.name.trim(), p_phone: phone,
+      p_part: ids.filter((x) => parts.includes(x)),
     });
     setBusy(false);
 
@@ -355,6 +388,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
     })));
     setClaimed((prev) => new Set([...prev, ...unavailable]));
     setWish([]);
+    keepParts([]);
     // null when nothing was held, in which case no request row exists either
     holdRequest(data.request ?? null);
 
@@ -371,11 +405,17 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
       g.n += 1;
       held.set(i.id, g);
     }));
+    // a pile says which: all of it or some, with its per-item price
+    const pileNote = (item: Item) =>
+      !isPile(item) || whole(item) ? ""
+        : ` (${item.units.some((u) => parts.includes(u.id)) ? t.partOfLot : t.wholeLot})`;
     const lines = [...held.values()]
-      .map(({ item, n }) => `• ${item.title}${n > 1 && !whole(item) ? ` ×${n}` : ""} — ${priceOf(costOf(item, n), lang)}`)
+      .map(({ item, n }) => `• ${item.title}${pileNote(item)}${n > 1 && !whole(item) ? ` ×${n}` : ""} — ${costText(item, n)}`)
       .join("\n");
-    const total = [...held.values()].reduce((s, g) => s + costOf(g.item, g.n), 0);
-    const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}\n\n${t.total}: ${money(total)}\n\n${buyer.name.trim()} — +${phone}`;
+    const total = [...held.values()].reduce((s, g) => s + (costOf(g.item, g.n) ?? 0), 0);
+    const priced = [...held.values()].some((g) => costOf(g.item, g.n) !== null);
+    const totalLine = priced ? `\n\n${t.total}: ${money(total)}` : "";
+    const msg = `${lang === "he" ? "היי" : "Hi"} ${data.seller_name}!\n\n${lines}${totalLine}\n\n${buyer.name.trim()} — +${phone}`;
 
     setSent({ msg, phone: data.seller_phone ?? null, dropped: unavailable.length });
     setPanel("sent");
@@ -562,8 +602,8 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                       <button className="gs-heart" onClick={() => toggleCard(it)}
                         disabled={gone} aria-pressed={on}
                         aria-label={on
-                          ? (many ? t.dropAll : t.onList)
-                          : (many ? t.wantAll : t.addToList)}>
+                          ? (isLot(it) ? t.dropAll : t.onList)
+                          : (isLot(it) ? t.wantAll : t.addToList)}>
                         <Heart on={on} />
                       </button>
                       <div className="gs-card-body">
@@ -572,7 +612,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                           <span className="gs-price">
                             {priceOf(it.price, lang)}
                             {/* a single crib has nothing to be "per unit" of */}
-                            {many && <span className="gs-detail-per"> {whole(it) ? t.forAll : t.perUnit}</span>}
+                            {isLot(it) && <span className="gs-detail-per"> {whole(it) ? t.forAll : t.perUnit}</span>}
                           </span>
                           {many && free > 0 && (
                             <span className="gs-tags">{t.unitsLeft(free)}</span>
@@ -703,7 +743,7 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
 
           <p className="gs-detail-price">
             {priceOf(open.price, lang)}
-            {open.units.length > 1 && <span className="gs-detail-per"> {whole(open) ? t.forAll : t.perUnit}</span>}
+            {isLot(open) && <span className="gs-detail-per"> {whole(open) ? t.forAll : t.perUnit}</span>}
           </p>
           {/* "נשארו 0" is not a thing anyone says — a מארז with nothing left
               says so instead, the same guard the card uses */}
@@ -768,6 +808,25 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                 {cardOn(open) ? t.dropAll : t.wantAll}
               </button>
             )
+          ) : isPile(open) && open.price > 0 ? (
+            // a pile shot once, priced per item: all of it, or some — how many
+            // is for the WhatsApp conversation. Held whole either way.
+            standing(cur.unit) === "free" && (
+              wishSet.has(cur.unit.id) ? (
+                <button className="gs-btn gs-btn-wide gs-btn-cream" onClick={() => decideOne(cur.unit)}>
+                  {t.dropThis} · {parts.includes(cur.unit.id) ? t.partOfLot : t.wholeLot}
+                </button>
+              ) : (
+                <div className="gs-lot-actions">
+                  <button className="gs-btn gs-btn-orange" onClick={() => decidePile(cur.unit, false)}>
+                    {t.wantAll}
+                  </button>
+                  <button className="gs-btn gs-btn-cream" onClick={() => decidePile(cur.unit, true)}>
+                    {t.wantPart}
+                  </button>
+                </div>
+              )
+            )
           ) : standing(cur.unit) === "free" && (
             <button className={"gs-btn gs-btn-wide " + (wishSet.has(cur.unit.id) ? "gs-btn-cream" : "gs-btn-orange")}
               onClick={() => decideOne(cur.unit)}>
@@ -787,13 +846,16 @@ export default function SaleClient({ sale, items: initial }: { sale: Sale; items
                     <img className="gs-mini" src={photoUrl(g.units[0].thumb_path)} alt="" />
                     <span className="gs-list-name">
                       {g.item.title}{g.units.length > 1 && ` ×${g.units.length}`}
+                      {isPile(g.item) && !whole(g.item) && g.item.price > 0 && (
+                        <span className="gs-detail-per"> · {parts.includes(g.units[0].id) ? t.partOfLot : t.wholeLot}</span>
+                      )}
                     </span>
-                    <span className="gs-price">{priceOf(costOf(g.item, g.units.length), lang)}</span>
+                    <span className="gs-price">{costText(g.item, g.units.length)}</span>
                     <XButton onClick={() => dropCard(g.item)} label={t.close} />
                   </li>
                 ))}
               </ul>
-              <p className="gs-total">{t.total} <b>{money(wishTotal)}</b></p>
+              {wishPriced && <p className="gs-total">{t.total} <b>{money(wishTotal)}</b></p>}
               <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => setPanel("checkout")}>
                 {t.sendList(sale.display_name)}
               </button>

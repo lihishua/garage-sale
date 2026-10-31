@@ -33,6 +33,9 @@ create table if not exists items (
   price        integer not null check (price >= 0),
   -- what `price` covers: each unit, or the whole lot. One number, one switch.
   price_for    price_for not null default 'each',
+  -- a מארז even with one photo (a pile shot once). Several units make a lot
+  -- whether or not this is set, so readers ask `is_lot or units > 1`.
+  is_lot       boolean not null default false,
   -- retired: nothing writes it. A lot that had one became a price_for='all'
   -- lot at that price. Kept so an old row still reads.
   bundle_price integer check (bundle_price > 0),
@@ -52,6 +55,8 @@ create table if not exists item_units (
   -- what it actually went for, written when marked sold. Null: not sold, or
   -- sold before this existed; the board shows the list price for those.
   sold_price        integer check (sold_price >= 0),
+  -- what part-sales of a one-photo lot have brought in so far
+  part_sold         integer not null default 0 check (part_sold >= 0),
   -- deliberately NO reserved_by_* columns: this table is world-readable,
   -- so buyer contact details live only in `requests`. See Global Constraints.
   created_at        timestamptz not null default now()
@@ -93,6 +98,8 @@ create index if not exists requests_seller_idx on requests (seller_id, created_a
 create table if not exists request_items (
   request_id uuid references requests(id) on delete cascade,
   unit_id    uuid references item_units(id) on delete cascade,
+  -- asked for part of a one-photo lot; the quantity is settled on WhatsApp
+  part       boolean not null default false,
   primary key (request_id, unit_id)
 );
 
@@ -171,11 +178,15 @@ create policy "sellers read their own request lines" on request_items
 -- note: nobody has insert rights on requests. buyers go through this
 -- security-definer function, which is the only way a reservation can be
 -- created.
+-- the four-argument version it replaced, so the two cannot both exist
+drop function if exists reserve_units(text, uuid[], text, text);
 create or replace function reserve_units(
   p_slug     text,
   p_unit_ids uuid[],
   p_name     text,
-  p_phone    text
+  p_phone    text,
+  -- the units asked for in part, a subset of p_unit_ids
+  p_part     uuid[] default '{}'
 ) returns jsonb
 language plpgsql
 security definer
@@ -219,8 +230,8 @@ begin
     insert into requests (seller_id, buyer_name, buyer_phone)
       values (v_seller, btrim(p_name), btrim(p_phone))
       returning id into v_request;
-    insert into request_items (request_id, unit_id)
-      select v_request, unnest(v_ok);
+    insert into request_items (request_id, unit_id, part)
+      select v_request, id, id = any(coalesce(p_part, '{}')) from unnest(v_ok) as id;
   end if;
 
   return jsonb_build_object(
@@ -239,7 +250,7 @@ begin
   );
 end $$;
 
-grant execute on function reserve_units(text, uuid[], text, text) to anon, authenticated;
+grant execute on function reserve_units(text, uuid[], text, text, uuid[]) to anon, authenticated;
 
 -- Taking a request back off the board. The seller removing a buyer and the
 -- buyer withdrawing her own list are the same thing done to the same rows, so

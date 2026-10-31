@@ -3,13 +3,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseBrowser, photoUrl } from "@/lib/supabase-browser";
-import { rotated } from "@/lib/images";
+import { prepare, rotated } from "@/lib/images";
 import { STR, TAG_LABEL, money, priceOf } from "@/lib/i18n";
 import { showSize } from "@/lib/size";
 import { waDigits } from "@/lib/countries";
 import { drawFlyer } from "@/lib/flyer";
 import {
-  availableUnits, holdersByUnit, unitPaths, collageTiles, TAGS,
+  availableUnits, holdersByUnit, unitPaths, collageTiles, costOf, isLot, isPile, TAGS,
   type Item, type ItemStatus, type RequestRow, type StagedPhoto, type Unit,
 } from "@/lib/types";
 import { StatChip, Toast, PrivacyNote, Sheet, ZoomButton, Lightbox, useConfirm } from "@/components/ui";
@@ -74,14 +74,16 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   // falls back to what the listing asked. A per-pile lot's price is for the
   // whole lot, so its list price counts once, not once per unit.
   const earned = items.reduce((sum, i) => {
+    // a pile's part-sales count whatever its status: they came in already
+    const parts = i.units.reduce((a, u) => a + (u.part_sold ?? 0), 0);
     const soldUnits = i.units.filter((u) => u.status === "sold");
-    if (!soldUnits.length) return sum;
+    if (!soldUnits.length) return sum + parts;
     const written = soldUnits.reduce((a, u) => a + (u.sold_price ?? 0), 0);
     const unwritten = soldUnits.filter((u) => u.sold_price == null).length;
-    const fallback = i.price_for === "all" && i.units.length > 1
+    const fallback = i.price_for === "all" && isLot(i)
       ? (unwritten > 0 ? i.price : 0)
       : unwritten * i.price;
-    return sum + written + fallback;
+    return sum + parts + written + fallback;
   }, 0);
 
   /**
@@ -197,12 +199,73 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   }
 
   /**
+   * Part of a pile went: what it brought in is added up, and the pile goes
+   * back on sale for the rest — which also tells anyone waiting on it. The
+   * photo still shows everything, so she is asked whether to take a new one.
+   */
+  async function sellPart(i: Item, u: Unit, paid: number) {
+    const patch = { status: "available" as const, sold_price: null, part_sold: (u.part_sold ?? 0) + paid };
+    const { error } = await supabase.from("item_units").update(patch).eq("id", u.id);
+    if (error) return say(error.message);
+    setItems((prev) => prev.map((x) => ({
+      ...x, units: x.units.map((y) => (y.id === u.id ? { ...y, ...patch } : y)),
+    })));
+    setPaidDraft((d) => { const { [u.id]: _, ...rest } = d; return rest; });
+    say(t.partSold);
+    if (await ask(t.photoStale)) pickPhotoFor(u);
+  }
+
+  /**
+   * A new photo for a unit, from the phone: uploaded under new names, the row
+   * pointed at them, the old files removed last — the same order as turning a
+   * photo, for the same reasons.
+   */
+  const replaceRef = React.useRef<HTMLInputElement>(null);
+  const [replacing, setReplacing] = useState<Unit | null>(null);
+  const pickPhotoFor = (u: Unit) => { setReplacing(u); replaceRef.current?.click(); };
+  async function replacePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    const u = replacing;
+    setReplacing(null);
+    if (!file || !u) return;
+    try {
+      const out = await prepare(file);
+      const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const fullPath = `${profile.id}/${stamp}.webp`;
+      const thumbPath = `${profile.id}/${stamp}-thumb.webp`;
+      const opts = { contentType: "image/webp" };
+      const [up1, up2] = await Promise.all([
+        supabase.storage.from("photos").upload(fullPath, out.full, opts),
+        supabase.storage.from("photos").upload(thumbPath, out.thumb, opts),
+      ]);
+      if (up1.error || up2.error) {
+        await supabase.storage.from("photos").remove([fullPath, thumbPath]);
+        throw new Error((up1.error ?? up2.error)!.message);
+      }
+      const { error } = await supabase.from("item_units")
+        .update({ photo_path: fullPath, thumb_path: thumbPath }).eq("id", u.id);
+      if (error) {
+        await supabase.storage.from("photos").remove([fullPath, thumbPath]);
+        throw new Error(error.message);
+      }
+      setItems((prev) => prev.map((x) => ({
+        ...x, units: x.units.map((y) => (y.id === u.id ? { ...y, photo_path: fullPath, thumb_path: thumbPath } : y)),
+      })));
+      say(t.photoReplaced);
+      await supabase.storage.from("photos").remove([u.photo_path, u.thumb_path]);
+    } catch {
+      say(t.replaceFailed);
+    }
+  }
+
+  /**
    * The price beside each "paid" button. Keyed by unit and pre-filled with
    * the asking price the moment the sheet opens, so pressing paid without
    * touching it records the list price — and a haggle is one edit first.
    */
   const [paidDraft, setPaidDraft] = useState<Record<string, string>>({});
-  const askingFor = (i: Item) => (i.price_for === "all" && i.units.length > 1 ? i.price : i.price);
+  const askingFor = (i: Item) => i.price;
   const draftFor = (i: Item, u: Unit) => paidDraft[u.id] ?? String(u.sold_price ?? askingFor(i));
   const paidOf = (i: Item, u: Unit) => {
     const n = Number(draftFor(i, u));
@@ -233,6 +296,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             onClick={async () => { await setUnitStatus(u.id, "sold", i.price > 0 ? paidOf(i, u) : 0); after?.(); }}>
             {i.price > 0 ? t.markSold : t.markGiven}
           </button>
+          {/* a pile shot once: some of it went, the rest is still for sale */}
+          {isPile(i) && i.price > 0 && i.price_for === "each" && (
+            <button className="gs-btn gs-btn-cream gs-btn-sm" onClick={() => sellPart(i, u, paidOf(i, u))}>
+              {t.partSold}
+            </button>
+          )}
         </>
       )}
       {u.status !== "available" && (
@@ -523,9 +592,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <div className="gs-reqs">
               {shownRequests.map((r) => {
                 const lines = r.request_items
-                  .map((ri) => unitIndex.get(ri.unit_id))
-                  .filter(Boolean) as { unit: Unit; item: Item }[];
-                const total = lines.reduce((s, l) => s + l.item.price, 0);
+                  .map((ri) => { const l = unitIndex.get(ri.unit_id); return l && { ...l, part: !!ri.part }; })
+                  .filter(Boolean) as { unit: Unit; item: Item; part: boolean }[];
+                const total = lines.reduce((s, l) => s + (costOf(l.item, 1) ?? 0), 0);
                 return (
                   <div key={r.id} className="gs-req">
                     {/* in the corner rather than in the footer: it undoes the
@@ -541,9 +610,14 @@ export default function BoardClient({ profile, items: initial, requests, holderR
                       </span>
                     </div>
                     <ul className="gs-req-items">
-                      {lines.map(({ unit, item }) => (
+                      {lines.map(({ unit, item, part }) => (
                         <li key={unit.id}>
-                          {item.title} — {priceOf(item.price)}
+                          {item.title}
+                          {isPile(item) && item.price_for === "each" && item.price > 0 && (
+                            <> ({part ? t.partOfLot : t.wholeLot})</>
+                          )}
+                          {" — "}{priceOf(item.price)}
+                          {isPile(item) && item.price_for === "each" && item.price > 0 && ` ${t.perUnit}`}
                           {unit.status === "sold" && <b> · {t.statSold}</b>}
                           {unit.status === "available" && <b> · {t.backToStock}</b>}
                         </li>
@@ -797,6 +871,9 @@ export default function BoardClient({ profile, items: initial, requests, holderR
               {openItem.units[0].status === "sold" && openItem.units[0].sold_price != null && (
                 <p className="gs-waiting">{t.paidPrice}: {money(openItem.units[0].sold_price)}</p>
               )}
+              {(openItem.units[0].part_sold ?? 0) > 0 && (
+                <p className="gs-waiting">{t.partSoldSoFar(money(openItem.units[0].part_sold!))}</p>
+              )}
               {paidRow(openItem, openItem.units[0], () => setOpenId(null))}
             </>
           )}
@@ -806,6 +883,12 @@ export default function BoardClient({ profile, items: initial, requests, holderR
             <button className="gs-btn-ghost" onClick={() => { setEditing(openItem); setOpenId(null); }}>
               {t.editItem}
             </button>
+            {/* a pile shrinks as it sells; its one photo can be taken again */}
+            {isPile(openItem) && (
+              <button className="gs-btn-ghost" onClick={() => pickPhotoFor(openItem.units[0])}>
+                {t.replacePhoto}
+              </button>
+            )}
             <button className="gs-btn-ghost gs-danger" onClick={() => { remove(openItem); setOpenId(null); }}>
               {t.deleteItem}
             </button>
@@ -813,6 +896,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
         </Sheet>
       )}
 
+      <input ref={replaceRef} type="file" accept="image/*" hidden onChange={replacePhoto} />
       {confirmDialog}
       {toast && <Toast text={toast} />}
     </main>

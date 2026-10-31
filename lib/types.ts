@@ -23,6 +23,8 @@ export type Unit = {
   status: ItemStatus;
   /** what it went for, if the seller wrote it down when marking it sold */
   sold_price?: number | null;
+  /** what part-sales of a one-photo lot have brought in so far (board only) */
+  part_sold?: number;
   /**
    * Safe on a public page: `unit_photos` holds image paths and nothing else,
    * exactly like `item_units` itself. No buyer details live here — they are
@@ -57,6 +59,8 @@ export type Item = {
   price: number;
   /** what `price` covers: each unit, or the whole lot */
   price_for: "each" | "all";
+  /** a מארז even with one photo — see `isLot` */
+  is_lot?: boolean;
   /** retired — see the migration. Read nowhere; kept so old rows type. */
   bundle_price: number | null;
   tags: string[];
@@ -79,7 +83,8 @@ export type RequestRow = {
   buyer_name: string;
   buyer_phone: string;
   created_at: string;
-  request_items: { unit_id: string }[];
+  /** `part`: asked for part of a one-photo lot, the quantity left to WhatsApp */
+  request_items: { unit_id: string; part?: boolean }[];
 };
 
 export type Holder = { name: string; phone: string };
@@ -104,6 +109,29 @@ export const holdersByUnit = (requests: RequestRow[]): Map<string, Holder> => {
 };
 
 export const availableUnits = (i: Item) => i.units.filter(u => u.status === "available");
+
+/**
+ * A מארז: several photos, each its own thing, or one photo of a pile. The
+ * first is told by its unit count, the second has to be said — `is_lot`.
+ */
+export const isLot = (i: Item) => !!i.is_lot || i.units.length > 1;
+
+/** a pile shot once: a lot with one unit, which can be asked for in part */
+export const isPile = (i: Item) => !!i.is_lot && i.units.length === 1;
+
+/** a lot priced for all of it: one thing to buy, whatever its photo count */
+export const isWhole = (i: Item) => isLot(i) && i.price_for === "all";
+
+/**
+ * What n units of an item cost: per unit, or the lot's one price. Null when
+ * there is no number to give — a pile priced per item, where how many items
+ * is settled on WhatsApp.
+ */
+export const costOf = (i: Item, n: number): number | null =>
+  i.price === 0 ? 0
+    : isWhole(i) ? (n > 0 ? i.price : 0)
+      : isPile(i) ? null
+        : i.price * n;
 
 // the bundle price is only true while nothing has gone
 

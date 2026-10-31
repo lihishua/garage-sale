@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase-browser";
 import { STR } from "@/lib/i18n";
-import { type Item } from "@/lib/types";
+import { isLot, type Item } from "@/lib/types";
 import { Sheet, TagPicker, SizeFields } from "@/components/ui";
 import { formatSize, parseSize, sizeFilled, type Size } from "@/lib/size";
 
@@ -43,7 +43,7 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
   const photoCount = item.units.reduce((n, u) => n + 1 + (u.photos?.length ?? 0), 0);
   // what it is now, and what she wants it to be. `many` drives the form —
   // a lot prices per unit and can carry an all-for price, a set cannot.
-  const wasMany = item.units.length > 1;
+  const wasMany = isLot(item);
   const [many, setMany] = useState(wasMany);
   const multi = many;
   // no unit may be claimed for the kind to change; the server checks this
@@ -89,7 +89,9 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
     // it was. If it succeeds the units are rebuilt server-side, and the board
     // needs the real rows back rather than the ones it is holding.
     let units = item.units;
-    if (many !== wasMany) {
+    // one photo is one unit either way: a pile and a single thing differ only
+    // in `is_lot`, written below, so there is nothing to rebuild
+    if (many !== wasMany && photoCount > 1) {
       const { data: r, error: rErr } = await supabase.rpc("reshape_item", {
         p_item_id: item.id, p_many: many,
       });
@@ -111,12 +113,13 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
       description: f.desc.trim(),
       price: free ? 0 : Math.round(Number(f.price)),
       price_for: many ? priceFor : "each",
+      is_lot: many,
       // retired; cleared so an old lot's leftover number cannot resurface
       bundle_price: null,
       tags: f.tags,
       measurements: isFurniture ? formatSize(f.size) : null,
     }).eq("id", item.id)
-      .select("id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at")
+      .select("id, seller_id, title, description, price, price_for, is_lot, bundle_price, tags, measurements, created_at")
       .single();
 
     setBusy(false);
@@ -137,11 +140,10 @@ export default function EditItem({ item, onClose, onSaved, knownTags, onTagMade,
   return (
     <Sheet title={t.editItem} onClose={onClose} busy={busy}>
       {/* a listing with several units prices per item; a single one just has a price */}
-      {/* The same question CreateItem asks, asked again — only for a listing
-          with more than one photo, since one photo is one thing either way,
-          and only while nobody holds a unit, since reshaping a claimed unit
-          would either orphan the request or hand the buyer something else. */}
-      {photoCount > 1 && (
+      {/* The same question CreateItem asks, asked again — only while nobody
+          holds a unit, since reshaping a claimed unit would either orphan the
+          request or hand the buyer something else. */}
+      {photoCount > 0 && (
         <>
           <span className="gs-label">{t.oneOrMany(photoCount)}</span>
           <div className="gs-choices" role="radiogroup" aria-label={t.oneOrMany(photoCount)}>

@@ -28,8 +28,8 @@ export default async function Dashboard() {
   const { data: rows } = await supabase
     .from("items")
     .select(
-      "id, seller_id, title, description, price, price_for, bundle_price, tags, measurements, created_at," +
-      " units:item_units(id, item_id, photo_path, thumb_path, position, status, sold_price," +
+      "id, seller_id, title, description, price, price_for, is_lot, bundle_price, tags, measurements, created_at," +
+      " units:item_units(id, item_id, photo_path, thumb_path, position, status, sold_price, part_sold," +
       " photos:unit_photos(id, unit_id, photo_path, thumb_path, position))"
     )
     .eq("seller_id", user.id)
@@ -57,7 +57,7 @@ export default async function Dashboard() {
   // needs the name on. See `holderRequests` below for that.
   const { data: requests } = await supabase
     .from("requests")
-    .select("id, buyer_name, buyer_phone, created_at, request_items(unit_id)")
+    .select("id, buyer_name, buyer_phone, created_at, request_items(unit_id, part)")
     .eq("seller_id", user.id)
     .order("created_at", { ascending: false })
     .limit(50);
@@ -77,7 +77,7 @@ export default async function Dashboard() {
   const { data: holderRequests } = reservedUnitIds.length
     ? await supabase
         .from("requests")
-        .select("id, buyer_name, buyer_phone, created_at, request_items!inner(unit_id)")
+        .select("id, buyer_name, buyer_phone, created_at, request_items!inner(unit_id, part)")
         .eq("seller_id", user.id)
         .in("request_items.unit_id", reservedUnitIds)
         .order("created_at", { ascending: false })
