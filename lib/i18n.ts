@@ -175,6 +175,34 @@ export const STR = {
       whose: `המכירה של ${name}`,
     }),
     signOut: "יציאה",
+    // the how-to, opened from the board's corner at any time. Button names are
+    // quoted exactly as they appear, so she can find what the step points at.
+    guideBtn: "איך זה עובד?",
+    guideDone: "הבנתי, בואו נתחיל",
+    guideTitle: "איך עושים מכירת חצר ללא חצר",
+    guide: [
+      { h: "מעלים תמונות", p: [
+        "לוחצים ״העלאת תמונות״ ובוחרים מהטלפון את כל מה שרוצים למכור. אפשר הרבה תמונות בבת אחת.",
+        "שימו לב: אם בחרתם הרבה תמונות ביחד, זה יכול לקחת קצת זמן. אם ההעלאה נתקעה, פשוט מעלים שוב, ומה שכבר עלה ידולג.",
+      ] },
+      { h: "יוצרים פריט", p: [
+        "לוחצים על תמונה אחת או כמה, ואז ״יצירת פריט״.",
+        "״פריט אחד״: דבר אחד, גם אם צילמתם אותו מכמה זוויות, או סט שנמכר ביחד (שולחן וכיסאות). הכוכב בפינת התמונה בוחר את תמונת השער.",
+        "״מארז של פריטים״: כמה דברים שאפשר לקנות כל אחד בנפרד, כמו ספרים. אפשר גם מתמונה אחת של ערימה.",
+      ] },
+      { h: "קובעים מחיר", p: [
+        "כותבים מחיר, או לוחצים ״חינם״ למה שמוסרים.",
+        "במארז בוחרים אם המחיר ״לכל פריט״ או ״להכל״. המחיר הסופי נסגר ממילא בווטסאפ.",
+      ] },
+      { h: "שולחים לשכנים", p: [
+        "לוחצים ״קבל קישור ומודעה למכירה״ למעלה.",
+        "״שלח לינק עם פלייר״ שולח תמונה של מודעה יחד עם הלינק. ״שלח לינק בלבד״ שולח רק את הלינק. העיפרון ליד השם בפלייר משנה אותו.",
+      ] },
+      { h: "מקבלים בקשות", p: [
+        "מי שרוצה משהו מסמן לב ושולח לכם רשימה בווטסאפ. הבקשה מופיעה גם כאן, ב״בקשות שהגיעו״, והדברים נשמרים לו.",
+        "כשמשהו נמכר, פותחים את הפריט ולוחצים ״קיבלתי תשלום״.",
+      ] },
+    ],
     deleteItem: "מחיקה",
     confirmDelete: "למחוק את הפריט? התמונות שלו יחזרו לגלריה.",
     deleteWithPhotos: "מחק גם את התמונות עצמן",
@@ -462,6 +490,32 @@ export const STR = {
       whose: `${name}'s sale`,
     }),
     signOut: "Sign out",
+    guideBtn: "How it works",
+    guideDone: "Got it, let's go",
+    guideTitle: "How to run a garage sale without a garage",
+    guide: [
+      { h: "Upload photos", p: [
+        "Tap \"Upload photos\" and pick everything you want to sell. Many at once is fine.",
+        "Heads up: lots of photos at once can take a while. If it gets stuck, just upload again — what already made it is skipped.",
+      ] },
+      { h: "Make an item", p: [
+        "Tap one photo or several, then \"Create item\".",
+        "\"One item\": one thing, even from several angles, or a set sold together. The star on a photo picks the cover.",
+        "\"A lot of items\": things bought one by one, like books — even from a single photo of a pile.",
+      ] },
+      { h: "Set a price", p: [
+        "Type a price, or tap \"Free\" for a giveaway.",
+        "For a lot, choose whether it's per item or for the whole lot. The final price is settled on WhatsApp anyway.",
+      ] },
+      { h: "Send it to the neighbours", p: [
+        "Tap \"Get a link and an ad for the sale\" at the top.",
+        "\"Send link with flyer\" sends a flyer picture with the link; \"Send link only\" just the link. The pencil by the name on the flyer changes it.",
+      ] },
+      { h: "Get requests", p: [
+        "Buyers heart what they want and send you a list on WhatsApp. It shows up here too, and their things are held.",
+        "When something sells, open it and tap \"Money changed hands\".",
+      ] },
+    ],
     deleteItem: "Delete",
     confirmDelete: "Delete this item? Its photos go back to the gallery.",
     deleteWithPhotos: "Delete the photos themselves too",

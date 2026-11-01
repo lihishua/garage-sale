@@ -484,6 +484,15 @@ html[dir="rtl"] .gs-flip-prev svg{transform:none}
   margin-bottom:18px}
 .gs-board-logo{width:104px;height:auto;display:block;grid-column:2}
 .gs-board-head .gs-signout{grid-column:3;justify-self:end}
+.gs-guide-btn{grid-column:1;grid-row:1;justify-self:start;font-size:21px;font-weight:700;
+  text-decoration:underline;text-underline-offset:4px}
+/* the how-to: numbered steps, each number an orange disc */
+.gs-guide{list-style:none;margin:0 0 18px;padding:0;display:grid;gap:16px}
+.gs-guide li{display:flex;gap:12px;align-items:flex-start}
+.gs-guide-n{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;
+  background:var(--orange);color:#fff;border:2px solid var(--ink);font-size:20px;font-weight:700}
+.gs-guide-h{margin:2px 0 4px;font-size:23px;font-weight:700}
+.gs-guide p{margin:0 0 5px;font-size:18px;line-height:1.4}
 /* "tell me if it's back", under the note on a held item */
 .gs-wait{margin-top:4px}
 .gs-wait-done{margin:8px 0 0;text-align:center;color:var(--orange);font-size:19px}

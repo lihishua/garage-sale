@@ -52,6 +52,7 @@ export default function BoardClient({ profile, items: initial, requests, holderR
   // legitimately shows them again as free.
   const [listed, setListed] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [guide, setGuide] = useState(false);
   // requests released in this session. The rows come from the server component,
   // so they are held here until router.refresh() brings the board back without
   // them — otherwise a removed buyer sits on screen until a manual reload.
@@ -610,6 +611,8 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           outside the tinted panels, where it cannot read as one of the
           controls for adding stock. */}
       <div className="gs-board-head">
+        {/* the how-to, there whenever she wants it */}
+        <button className="gs-btn-ghost gs-guide-btn" onClick={() => setGuide(true)}>{t.guideBtn}</button>
         <img className="gs-board-logo" src="/logo.webp" alt="Garage Sale" />
         <button className="gs-btn-ghost gs-signout" onClick={async () => {
           await supabase.auth.signOut(); router.push("/login");
@@ -912,6 +915,23 @@ export default function BoardClient({ profile, items: initial, requests, holderR
           ) : (
             <p className="gs-lead">{t.flyerMaking}</p>
           )}
+        </Sheet>
+      )}
+
+      {guide && (
+        <Sheet title={t.guideTitle} onClose={() => setGuide(false)}>
+          <ol className="gs-guide">
+            {t.guide.map((s, n) => (
+              <li key={n}>
+                <span className="gs-guide-n" aria-hidden="true">{n + 1}</span>
+                <div>
+                  <h3 className="gs-guide-h">{s.h}</h3>
+                  {s.p.map((line) => <p key={line}>{line}</p>)}
+                </div>
+              </li>
+            ))}
+          </ol>
+          <button className="gs-btn gs-btn-orange gs-btn-wide" onClick={() => setGuide(false)}>{t.guideDone}</button>
         </Sheet>
       )}
 
