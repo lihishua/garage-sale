@@ -160,7 +160,7 @@ export const STR = {
     waReply: (buyer: string, seller: string) => `היי ${buyer}! כאן ${seller} בעניין מכירת החצר. מתי נוח לכם לאסוף?`,
     copied: "הקישור הועתק",
     // the flyer: the sale link as a picture to save and send
-    flyer: "קבל קישור ומודעה למכירה",
+    flyer: "קבל קישור למכירה",
     flyerTitle: "מודעה למכירה",
     flyerMaking: "מכינים את הפלייר...",
     flyerFailed: "יצירת פלייר נכשלה",
@@ -474,7 +474,7 @@ export const STR = {
     reqRemoveErr: "We couldn't remove the request.",
     waReply: (buyer: string, seller: string) => `Hi ${buyer}! ${seller} here about the garage sale. When suits you for pickup?`,
     copied: "Link copied",
-    flyer: "Get a link and an ad for the sale",
+    flyer: "Get a link to the sale",
     flyerTitle: "Sale flyer",
     flyerMaking: "Making the flyer…",
     flyerFailed: "We couldn't make the flyer.",
@@ -506,13 +506,12 @@ export const STR = {
         "Type a price, or tap \"Free\" for a giveaway.",
         "For a lot, choose whether it's per item or for the whole lot. The final price is settled on WhatsApp anyway.",
       ] },
-      { h: "Send it to the neighbours", p: [
-        "Tap \"Get a link and an ad for the sale\" at the top.",
-        "\"Send link with flyer\" sends a flyer picture with the link; \"Send link only\" just the link. The pencil by the name on the flyer changes it.",
+      { h: "Send it", p: [
+        "Tap \"Get a link to the sale\", get a link and a flyer, and send them to whoever you like.",
       ] },
       { h: "Get requests", p: [
-        "Buyers heart what they want and send you a list on WhatsApp. It shows up here too, and their things are held.",
-        "When something sells, open it and tap \"Money changed hands\".",
+        "Requests come in both here and on WhatsApp.",
+        "When something sells, mark it sold and it comes off the sale. If it doesn't sell in the end, it goes back on sale.",
       ] },
     ],
     deleteItem: "Delete",
